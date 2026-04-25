@@ -44,6 +44,7 @@
 <button class="add-btn" onclick="openAdd()">+</button>
 
 <script>
+// Firebase 설정
 const firebaseConfig = {
   apiKey: "AIzaSyArsOzrlKqK1BPH6ugGAhRWaq_gYmkvyIE",
   authDomain: "://firebaseapp.com",
@@ -55,10 +56,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// 근무 로직 (4월 26일 기준)
 const cycle = ['주1','주2','야1','야2','비1','비2'];
 const baseDate = new Date(2026, 3, 26);
-// 요청하신 기준 반영: 1조 야1(idx 2), 2조 비1(idx 4), 3조 주1(idx 0)
-const offsets = [2, 4, 0]; 
+const teamOffsets = [2, 4, 0]; // 1조 야1, 2조 비1, 3조 주1
 
 let current = new Date(2026, 3, 26);
 
@@ -70,7 +71,7 @@ function getColorClass(t) {
 
 function getDuty(date, teamIdx) {
     const diff = Math.floor((new Date(date).setHours(0,0,0,0) - baseDate.setHours(0,0,0,0)) / (1000*60*60*24));
-    const idx = (((offsets[teamIdx] + diff) % 6) + 6) % 6;
+    const idx = (((teamOffsets[teamIdx] + diff) % 6) + 6) % 6;
     return cycle[idx];
 }
 
@@ -108,6 +109,7 @@ async function render() {
         let vac = '<div class="vacation-list">';
         if (dbData[key]) {
             dbData[key].forEach((v, i) => {
+                // 검수수정: '${key}' 처럼 따옴표로 감싸야 삭제 함수가 인식됩니다.
                 vac += `<span class="vacation-tag ${getColorClass(v.type)}" onclick="del('${key}', ${i})">${v.name}(${v.type})</span>`;
             });
         }
@@ -118,10 +120,11 @@ async function render() {
 }
 
 async function openAdd() {
-    const name = prompt('이름'); if (!name) return;
-    const type = prompt('구분(연차, 반차 등)'); if (!type) return;
-    const date = prompt('날짜(YYYY-MM-DD)', `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-26`);
+    const name = prompt('성함'); if (!name) return;
+    const type = prompt('구분(연차/반차/교육 등)'); if (!type) return;
+    const date = prompt('날짜(YYYY-MM-DD)', `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`);
     if (!date) return;
+    
     const docRef = db.collection("vacations").doc(date);
     const doc = await docRef.get();
     let items = doc.exists ? doc.data().items : [];
@@ -131,7 +134,7 @@ async function openAdd() {
 }
 
 async function del(key, i) {
-    if (!confirm('삭제하시겠습니까?')) return;
+    if (!confirm('정말 삭제하시겠습니까?')) return;
     const docRef = db.collection("vacations").doc(key);
     const doc = await docRef.get();
     if (doc.exists) {
