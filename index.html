@@ -12,7 +12,7 @@
 <style>
 :root { 
     --primary: #2c3e50; --accent: #e74c3c; --today: #3498db; --border: #dee2e6;
-    --col-vacation: #1890ff; --col-work: #27ae60; --col-special: #e67e22; --col-leave: #8e44ad;
+    --col-vacation: #1890ff; --col-work: #27ae60; --col-leave: #8e44ad;
 }
 
 body { font-family: 'Pretendard', sans-serif; background: #f4f7f6; margin: 0; padding: 10px; color: #333; }
@@ -29,9 +29,8 @@ body { font-family: 'Pretendard', sans-serif; background: #f4f7f6; margin: 0; pa
 .duty-row { display: flex; justify-content: space-between; }
 .vacation-list { display: flex; flex-wrap: wrap; gap: 4px; }
 
-/* 태그 스타일 */
-.vacation-tag { font-size: 0.72rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
-.vacation-tag:hover { opacity: 0.7; text-decoration: line-through; } /* 마우스 올리면 삭제 예고 */
+/* 일정 태그 스타일 */
+.vacation-tag { font-size: 0.72rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
 .type-vacation { background: #eaf2ff; border-color: #adc8ff; color: var(--col-vacation); }
 .type-work { background: #eafff1; border-color: #b7ebc1; color: var(--col-work); }
 .type-leave { background: #f3e5f5; border-color: #d1c4e9; color: var(--col-leave); }
@@ -79,7 +78,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 /* =========================
-   변수 및 유틸
+   변수 및 근무 로직
 ========================= */
 const cycle = ['주1','주2','야1','야2','비1','비2'];
 const baseDate = new Date(2026,3,26);
@@ -103,11 +102,14 @@ function getDuty(date, off){
 ========================= */
 async function render(){
     const grid = document.getElementById('calendarGrid');
+    if(!grid) return;
     grid.innerHTML='';
+    
     const y=current.getFullYear();
     const m=current.getMonth();
     document.getElementById('monthDisplay').innerText=`${y}년 ${m+1}월`;
 
+    // 요일 라벨
     ['일','월','화','수','목','금','토'].forEach(d=>{
         const el=document.createElement('div');
         el.className='day-label';
@@ -135,6 +137,7 @@ async function render(){
         if(date.getDay()==6) cell.classList.add('week-sat');
         if(date.toLocaleDateString() === new Date().toLocaleDateString()) cell.classList.add('is-today');
 
+        // 근무조 계산
         let duty='<div class="duty-container">';
         [0,2,4].forEach((o,i)=>{
             const v=getDuty(date,o);
@@ -142,10 +145,10 @@ async function render(){
         });
         duty+='</div>';
 
+        // 일정 리스트 (삭제 클릭 이벤트 포함)
         let vac='<div class="vacation-list">';
         if(dbData[key]){
             dbData[key].forEach((v,i)=>{
-                // 태그 클릭 시 del() 함수 호출하도록 수정
                 vac+=`<span class="vacation-tag ${getColorClass(v.type)}" onclick="del('${key}', ${i})">${v.name}(${v.type})</span>`;
             });
         }
@@ -157,13 +160,13 @@ async function render(){
 }
 
 /* =========================
-   추가 및 삭제 함수
+   추가 및 삭제 기능
 ========================= */
 async function openAdd(){
-    const name=prompt('성함을 입력하세요');
+    const name=prompt('이름을 입력하세요');
     if(!name) return;
-    const type=prompt('구분 (연차, 전반반차, 출장 등)');
-    const date=prompt('날짜를 입력하세요 (예: 2026-04-26)');
+    const type=prompt('구분 (연차, 반차, 교육 등)');
+    const date=prompt('날짜 (YYYY-MM-DD)', `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-01`);
     if(!date) return;
 
     const docRef = db.collection("vacations").doc(date);
@@ -172,25 +175,19 @@ async function openAdd(){
     items.push({name, type});
     
     await docRef.set({items});
-    render(); // 저장 후 즉시 갱신
+    render();
 }
 
 async function del(key, i){
-    if(!confirm('이 일정을 삭제하시겠습니까?')) return;
-    
+    if(!confirm('해당 일정을 삭제하시겠습니까?')) return;
     const docRef = db.collection("vacations").doc(key);
     const doc = await docRef.get();
-    
     if(doc.exists){
         let items = doc.data().items;
-        items.splice(i, 1); // 해당 인덱스 삭제
-        
-        if(items.length === 0){
-            await docRef.delete(); // 데이터가 없으면 문서 삭제
-        } else {
-            await docRef.set({items}); // 남은 데이터 저장
-        }
-        render(); // 삭제 후 즉시 갱신
+        items.splice(i, 1);
+        if(items.length === 0) await docRef.delete();
+        else await docRef.set({items});
+        render();
     }
 }
 
