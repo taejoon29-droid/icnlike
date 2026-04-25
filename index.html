@@ -129,6 +129,7 @@ body {
     border: none;
     font-size: 24px;
     cursor: pointer;
+    z-index: 10;
 }
 
 .add-btn {
@@ -143,6 +144,7 @@ body {
     border: none;
     font-size: 30px;
     cursor: pointer;
+    z-index: 10;
 }
 
 /* 색 유지 */
@@ -153,11 +155,11 @@ b[data-type^="비"] { color: #27ae60; }
 .week-sun .date-number { color: #e74c3c; }
 .week-sat .date-number { color: #3498db; }
 
-/* 숨겨진 날짜 선택기용 */
-#hiddenDatePicker {
+/* 날짜 선택기 숨김 */
+#hiddenDateInput {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
+    top: -100px;
+    left: -100px;
     visibility: hidden;
 }
 
@@ -177,16 +179,17 @@ b[data-type^="비"] { color: #27ae60; }
 <div class="calendar-grid" id="calendarGrid"></div>
 
 <button class="food-btn" onclick="window.open('https://web.app', '_blank')">🍴</button>
-<!-- 보이지 않는 날짜 선택기 추가 -->
-<input type="date" id="hiddenDatePicker" onchange="processAdd(this.value)">
+
+<!-- 보이지 않는 날짜 선택 인풋 -->
+<input type="date" id="hiddenDateInput">
 <button class="add-btn" onclick="openAdd()">+</button>
 
 <script>
-
+// 순환: 주1(0), 주2(1), 야1(2), 야2(3), 비1(4), 비2(5)
 const cycle = ['주1','주2','야1','야2','비1','비2'];
-// 요청하신 기준일과 셋팅
+// 기준일: 2026년 4월 26일 (1조 야1 기준)
 const baseDate = new Date(2026, 3, 26); 
-const t1StartIdx = 2; // 1조가 야1부터 시작
+const t1StartIdx = 2; // 야1
 
 let current = new Date();
 
@@ -197,121 +200,124 @@ function save(data){
     localStorage.setItem('vac', JSON.stringify(data));
 }
 
-/* =========================
-   근무 계산 (요청 조건 반영)
-========================= */
-function getDuty(date, offset){
-    const d1 = new Date(baseDate).setHours(0,0,0,0);
-    const d2 = new Date(date).setHours(0,0,0,0);
-    const diff = Math.floor((d2 - d1) / (1000*60*60*24));
-    // 1조 기준(offset 0)일 때 야1(idx 2)이 나오도록 계산
-    const idx = (((t1StartIdx + diff + offset) % 6) + 6) % 6;
+/* 근무 계산 함수 */
+function getDuty(targetDate, groupOffset){
+    const d1 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+    const d2 = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    
+    const diff = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+    
+    // 1조(야1), 2조(비1), 3조(주1)가 나오도록 오프셋 설정
+    // groupOffset: 1조=0, 2조=2, 3조=4 (주주-야야-비비 순환에서 2칸씩 차이)
+    const idx = (((t1StartIdx + diff + groupOffset) % 6) + 6) % 6;
     return cycle[idx];
 }
 
 function render(){
     const grid = document.getElementById('calendarGrid');
-    grid.innerHTML='';
-    const y=current.getFullYear();
-    const m=current.getMonth();
+    grid.innerHTML = '';
+
+    const y = current.getFullYear();
+    const m = current.getMonth();
     const today = new Date();
 
-    document.getElementById('monthDisplay').innerText=`${y}년 ${m+1}월`;
+    document.getElementById('monthDisplay').innerText = `${y}년 ${m+1}월`;
+
     const data = load();
 
-    ['일','월','화','수','목','금','토'].forEach(d=>{
-        const el=document.createElement('div');
-        el.className='day-label';
-        el.innerText=d;
+    ['일','월','화','수','목','금','토'].forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'day-label';
+        el.innerText = d;
         grid.appendChild(el);
     });
 
-    const first=new Date(y,m,1).getDay();
-    const last=new Date(y,m+1,0).getDate();
+    const first = new Date(y, m, 1).getDay();
+    const last = new Date(y, m + 1, 0).getDate();
 
-    for(let i=0;i<first;i++) grid.appendChild(document.createElement('div'));
+    for(let i=0; i<first; i++) grid.appendChild(document.createElement('div'));
 
     for(let d=1; d<=last; d++){
-        const date=new Date(y,m,d);
-        const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const cell=document.createElement('div');
-        cell.className='day-cell';
+        const date = new Date(y, m, d);
+        const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
 
         if(date.toDateString() === today.toDateString()) cell.classList.add('is-today');
-        if(date.getDay()==0) cell.classList.add('week-sun');
-        if(date.getDay()==6) cell.classList.add('week-sat');
+        if(date.getDay() === 0) cell.classList.add('week-sun');
+        if(date.getDay() === 6) cell.classList.add('week-sat');
 
-        let duty='<div class="duty-container">';
-        // 4월 26일 기준: 1조(offset 0)=야1, 2조(offset 2)=비1, 3조(offset 4)=주1 매칭
-        [0, 2, 4].forEach((o, i)=>{
-            const v = getDuty(date, o);
+        let duty = '<div class="duty-container">';
+        // 오프셋 0(1조), 2(2조), 4(3조)를 적용하여 4/26 기준 야1, 비1, 주1 완성
+        const groupOffsets = [0, 2, 4];
+        groupOffsets.forEach((off, i) => {
+            const v = getDuty(date, off);
             duty += `<div class="duty-row"><span>${i+1}조</span><b data-type="${v}">${v}</b></div>`;
         });
-        duty+='</div>';
+        duty += '</div>';
 
-        let vac='<div class="vacation-list">';
+        let vac = '<div class="vacation-list">';
         if(data[key]){
-            data[key].forEach((v,i)=>{
-                vac+=`<span class="vacation-tag" onclick="del('${key}',${i})">${v.name}(${v.type})</span>`;
+            data[key].forEach((v, i) => {
+                vac += `<span class="vacation-tag" onclick="del('${key}',${i})">${v.name}(${v.type})</span>`;
             });
         }
-        vac+='</div>';
+        vac += '</div>';
 
-        cell.innerHTML=`<span class="date-number">${d}</span>${duty}${vac}`;
+        cell.innerHTML = `<span class="date-number">${d}</span>${duty}${vac}`;
         grid.appendChild(cell);
     }
 }
 
-/* =========================
-   추가 로직 (달력 선택 방식)
-========================= */
-let tempName = '';
-let tempType = '';
-
+/* 연차 추가 프로세스 */
 function openAdd(){
-    const name = prompt('이름');
+    const name = prompt('이름을 입력하세요');
     if(!name) return;
-    const type = prompt('연차/반차/출장 등');
+    const type = prompt('구분 (연차/반차/출장 등)');
     if(!type) return;
+
+    const dateInput = document.getElementById('hiddenDateInput');
     
-    tempName = name;
-    tempType = type;
-    
-    // 숨겨진 데이트피커 클릭 트리거
-    document.getElementById('hiddenDatePicker').showPicker(); 
+    // 이전에 걸려있던 리스너 제거 및 새로 등록
+    dateInput.onchange = function() {
+        const dateValue = this.value;
+        if(!dateValue) return;
+
+        let data = load();
+        if(!data[dateValue]) data[dateValue] = [];
+        data[dateValue].push({name, type});
+        save(data);
+        
+        this.value = ''; // 값 비우기
+        render();
+    };
+
+    // 달력 UI 호출
+    if (dateInput.showPicker) {
+        dateInput.showPicker();
+    } else {
+        // showPicker 미지원 브라우저 대비
+        alert('날짜 선택창이 뜨지 않으면 입력창을 직접 클릭해주세요.');
+        dateInput.style.visibility = 'visible';
+    }
 }
 
-function processAdd(dateValue){
-    if(!dateValue || !tempName) return;
-
-    let data = load();
-    if(!data[dateValue]) data[dateValue] = [];
-    data[dateValue].push({name: tempName, type: tempType});
-    save(data);
-    
-    // 초기화 및 리렌더링
-    tempName = '';
-    tempType = '';
-    document.getElementById('hiddenDatePicker').value = '';
-    render();
-}
-
-function del(key,i){
+function del(key, i){
     if(!confirm('삭제하시겠습니까?')) return;
     let data = load();
-    data[key].splice(i,1);
-    if(data[key].length==0) delete data[key];
+    data[key].splice(i, 1);
+    if(data[key].length === 0) delete data[key];
     save(data);
     render();
 }
 
 function moveMonth(n){
-    current.setMonth(current.getMonth()+n);
+    current.setMonth(current.getMonth() + n);
     render();
 }
 
-document.addEventListener('DOMContentLoaded',render);
-
+document.addEventListener('DOMContentLoaded', render);
 </script>
+
 </body>
 </html>
