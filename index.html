@@ -74,15 +74,13 @@ body {
     border-radius: 10px;
     min-height: 160px;
     padding: 10px;
-    transition: background 0.2s;
 }
 
+/* 등록 모드 시 스타일 */
 .day-cell.add-mode {
     cursor: pointer;
     border: 2px dashed var(--accent);
-}
-.day-cell.add-mode:hover {
-    background: #fff5f5;
+    background: #fffafa;
 }
 
 .date-number {
@@ -126,7 +124,8 @@ body {
     background: #eee;
 }
 
-.food-btn {
+/* 식단표 링크 버튼 스타일 (a태그 포함) */
+.food-link {
     position: fixed;
     bottom: 100px;
     right: 30px;
@@ -135,9 +134,11 @@ body {
     background: #27ae60;
     color: white;
     border-radius: 50%;
-    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
     font-size: 24px;
-    cursor: pointer;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     z-index: 100;
 }
@@ -164,7 +165,6 @@ b[data-type^="비"] { color: #27ae60; }
 
 .week-sun .date-number { color: #e74c3c; }
 .week-sat .date-number { color: #3498db; }
-
 </style>
 </head>
 
@@ -180,8 +180,9 @@ b[data-type^="비"] { color: #27ae60; }
 
 <div class="calendar-grid" id="calendarGrid"></div>
 
-<!-- 식단표 링크: https://icn-cafeteria.web.app/ 정상 반영됨 -->
-<button class="food-btn" onclick="window.open('https://icn-cafeteria.web.app/', '_blank')">🍴</button>
+<!-- 식단표 버튼: a 태그로 직접 감싸서 링크 깨짐 방지 -->
+<a href="https://web.app" target="_blank" class="food-link">🍴</a>
+
 <button class="add-btn" id="mainAddBtn" onclick="toggleAddMode()">+</button>
 
 <script>
@@ -244,7 +245,7 @@ function render() {
         if(date.getDay() === 6) cell.classList.add('week-sat');
 
         let dutyHtml = '<div class="duty-container">';
-        // 검수: 오프셋 [0, 2, 4]를 정확히 삽입했습니다.
+        // 1조(0), 2조(2), 3조(4) 오프셋 고정
         const offsets = [0, 2, 4]; 
         offsets.forEach((off, i) => {
             const v = getDuty(date, off);
@@ -269,12 +270,13 @@ function toggleAddMode() {
     if(isAddMode) { resetAddMode(); return; }
     const name = prompt('이름');
     if(!name) return;
-    const type = prompt('구분');
+    const type = prompt('연차/반차/출장 등');
     if(!type) return;
+
     pendingInfo = { name, type };
     isAddMode = true;
     document.getElementById('mainAddBtn').innerText = '✕';
-    alert('달력에서 등록할 날짜 칸을 클릭하세요.');
+    alert('달력에서 등록할 날짜 칸을 클릭해 주세요.');
     render();
 }
 
@@ -293,7 +295,7 @@ function resetAddMode() {
 }
 
 function del(key, idx) {
-    if(!confirm('삭제?')) return;
+    if(!confirm('삭제하시겠습니까?')) return;
     let data = load();
     data[key].splice(idx, 1);
     if(data[key].length === 0) delete data[key];
