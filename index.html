@@ -114,6 +114,7 @@ body {
     padding: 2px 6px;
     border-radius: 4px;
     cursor: pointer;
+    background: #eee;
 }
 
 .food-btn {
@@ -152,6 +153,14 @@ b[data-type^="비"] { color: #27ae60; }
 .week-sun .date-number { color: #e74c3c; }
 .week-sat .date-number { color: #3498db; }
 
+/* 숨겨진 날짜 선택기용 */
+#hiddenDatePicker {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    visibility: hidden;
+}
+
 </style>
 </head>
 
@@ -167,20 +176,20 @@ b[data-type^="비"] { color: #27ae60; }
 
 <div class="calendar-grid" id="calendarGrid"></div>
 
-<button class="food-btn" onclick="window.open('https://icn-cafeteria.web.app/', '_blank')">🍴</button>
+<button class="food-btn" onclick="window.open('https://web.app', '_blank')">🍴</button>
+<!-- 보이지 않는 날짜 선택기 추가 -->
+<input type="date" id="hiddenDatePicker" onchange="processAdd(this.value)">
 <button class="add-btn" onclick="openAdd()">+</button>
 
 <script>
 
 const cycle = ['주1','주2','야1','야2','비1','비2'];
-const baseDate = new Date(2026,3,26);
-const t1StartIdx = 2;
+// 요청하신 기준일과 셋팅
+const baseDate = new Date(2026, 3, 26); 
+const t1StartIdx = 2; // 1조가 야1부터 시작
 
 let current = new Date();
 
-/* =========================
-   데이터
-========================= */
 function load(){
     return JSON.parse(localStorage.getItem('vac') || '{}');
 }
@@ -189,123 +198,120 @@ function save(data){
 }
 
 /* =========================
-   근무
+   근무 계산 (요청 조건 반영)
 ========================= */
-function getDuty(date, off){
-    const diff = Math.floor((date-baseDate)/(1000*60*60*24));
-    const idx = (((t1StartIdx+diff-off)%6)+6)%6;
+function getDuty(date, offset){
+    const d1 = new Date(baseDate).setHours(0,0,0,0);
+    const d2 = new Date(date).setHours(0,0,0,0);
+    const diff = Math.floor((d2 - d1) / (1000*60*60*24));
+    // 1조 기준(offset 0)일 때 야1(idx 2)이 나오도록 계산
+    const idx = (((t1StartIdx + diff + offset) % 6) + 6) % 6;
     return cycle[idx];
 }
 
-/* =========================
-   렌더
-========================= */
 function render(){
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML='';
+    const y=current.getFullYear();
+    const m=current.getMonth();
+    const today = new Date();
 
-const grid = document.getElementById('calendarGrid');
-grid.innerHTML='';
+    document.getElementById('monthDisplay').innerText=`${y}년 ${m+1}월`;
+    const data = load();
 
-const y=current.getFullYear();
-const m=current.getMonth();
+    ['일','월','화','수','목','금','토'].forEach(d=>{
+        const el=document.createElement('div');
+        el.className='day-label';
+        el.innerText=d;
+        grid.appendChild(el);
+    });
 
-document.getElementById('monthDisplay').innerText=`${y}년 ${m+1}월`;
+    const first=new Date(y,m,1).getDay();
+    const last=new Date(y,m+1,0).getDate();
 
-const data = load();
+    for(let i=0;i<first;i++) grid.appendChild(document.createElement('div'));
 
-['일','월','화','수','목','금','토'].forEach(d=>{
-    const el=document.createElement('div');
-    el.className='day-label';
-    el.innerText=d;
-    grid.appendChild(el);
-});
+    for(let d=1; d<=last; d++){
+        const date=new Date(y,m,d);
+        const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const cell=document.createElement('div');
+        cell.className='day-cell';
 
-const first=new Date(y,m,1).getDay();
-const last=new Date(y,m+1,0).getDate();
+        if(date.toDateString() === today.toDateString()) cell.classList.add('is-today');
+        if(date.getDay()==0) cell.classList.add('week-sun');
+        if(date.getDay()==6) cell.classList.add('week-sat');
 
-for(let i=0;i<first;i++) grid.appendChild(document.createElement('div'));
+        let duty='<div class="duty-container">';
+        // 4월 26일 기준: 1조(offset 0)=야1, 2조(offset 2)=비1, 3조(offset 4)=주1 매칭
+        [0, 2, 4].forEach((o, i)=>{
+            const v = getDuty(date, o);
+            duty += `<div class="duty-row"><span>${i+1}조</span><b data-type="${v}">${v}</b></div>`;
+        });
+        duty+='</div>';
 
-for(let d=1; d<=last; d++){
+        let vac='<div class="vacation-list">';
+        if(data[key]){
+            data[key].forEach((v,i)=>{
+                vac+=`<span class="vacation-tag" onclick="del('${key}',${i})">${v.name}(${v.type})</span>`;
+            });
+        }
+        vac+='</div>';
 
-const date=new Date(y,m,d);
-const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-
-const cell=document.createElement('div');
-cell.className='day-cell';
-
-if(date.getDay()==0) cell.classList.add('week-sun');
-if(date.getDay()==6) cell.classList.add('week-sat');
-
-let duty='<div class="duty-container">';
-[0,2,4].forEach((o,i)=>{
-    const v=getDuty(date,o);
-    duty+=`<div class="duty-row"><span>${i+1}조</span><b data-type="${v}">${v}</b></div>`;
-});
-duty+='</div>';
-
-let vac='<div class="vacation-list">';
-
-if(data[key]){
-data[key].forEach((v,i)=>{
-vac+=`<span class="vacation-tag" onclick="del('${key}',${i})">
-${v.name}(${v.type})
-</span>`;
-});
-}
-
-vac+='</div>';
-
-cell.innerHTML=`<span class="date-number">${d}</span>${duty}${vac}`;
-
-grid.appendChild(cell);
-}
-
+        cell.innerHTML=`<span class="date-number">${d}</span>${duty}${vac}`;
+        grid.appendChild(cell);
+    }
 }
 
 /* =========================
-   추가
+   추가 로직 (달력 선택 방식)
 ========================= */
+let tempName = '';
+let tempType = '';
+
 function openAdd(){
-const name=prompt('이름');
-if(!name) return;
-
-const type=prompt('연차/반차/출장 등');
-const date=prompt('YYYY-MM-DD');
-if(!date) return;
-
-let data=load();
-if(!data[date]) data[date]=[];
-
-data[date].push({name,type});
-save(data);
-
-render();
+    const name = prompt('이름');
+    if(!name) return;
+    const type = prompt('연차/반차/출장 등');
+    if(!type) return;
+    
+    tempName = name;
+    tempType = type;
+    
+    // 숨겨진 데이트피커 클릭 트리거
+    document.getElementById('hiddenDatePicker').showPicker(); 
 }
 
-/* =========================
-   삭제
-========================= */
+function processAdd(dateValue){
+    if(!dateValue || !tempName) return;
+
+    let data = load();
+    if(!data[dateValue]) data[dateValue] = [];
+    data[dateValue].push({name: tempName, type: tempType});
+    save(data);
+    
+    // 초기화 및 리렌더링
+    tempName = '';
+    tempType = '';
+    document.getElementById('hiddenDatePicker').value = '';
+    render();
+}
+
 function del(key,i){
-if(!confirm('삭제하시겠습니까?')) return;
-
-let data=load();
-data[key].splice(i,1);
-if(data[key].length==0) delete data[key];
-
-save(data);
-render();
+    if(!confirm('삭제하시겠습니까?')) return;
+    let data = load();
+    data[key].splice(i,1);
+    if(data[key].length==0) delete data[key];
+    save(data);
+    render();
 }
 
-/* =========================
-   이동
-========================= */
 function moveMonth(n){
-current.setMonth(current.getMonth()+n);
-render();
+    current.setMonth(current.getMonth()+n);
+    render();
 }
 
 document.addEventListener('DOMContentLoaded',render);
 
 </script>
-
 </body>
 </html>
