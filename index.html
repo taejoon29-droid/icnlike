@@ -74,17 +74,16 @@ body {
     border-radius: 10px;
     min-height: 160px;
     padding: 10px;
-    transition: all 0.2s;
+    transition: background 0.2s;
 }
 
-/* 날짜 선택 활성화 시 스타일 */
-.day-cell.clickable {
+/* 등록 모드일 때의 스타일 */
+.day-cell.add-mode {
     cursor: pointer;
     border: 2px dashed var(--accent);
 }
-.day-cell.clickable:hover {
+.day-cell.add-mode:hover {
     background: #fff5f5;
-    transform: translateY(-2px);
 }
 
 .date-number {
@@ -141,7 +140,7 @@ body {
     font-size: 24px;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    z-index: 99;
+    z-index: 10;
 }
 
 .add-btn {
@@ -157,7 +156,7 @@ body {
     font-size: 30px;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    z-index: 100;
+    z-index: 10;
 }
 
 b[data-type^="주"] { color: #d4a017; }
@@ -183,16 +182,16 @@ b[data-type^="비"] { color: #27ae60; }
 <div class="calendar-grid" id="calendarGrid"></div>
 
 <button class="food-btn" onclick="window.open('https://web.app', '_blank')">🍴</button>
-<button class="add-btn" id="addBtn" onclick="startAdd()">+</button>
+<button class="add-btn" id="mainAddBtn" onclick="toggleAddMode()">+</button>
 
 <script>
 const cycle = ['주1','주2','야1','야2','비1','비2'];
-const baseDate = new Date(2026, 3, 26); // 2026-04-26
+const baseDate = new Date(2026, 3, 26); // 2026년 4월 26일
 const t1StartIdx = 2; // 1조 야1
 
 let current = new Date();
-let isAdding = false;
-let pendingData = { name: '', type: '' };
+let isAddMode = false;
+let pendingInfo = { name: '', type: '' };
 
 function load() { return JSON.parse(localStorage.getItem('vac') || '{}'); }
 function save(data) { localStorage.setItem('vac', JSON.stringify(data)); }
@@ -207,100 +206,119 @@ function getDuty(date, off) {
 
 function render() {
     const grid = document.getElementById('calendarGrid');
+    if(!grid) return;
     grid.innerHTML = '';
-    const y = current.getFullYear(), m = current.getMonth();
+
+    const y = current.getFullYear();
+    const m = current.getMonth();
     const today = new Date();
+
     document.getElementById('monthDisplay').innerText = `${y}년 ${m+1}월`;
     const data = load();
 
+    // 요일 표시
     ['일','월','화','수','목','금','토'].forEach(d => {
         const el = document.createElement('div');
-        el.className = 'day-label'; el.innerText = d;
+        el.className = 'day-label';
+        el.innerText = d;
         grid.appendChild(el);
     });
 
-    const first = new Date(y, m, 1).getDay();
-    const last = new Date(y, m + 1, 0).getDate();
+    const firstDay = new Date(y, m, 1).getDay();
+    const lastDate = new Date(y, m + 1, 0).getDate();
 
-    for(let i=0; i<first; i++) grid.appendChild(document.createElement('div'));
+    // 시작일 앞 빈칸
+    for(let i=0; i<firstDay; i++) {
+        grid.appendChild(document.createElement('div'));
+    }
 
-    for(let d=1; d<=last; d++) {
+    // 날짜 칸 생성
+    for(let d=1; d<=lastDate; d++){
         const date = new Date(y, m, d);
         const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        
         const cell = document.createElement('div');
         cell.className = 'day-cell';
 
-        if(isAdding) {
-            cell.classList.add('clickable');
-            cell.onclick = () => finishAdd(key);
+        // 등록 모드 시 클릭 가능하게 설정
+        if(isAddMode) {
+            cell.classList.add('add-mode');
+            cell.onclick = () => confirmAdd(key);
         }
 
         if(date.toDateString() === today.toDateString()) cell.classList.add('is-today');
         if(date.getDay() === 0) cell.classList.add('week-sun');
         if(date.getDay() === 6) cell.classList.add('week-sat');
 
-        let duty = '<div class="duty-container">';
-        // 1조(off 0), 2조(off 2), 3조(off 4)
-        [0, 2, 4].forEach((o, i) => {
-            const v = getDuty(date, o);
-            duty += `<div class="duty-row"><span>${i+1}조</span><b data-type="${v}">${v}</b></div>`;
+        // 근무 정보 (1조 야1, 2조 비1, 3조 주1 기준 오프셋 0, 2, 4)
+        let dutyHtml = '<div class="duty-container">';
+        const offsets = [0, 2, 4]; 
+        offsets.forEach((off, i) => {
+            const v = getDuty(date, off);
+            dutyHtml += `<div class="duty-row"><span>${i+1}조</span><b data-type="${v}">${v}</b></div>`;
         });
-        duty += '</div>';
+        dutyHtml += '</div>';
 
-        let vac = '<div class="vacation-list">';
-        if(data[key]) {
-            data[key].forEach((v, i) => {
-                vac += `<span class="vacation-tag" onclick="event.stopPropagation(); del('${key}',${i})">${v.name}(${v.type})</span>`;
+        // 연차 리스트
+        let vacHtml = '<div class="vacation-list">';
+        if(data[key]){
+            data[key].forEach((v, idx) => {
+                vacHtml += `<span class="vacation-tag" onclick="event.stopPropagation(); del('${key}',${idx})">${v.name}(${v.type})</span>`;
             });
         }
-        vac += '</div>';
+        vacHtml += '</div>';
 
-        cell.innerHTML = `<span class="date-number">${d}</span>${duty}${vac}`;
+        cell.innerHTML = `<span class="date-number">${d}</span>${dutyHtml}${vacHtml}`;
         grid.appendChild(cell);
     }
 }
 
-function startAdd() {
-    if(isAdding) { cancelAdd(); return; }
-    const name = prompt('이름');
+function toggleAddMode() {
+    if(isAddMode) { resetAddMode(); return; }
+    
+    const name = prompt('성함을 입력하세요');
     if(!name) return;
-    const type = prompt('연차/반차/출장 등');
+    const type = prompt('구분 (연차/반차/출장 등)');
     if(!type) return;
 
-    pendingData = { name, type };
-    isAdding = true;
-    document.getElementById('addBtn').innerText = '✕';
-    document.getElementById('addBtn').style.background = '#95a5a6';
-    alert('달력에서 등록할 날짜를 클릭하세요.');
+    pendingInfo = { name, type };
+    isAddMode = true;
+    
+    const btn = document.getElementById('mainAddBtn');
+    btn.innerText = '✕';
+    btn.style.background = '#95a5a6';
+    
+    alert('달력에서 등록하고 싶은 날짜 칸을 클릭해 주세요.');
     render();
 }
 
-function finishAdd(key) {
+function confirmAdd(key) {
     let data = load();
     if(!data[key]) data[key] = [];
-    data[key].push(pendingData);
+    data[key].push(pendingInfo);
     save(data);
-    cancelAdd();
+    resetAddMode();
 }
 
-function cancelAdd() {
-    isAdding = false;
-    document.getElementById('addBtn').innerText = '+';
-    document.getElementById('addBtn').style.background = 'var(--accent)';
+function resetAddMode() {
+    isAddMode = false;
+    const btn = document.getElementById('mainAddBtn');
+    btn.innerText = '+';
+    btn.style.background = 'var(--accent)';
     render();
 }
 
-function del(key, i) {
+function del(key, idx) {
     if(!confirm('삭제하시겠습니까?')) return;
     let data = load();
-    data[key].splice(i, 1);
+    data[key].splice(idx, 1);
     if(data[key].length === 0) delete data[key];
     save(data);
     render();
 }
 
 function moveMonth(n) {
-    if(isAdding) cancelAdd();
+    if(isAddMode) resetAddMode();
     current.setMonth(current.getMonth() + n);
     render();
 }
