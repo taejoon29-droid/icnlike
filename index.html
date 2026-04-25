@@ -23,7 +23,7 @@
     .date-number { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; display: block; }
     .is-today { border: 3px solid var(--today) !important; background: #ebf5fb; }
     .duty-container { background: #fcfcfc; border-radius: 6px; padding: 6px; font-size: 0.75rem; margin-bottom: 8px; border: 1px solid #eee; }
-    .duty-row { display: flex; justify-content: space-between; }
+    .duty-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
     b[data-type^="주"] { color: #d4a017; } b[data-type^="야"] { color: #8e44ad; } b[data-type^="비"] { color: #27ae60; }
     .vacation-list { display: flex; flex-wrap: wrap; gap: 4px; }
     .vacation-tag { font-size: 0.72rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
@@ -40,13 +40,12 @@
         <span id="monthDisplay"></span>
         <button class="nav-btn" onclick="moveMonth(1)">다음달 ▶</button>
     </div>
-    <p style="font-size:0.8rem; color:#888; margin-top:10px;">기준: 4/26 1조 야1, 2조 비1, 3조 주1 (순환: 주주야야비비)</p>
+    <p style="font-size:0.8rem; color:#888; margin-top:10px;">근무순환: 주주야야비비 (4/26 기준 1조 야1, 2조 비1, 3조 주1)</p>
 </div>
 <div class="calendar-grid" id="calendarGrid"></div>
 <button class="add-btn" onclick="openAdd()">+</button>
 
 <script>
-// 1. Firebase 설정
 const firebaseConfig = {
   apiKey: "AIzaSyArsOzrlKqK1BPH6ugGAhRWaq_gYmkvyIE",
   authDomain: "://firebaseapp.com",
@@ -58,11 +57,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 2. 주주야야비비 로테이션 설정
 const cycle = ['주1', '주2', '야1', '야2', '비1', '비2'];
-const baseDate = new Date(2026, 3, 26); // 2026년 4월 26일
-
-// 4/26 기준 오프셋 계산: 1조 야1(idx 2), 2조 비1(idx 4), 3조 주1(idx 0)
+const baseDate = new Date(2026, 3, 26);
+// 1조 야1(idx 2), 2조 비1(idx 4), 3조 주1(idx 0) 오프셋
 const teamOffsets = [2, 4, 0]; 
 
 let current = new Date(2026, 3, 26);
@@ -77,13 +74,13 @@ function getDuty(date, teamIdx) {
     const d = new Date(date).setHours(0,0,0,0);
     const b = new Date(baseDate).setHours(0,0,0,0);
     const diff = Math.floor((d - b) / (1000*60*60*24));
-    // 주주야야비비 순환 계산
     const idx = (((teamOffsets[teamIdx] + diff) % 6) + 6) % 6;
     return cycle[idx];
 }
 
 async function render() {
     const grid = document.getElementById('calendarGrid');
+    if(!grid) return;
     grid.innerHTML = '';
     const y = current.getFullYear(), m = current.getMonth();
     document.getElementById('monthDisplay').innerText = `${y}년 ${m + 1}월`;
@@ -116,7 +113,6 @@ async function render() {
         let vacHtml = '<div class="vacation-list">';
         if (dbData[key]) {
             dbData[key].forEach((v, i) => {
-                // 삭제 함수 del의 매개변수를 문자열로 감싸도록 수정 (핵심!)
                 vacHtml += `<span class="vacation-tag ${getColorClass(v.type)}" onclick="del('${key}', ${i})">${v.name}(${v.type})</span>`;
             });
         }
@@ -129,8 +125,8 @@ async function render() {
 
 async function openAdd() {
     const name = prompt('이름을 입력하세요'); if (!name) return;
-    const type = prompt('구분(연차/반차/교육 등)'); if (!type) return;
-    const date = prompt('날짜(YYYY-MM-DD)', `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-26`);
+    const type = prompt('구분(연차, 반차, 교육 등)'); if (!type) return;
+    const date = prompt('날짜(YYYY-MM-DD)', `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`);
     if (!date) return;
 
     const docRef = db.collection("vacations").doc(date);
