@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>전원설비 실시간 공유 현황판</title>
+<!-- Firebase SDK -->
 <script src="https://gstatic.com"></script>
 <script src="https://gstatic.com"></script>
 <style>
@@ -39,6 +40,7 @@
         <span id="monthDisplay"></span>
         <button class="nav-btn" onclick="moveMonth(1)">다음달 ▶</button>
     </div>
+    <p style="font-size:0.8rem; color:#888; margin-top:10px;">기준: 4/26 1조 야1, 2조 비1, 3조 주1</p>
 </div>
 <div class="calendar-grid" id="calendarGrid"></div>
 <button class="add-btn" onclick="openAdd()">+</button>
@@ -56,7 +58,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 근무 로직 (4월 26일 기준)
+// 근무 조 세팅
 const cycle = ['주1','주2','야1','야2','비1','비2'];
 const baseDate = new Date(2026, 3, 26);
 const teamOffsets = [2, 4, 0]; // 1조 야1, 2조 비1, 3조 주1
@@ -70,7 +72,11 @@ function getColorClass(t) {
 }
 
 function getDuty(date, teamIdx) {
-    const diff = Math.floor((new Date(date).setHours(0,0,0,0) - baseDate.setHours(0,0,0,0)) / (1000*60*60*24));
+    const d = new Date(date);
+    d.setHours(0,0,0,0);
+    const b = new Date(baseDate);
+    b.setHours(0,0,0,0);
+    const diff = Math.floor((d - b) / (1000*60*60*24));
     const idx = (((teamOffsets[teamIdx] + diff) % 6) + 6) % 6;
     return cycle[idx];
 }
@@ -85,6 +91,7 @@ async function render() {
         const el = document.createElement('div'); el.className = 'day-label'; el.innerText = d; grid.appendChild(el);
     });
 
+    // 실시간 데이터 로드
     const snapshot = await db.collection("vacations").get();
     const dbData = {};
     snapshot.forEach(doc => dbData[doc.id] = doc.data().items);
@@ -97,34 +104,36 @@ async function render() {
         const date = new Date(y, m, d);
         const key = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const cell = document.createElement('div'); cell.className = 'day-cell';
-        if(date.toLocaleDateString() === new Date().toLocaleDateString()) cell.classList.add('is-today');
-
-        let duty = '<div class="duty-container">';
+        
+        // 근무조 표시
+        let dutyHtml = '<div class="duty-container">';
         [0, 1, 2].forEach(team => {
             const v = getDuty(date, team);
-            duty += `<div class="duty-row"><span>${team + 1}조</span><b data-type="${v}">${v}</b></div>`;
+            dutyHtml += `<div class="duty-row"><span>${team + 1}조</span><b data-type="${v}">${v}</b></div>`;
         });
-        duty += '</div>';
+        dutyHtml += '</div>';
 
-        let vac = '<div class="vacation-list">';
+        // 연차 리스트 표시
+        let vacHtml = '<div class="vacation-list">';
         if (dbData[key]) {
             dbData[key].forEach((v, i) => {
-                // 검수수정: '${key}' 처럼 따옴표로 감싸야 삭제 함수가 인식됩니다.
-                vac += `<span class="vacation-tag ${getColorClass(v.type)}" onclick="del('${key}', ${i})">${v.name}(${v.type})</span>`;
+                // 삭제 함수 호출 부분 핵심 수정: '${key}' 따옴표 추가
+                vacHtml += `<span class="vacation-tag ${getColorClass(v.type)}" onclick="del('${key}', ${i})">${v.name}(${v.type})</span>`;
             });
         }
-        vac += '</div>';
-        cell.innerHTML = `<span class="date-number">${d}</span>${duty}${vac}`;
+        vacHtml += '</div>';
+
+        cell.innerHTML = `<span class="date-number">${d}</span>${dutyHtml}${vacHtml}`;
         grid.appendChild(cell);
     }
 }
 
 async function openAdd() {
-    const name = prompt('성함'); if (!name) return;
-    const type = prompt('구분(연차/반차/교육 등)'); if (!type) return;
-    const date = prompt('날짜(YYYY-MM-DD)', `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`);
+    const name = prompt('이름을 입력하세요'); if (!name) return;
+    const type = prompt('구분(연차, 반차, 교육 등)'); if (!type) return;
+    const date = prompt('날짜(YYYY-MM-DD)', `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-26`);
     if (!date) return;
-    
+
     const docRef = db.collection("vacations").doc(date);
     const doc = await docRef.get();
     let items = doc.exists ? doc.data().items : [];
@@ -133,16 +142,25 @@ async function openAdd() {
     render();
 }
 
-async function del(key, i) {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
-    const docRef = db.collection("vacations").doc(key);
-    const doc = await docRef.get();
-    if (doc.exists) {
-        let items = doc.data().items;
-        items.splice(i, 1);
-        if (items.length === 0) await docRef.delete();
-        else await docRef.set({ items });
-        render();
+async function del(dateKey, index) {
+    if (!confirm('해당 기록을 정말 삭제하시겠습니까?')) return;
+    
+    try {
+        const docRef = db.collection("vacations").doc(dateKey);
+        const doc = await docRef.get();
+        if (doc.exists) {
+            let items = doc.data().items;
+            items.splice(index, 1); // 선택한 인덱스 삭제
+            
+            if (items.length === 0) {
+                await docRef.delete(); // 데이터가 없으면 문서 삭제
+            } else {
+                await docRef.set({ items }); // 남은 데이터 업데이트
+            }
+            render(); // 화면 새로고침
+        }
+    } catch (e) {
+        alert("삭제 중 오류가 발생했습니다: " + e.message);
     }
 }
 
