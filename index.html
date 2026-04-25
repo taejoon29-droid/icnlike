@@ -4,50 +4,35 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>전원설비 실시간 공유 현황판</title>
-
-<!-- Firebase SDK -->
 <script src="https://gstatic.com"></script>
 <script src="https://gstatic.com"></script>
-
 <style>
-:root { 
-    --primary: #2c3e50; --accent: #e74c3c; --today: #3498db; --border: #dee2e6;
-    --col-vacation: #1890ff; --col-work: #27ae60; --col-leave: #8e44ad;
-}
-
-body { font-family: 'Pretendard', sans-serif; background: #f4f7f6; margin: 0; padding: 10px; color: #333; }
-.header { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; }
-.nav-controls { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 10px; }
-.nav-btn { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-#monthDisplay { font-size: 1.4rem; font-weight: 800; min-width: 160px; display: inline-block; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; max-width: 1200px; margin: auto; }
-.day-label { text-align: center; font-weight: bold; padding: 10px; background: var(--primary); color: white; border-radius: 6px; }
-.day-cell { background: white; border: 1px solid var(--border); border-radius: 10px; min-height: 160px; padding: 10px; box-sizing: border-box; }
-.date-number { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; display: block; }
-.is-today { border: 3px solid var(--today) !important; background: #ebf5fb; }
-.duty-container { background: #fcfcfc; border-radius: 6px; padding: 6px; font-size: 0.75rem; margin-bottom: 8px; border: 1px solid #eee; }
-.duty-row { display: flex; justify-content: space-between; }
-.vacation-list { display: flex; flex-wrap: wrap; gap: 4px; }
-
-/* 일정 태그 스타일 */
-.vacation-tag { font-size: 0.72rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
-.type-vacation { background: #eaf2ff; border-color: #adc8ff; color: var(--col-vacation); }
-.type-work { background: #eafff1; border-color: #b7ebc1; color: var(--col-work); }
-.type-leave { background: #f3e5f5; border-color: #d1c4e9; color: var(--col-leave); }
-
-.food-btn { position: fixed; bottom: 100px; right: 30px; width: 60px; height: 60px; background: #27ae60; color: white; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-.add-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--accent); color: white; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-
-b[data-type^="주"] { color: #d4a017; }
-b[data-type^="야"] { color: #8e44ad; }
-b[data-type^="비"] { color: #27ae60; }
-.week-sun .date-number { color: #e74c3c; }
-.week-sat .date-number { color: #3498db; }
+    :root { 
+        --primary: #2c3e50; --accent: #e74c3c; --today: #3498db; --border: #dee2e6;
+        --col-vacation: #1890ff; --col-work: #27ae60; --col-leave: #8e44ad;
+    }
+    body { font-family: 'Pretendard', sans-serif; background: #f4f7f6; margin: 0; padding: 10px; color: #333; }
+    .header { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px; }
+    .nav-controls { display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 10px; }
+    .nav-btn { background: #fff; border: 1px solid #ddd; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    #monthDisplay { font-size: 1.4rem; font-weight: 800; min-width: 160px; display: inline-block; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; max-width: 1200px; margin: auto; }
+    .day-label { text-align: center; font-weight: bold; padding: 10px; background: var(--primary); color: white; border-radius: 6px; }
+    .day-cell { background: white; border: 1px solid var(--border); border-radius: 10px; min-height: 160px; padding: 10px; box-sizing: border-box; }
+    .date-number { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; display: block; }
+    .is-today { border: 3px solid var(--today) !important; background: #ebf5fb; }
+    .duty-container { background: #fcfcfc; border-radius: 6px; padding: 6px; font-size: 0.75rem; margin-bottom: 8px; border: 1px solid #eee; }
+    .duty-row { display: flex; justify-content: space-between; }
+    b[data-type^="주"] { color: #d4a017; } b[data-type^="야"] { color: #8e44ad; } b[data-type^="비"] { color: #27ae60; }
+    .vacation-list { display: flex; flex-wrap: wrap; gap: 4px; }
+    .vacation-tag { font-size: 0.72rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
+    .type-vacation { background: #eaf2ff; border-color: #adc8ff; color: var(--col-vacation); }
+    .type-work { background: #eafff1; border-color: #b7ebc1; color: var(--col-work); }
+    .type-leave { background: #f3e5f5; border-color: #d1c4e9; color: var(--col-leave); }
+    .add-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: var(--accent); color: white; border-radius: 50%; border: none; font-size: 30px; cursor: pointer; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 </style>
 </head>
-
 <body>
-
 <div class="header">
     <div class="nav-controls">
         <button class="nav-btn" onclick="moveMonth(-1)">◀ 이전달</button>
@@ -55,16 +40,10 @@ b[data-type^="비"] { color: #27ae60; }
         <button class="nav-btn" onclick="moveMonth(1)">다음달 ▶</button>
     </div>
 </div>
-
 <div class="calendar-grid" id="calendarGrid"></div>
-
-<button class="food-btn" onclick="window.open('https://web.app', '_blank')">🍴</button>
 <button class="add-btn" onclick="openAdd()">+</button>
 
 <script>
-/* =========================
-   Firebase 설정
-========================= */
 const firebaseConfig = {
   apiKey: "AIzaSyArsOzrlKqK1BPH6ugGAhRWaq_gYmkvyIE",
   authDomain: "://firebaseapp.com",
@@ -73,17 +52,15 @@ const firebaseConfig = {
   messagingSenderId: "156358451768",
   appId: "1:156358451768:web:5311651d3f83ce23b6fccd"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* =========================
-   변수 및 근무 로직
-========================= */
 const cycle = ['주1','주2','야1','야2','비1','비2'];
-const baseDate = new Date(2026,3,26);
-const t1StartIdx = 2;
-let current = new Date(2026, 3, 26); 
+const baseDate = new Date(2026, 3, 26);
+// 요청하신 기준 반영: 1조 야1(idx 2), 2조 비1(idx 4), 3조 주1(idx 0)
+const offsets = [2, 4, 0]; 
+
+let current = new Date(2026, 3, 26);
 
 function getColorClass(t) {
     if(t.includes('연차')||t.includes('반차')) return 'type-vacation';
@@ -91,113 +68,83 @@ function getColorClass(t) {
     return 'type-leave';
 }
 
-function getDuty(date, off){
-    const diff = Math.floor((date-baseDate)/(1000*60*60*24));
-    const idx = (((t1StartIdx+diff-off)%6)+6)%6;
+function getDuty(date, teamIdx) {
+    const diff = Math.floor((new Date(date).setHours(0,0,0,0) - baseDate.setHours(0,0,0,0)) / (1000*60*60*24));
+    const idx = (((offsets[teamIdx] + diff) % 6) + 6) % 6;
     return cycle[idx];
 }
 
-/* =========================
-   렌더링
-========================= */
-async function render(){
+async function render() {
     const grid = document.getElementById('calendarGrid');
-    if(!grid) return;
-    grid.innerHTML='';
-    
-    const y=current.getFullYear();
-    const m=current.getMonth();
-    document.getElementById('monthDisplay').innerText=`${y}년 ${m+1}월`;
+    grid.innerHTML = '';
+    const y = current.getFullYear(), m = current.getMonth();
+    document.getElementById('monthDisplay').innerText = `${y}년 ${m + 1}월`;
 
-    // 요일 라벨
-    ['일','월','화','수','목','금','토'].forEach(d=>{
-        const el=document.createElement('div');
-        el.className='day-label';
-        el.innerText=d;
-        grid.appendChild(el);
+    ['일','월','화','수','목','금','토'].forEach(d => {
+        const el = document.createElement('div'); el.className = 'day-label'; el.innerText = d; grid.appendChild(el);
     });
 
-    // Firebase 데이터 실시간 호출
     const snapshot = await db.collection("vacations").get();
     const dbData = {};
-    snapshot.forEach(doc => { dbData[doc.id] = doc.data().items; });
+    snapshot.forEach(doc => dbData[doc.id] = doc.data().items);
 
-    const first=new Date(y,m,1).getDay();
-    const last=new Date(y,m+1,0).getDate();
+    const first = new Date(y, m, 1).getDay();
+    const last = new Date(y, m + 1, 0).getDate();
+    for (let i = 0; i < first; i++) grid.appendChild(document.createElement('div'));
 
-    for(let i=0;i<first;i++) grid.appendChild(document.createElement('div'));
-
-    for(let d=1; d<=last; d++){
-        const date=new Date(y,m,d);
-        const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-
-        const cell=document.createElement('div');
-        cell.className='day-cell';
-        if(date.getDay()==0) cell.classList.add('week-sun');
-        if(date.getDay()==6) cell.classList.add('week-sat');
+    for (let d = 1; d <= last; d++) {
+        const date = new Date(y, m, d);
+        const key = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const cell = document.createElement('div'); cell.className = 'day-cell';
         if(date.toLocaleDateString() === new Date().toLocaleDateString()) cell.classList.add('is-today');
 
-        // 근무조 계산
-        let duty='<div class="duty-container">';
-        [0,2,4].forEach((o,i)=>{
-            const v=getDuty(date,o);
-            duty+=`<div class="duty-row"><span>${i+1}조</span><b data-type="${v}">${v}</b></div>`;
+        let duty = '<div class="duty-container">';
+        [0, 1, 2].forEach(team => {
+            const v = getDuty(date, team);
+            duty += `<div class="duty-row"><span>${team + 1}조</span><b data-type="${v}">${v}</b></div>`;
         });
-        duty+='</div>';
+        duty += '</div>';
 
-        // 일정 리스트 (삭제 클릭 이벤트 포함)
-        let vac='<div class="vacation-list">';
-        if(dbData[key]){
-            dbData[key].forEach((v,i)=>{
-                vac+=`<span class="vacation-tag ${getColorClass(v.type)}" onclick="del('${key}', ${i})">${v.name}(${v.type})</span>`;
+        let vac = '<div class="vacation-list">';
+        if (dbData[key]) {
+            dbData[key].forEach((v, i) => {
+                vac += `<span class="vacation-tag ${getColorClass(v.type)}" onclick="del('${key}', ${i})">${v.name}(${v.type})</span>`;
             });
         }
-        vac+='</div>';
-
-        cell.innerHTML=`<span class="date-number">${d}</span>${duty}${vac}`;
+        vac += '</div>';
+        cell.innerHTML = `<span class="date-number">${d}</span>${duty}${vac}`;
         grid.appendChild(cell);
     }
 }
 
-/* =========================
-   추가 및 삭제 기능
-========================= */
-async function openAdd(){
-    const name=prompt('이름을 입력하세요');
-    if(!name) return;
-    const type=prompt('구분 (연차, 반차, 교육 등)');
-    const date=prompt('날짜 (YYYY-MM-DD)', `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-01`);
-    if(!date) return;
-
+async function openAdd() {
+    const name = prompt('이름'); if (!name) return;
+    const type = prompt('구분(연차, 반차 등)'); if (!type) return;
+    const date = prompt('날짜(YYYY-MM-DD)', `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-26`);
+    if (!date) return;
     const docRef = db.collection("vacations").doc(date);
     const doc = await docRef.get();
     let items = doc.exists ? doc.data().items : [];
-    items.push({name, type});
-    
-    await docRef.set({items});
+    items.push({ name, type });
+    await docRef.set({ items });
     render();
 }
 
-async function del(key, i){
-    if(!confirm('해당 일정을 삭제하시겠습니까?')) return;
+async function del(key, i) {
+    if (!confirm('삭제하시겠습니까?')) return;
     const docRef = db.collection("vacations").doc(key);
     const doc = await docRef.get();
-    if(doc.exists){
+    if (doc.exists) {
         let items = doc.data().items;
         items.splice(i, 1);
-        if(items.length === 0) await docRef.delete();
-        else await docRef.set({items});
+        if (items.length === 0) await docRef.delete();
+        else await docRef.set({ items });
         render();
     }
 }
 
-function moveMonth(n){
-    current.setMonth(current.getMonth()+n);
-    render();
-}
-
+function moveMonth(n) { current.setMonth(current.getMonth() + n); render(); }
 document.addEventListener('DOMContentLoaded', render);
-
 </script>
 </body>
 </html>
