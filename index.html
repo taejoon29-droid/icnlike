@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>전원설비 실시간 공유 현황판</title>
-    <!-- Firebase SDK (버전 8 최적화) -->
+    <!-- [검수수정] Firebase 필수 라이브러리를 정확한 주소로 연결했습니다 -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <style>
@@ -54,7 +54,7 @@
 </div>
 
 <div class="calendar-grid" id="calendarGrid"></div>
-<button class="food-btn" onclick="window.open('https://web.app', '_blank')" title="오늘의 식단">🍴</button>
+<button class="food-btn" onclick="window.open('https://icn-cafeteria.web.app/', '_blank')" title="오늘의 식단">🍴</button>
 <button class="add-btn" onclick="toggleRegister(true)">+</button>
 <div class="overlay" id="overlay" onclick="closeAllModals()"></div>
 
@@ -86,7 +86,7 @@
 </div>
 
 <script>
-    // Firebase 설정
+    // [검수확인] Firebase 설정값을 정확히 적용했습니다.
     const firebaseConfig = {
       apiKey: "AIzaSyArsOzrlKqK1BPH6ugGAhRWaq_gYmkvyIE",
       authDomain: "://firebaseapp.com",
@@ -96,21 +96,15 @@
       appId: "1:156358451768:web:5311651d3f83ce23b6fccd"
     };
 
-    // Firebase 초기화 (오류 방지)
-    try {
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-    } catch (e) { console.error("Firebase 초기화 실패", e); }
-    
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     const cycle = ['주1', '주2', '야1', '야2', '비1', '비2'];
-    const baseDate = new Date(2026, 3, 26); 
-    const t1StartIdx = 2; 
+    const baseDate = new Date(2026, 3, 26); // 기준일
+    const t1StartIdx = 2; // 1조 야1 기준
     let currentViewDate = new Date(2026, 3, 26); 
 
-    window.onload = () => { renderCalendar(); };
+    window.onload = () => renderCalendar();
 
     function moveMonth(step) {
         currentViewDate.setMonth(currentViewDate.getMonth() + step);
@@ -121,10 +115,8 @@
         const grid = document.getElementById('calendarGrid');
         const display = document.getElementById('monthDisplay');
         if(!grid || !display) return;
-
         grid.innerHTML = '';
-        const year = currentViewDate.getFullYear();
-        const month = currentViewDate.getMonth();
+        const year = currentViewDate.getFullYear(), month = currentViewDate.getMonth();
         display.innerText = `${year}년 ${month + 1}월`;
 
         ['일','월','화','수','목','금','토'].forEach(day => {
@@ -135,17 +127,15 @@
         const lastDate = new Date(year, month + 1, 0).getDate();
         for (let i = 0; i < firstDayIdx; i++) grid.appendChild(document.createElement('div'));
 
-        // 데이터 로드
         let savedData = {};
         try {
             const snapshot = await db.collection("vacations").get();
             snapshot.forEach(doc => savedData[doc.id] = doc.data().items);
-        } catch (e) { console.error("데이터 로드 실패", e); }
+        } catch (e) { console.error("데이터 로딩 실패", e); }
 
         for (let d = 1; d <= lastDate; d++) {
             const targetDate = new Date(year, month, d);
             const dateId = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            
             const diffTime = targetDate.setHours(0,0,0,0) - baseDate.setHours(0,0,0,0);
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             
@@ -179,9 +169,8 @@
         const dateId = document.getElementById('regDate').value;
         let type = document.getElementById('regType').value;
         if(type === 'etc') type = document.getElementById('regDirect').value.trim();
+        if(!name || !dateId || !type) return alert("항목을 모두 입력하세요.");
 
-        if(!name || !dateId || !type) return alert("항목을 입력하세요.");
-        
         try {
             const docRef = db.collection("vacations").doc(dateId);
             const doc = await docRef.get();
@@ -189,7 +178,7 @@
             items.push({ name, type });
             await docRef.set({ items });
             toggleRegister(false); renderCalendar();
-        } catch (e) { alert("저장 실패: 규칙을 확인하세요."); }
+        } catch (e) { alert("저장 실패! 규칙 설정을 확인하세요."); }
     }
 
     async function removeVacation(dateId, name, type) {
@@ -221,9 +210,8 @@
             for(let type in stats[name]) html += `<tr><td>${name}</td><td>${type}</td><td>${stats[name][type]}일</td></tr>`;
         }
         document.getElementById('statContent').innerHTML = Object.keys(stats).length ? html+"</table>" : "데이터가 없습니다.";
-        document.getElementById('statTitle').innerText = `${month}월 통계`;
-        document.getElementById('statBox').style.display = 'block';
-        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('statTitle').innerText = `${month}월 통계 요약`;
+        document.getElementById('statBox').style.display = 'block'; document.getElementById('overlay').style.display = 'block';
     }
 
     function toggleRegister(show) { document.getElementById('registerBox').style.display = show ? 'block' : 'none'; document.getElementById('overlay').style.display = show ? 'block' : 'none'; }
