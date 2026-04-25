@@ -77,15 +77,14 @@ body {
     transition: all 0.2s;
 }
 
-/* 날짜 선택 모드 활성화 시 스타일 */
-.day-cell.add-mode {
+/* 날짜 선택 활성화 시 스타일 */
+.day-cell.clickable {
     cursor: pointer;
     border: 2px dashed var(--accent);
 }
-.day-cell.add-mode:hover {
+.day-cell.clickable:hover {
     background: #fff5f5;
-    transform: translateY(-3px);
-    box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2);
+    transform: translateY(-2px);
 }
 
 .date-number {
@@ -141,7 +140,8 @@ body {
     border: none;
     font-size: 24px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    z-index: 99;
 }
 
 .add-btn {
@@ -156,8 +156,8 @@ body {
     border: none;
     font-size: 30px;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    z-index: 100;
 }
 
 b[data-type^="주"] { color: #d4a017; }
@@ -183,21 +183,21 @@ b[data-type^="비"] { color: #27ae60; }
 <div class="calendar-grid" id="calendarGrid"></div>
 
 <button class="food-btn" onclick="window.open('https://web.app', '_blank')">🍴</button>
-<button class="add-btn" id="mainAddBtn" onclick="toggleAddMode()">+</button>
+<button class="add-btn" id="addBtn" onclick="startAdd()">+</button>
 
 <script>
 const cycle = ['주1','주2','야1','야2','비1','비2'];
 const baseDate = new Date(2026, 3, 26); // 2026-04-26
-const t1StartIdx = 2; // 1조 야1 기준
+const t1StartIdx = 2; // 1조 야1
 
 let current = new Date();
-let isAddMode = false;
-let pendingInfo = { name: '', type: '' };
+let isAdding = false;
+let pendingData = { name: '', type: '' };
 
-function load(){ return JSON.parse(localStorage.getItem('vac') || '{}'); }
-function save(data){ localStorage.setItem('vac', JSON.stringify(data)); }
+function load() { return JSON.parse(localStorage.getItem('vac') || '{}'); }
+function save(data) { localStorage.setItem('vac', JSON.stringify(data)); }
 
-function getDuty(date, off){
+function getDuty(date, off) {
     const d1 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
     const d2 = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const diff = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
@@ -205,118 +205,107 @@ function getDuty(date, off){
     return cycle[idx];
 }
 
-function render(){
+function render() {
     const grid = document.getElementById('calendarGrid');
-    grid.innerHTML='';
-    const y=current.getFullYear(), m=current.getMonth();
+    grid.innerHTML = '';
+    const y = current.getFullYear(), m = current.getMonth();
     const today = new Date();
-
-    document.getElementById('monthDisplay').innerText=`${y}년 ${m+1}월`;
+    document.getElementById('monthDisplay').innerText = `${y}년 ${m+1}월`;
     const data = load();
 
-    ['일','월','화','수','목','금','토'].forEach(d=>{
-        const el=document.createElement('div');
-        el.className='day-label'; el.innerText=d;
+    ['일','월','화','수','목','금','토'].forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'day-label'; el.innerText = d;
         grid.appendChild(el);
     });
 
-    const first=new Date(y,m,1).getDay();
-    const last=new Date(y,m+1,0).getDate();
+    const first = new Date(y, m, 1).getDay();
+    const last = new Date(y, m + 1, 0).getDate();
 
-    for(let i=0;i<first;i++) grid.appendChild(document.createElement('div'));
+    for(let i=0; i<first; i++) grid.appendChild(document.createElement('div'));
 
-    for(let d=1; d<=last; d++){
-        const date=new Date(y,m,d);
-        const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const cell=document.createElement('div');
-        cell.className='day-cell';
+    for(let d=1; d<=last; d++) {
+        const date = new Date(y, m, d);
+        const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
 
-        // 등록 모드일 때 클릭 이벤트 부여
-        if(isAddMode) {
-            cell.classList.add('add-mode');
-            cell.onclick = () => confirmDate(key);
+        if(isAdding) {
+            cell.classList.add('clickable');
+            cell.onclick = () => finishAdd(key);
         }
 
         if(date.toDateString() === today.toDateString()) cell.classList.add('is-today');
-        if(date.getDay()==0) cell.classList.add('week-sun');
-        if(date.getDay()==6) cell.classList.add('week-sat');
+        if(date.getDay() === 0) cell.classList.add('week-sun');
+        if(date.getDay() === 6) cell.classList.add('week-sat');
 
-        let duty='<div class="duty-container">';
-        // 4/26 기준: 1조(야1), 2조(비1), 3조(주1) 오프셋
-       .forEach((o,i)=>{
-            const v=getDuty(date,o);
-            duty+=`<div class="duty-row"><span>${i+1}조</span><b data-type="${v}">${v}</b></div>`;
+        let duty = '<div class="duty-container">';
+        // 1조(off 0), 2조(off 2), 3조(off 4)
+        [0, 2, 4].forEach((o, i) => {
+            const v = getDuty(date, o);
+            duty += `<div class="duty-row"><span>${i+1}조</span><b data-type="${v}">${v}</b></div>`;
         });
-        duty+='</div>';
+        duty += '</div>';
 
-        let vac='<div class="vacation-list">';
-        if(data[key]){
-            data[key].forEach((v,i)=>{
-                vac+=`<span class="vacation-tag" onclick="event.stopPropagation(); del('${key}',${i})">${v.name}(${v.type})</span>`;
+        let vac = '<div class="vacation-list">';
+        if(data[key]) {
+            data[key].forEach((v, i) => {
+                vac += `<span class="vacation-tag" onclick="event.stopPropagation(); del('${key}',${i})">${v.name}(${v.type})</span>`;
             });
         }
-        vac+='</div>';
+        vac += '</div>';
 
-        cell.innerHTML=`<span class="date-number">${d}</span>${duty}${vac}`;
+        cell.innerHTML = `<span class="date-number">${d}</span>${duty}${vac}`;
         grid.appendChild(cell);
     }
 }
 
-// 등록 버튼 클릭 시
-function toggleAddMode(){
-    if(isAddMode) {
-        cancelAddMode();
-        return;
-    }
-    const name=prompt('이름');
+function startAdd() {
+    if(isAdding) { cancelAdd(); return; }
+    const name = prompt('이름');
     if(!name) return;
-    const type=prompt('구분 (연차/반차/출장 등)');
+    const type = prompt('연차/반차/출장 등');
     if(!type) return;
 
-    pendingInfo = { name, type };
-    isAddMode = true;
-    
-    const btn = document.getElementById('mainAddBtn');
-    btn.innerText = '✕';
-    btn.style.background = '#95a5a6';
-    
-    alert('이제 달력에서 등록할 날짜를 클릭해주세요.');
+    pendingData = { name, type };
+    isAdding = true;
+    document.getElementById('addBtn').innerText = '✕';
+    document.getElementById('addBtn').style.background = '#95a5a6';
+    alert('달력에서 등록할 날짜를 클릭하세요.');
     render();
 }
 
-// 날짜 클릭 시 저장
-function confirmDate(key){
-    let data=load();
-    if(!data[key]) data[key]=[];
-    data[key].push(pendingInfo);
+function finishAdd(key) {
+    let data = load();
+    if(!data[key]) data[key] = [];
+    data[key].push(pendingData);
     save(data);
-    cancelAddMode();
+    cancelAdd();
 }
 
-function cancelAddMode(){
-    isAddMode = false;
-    const btn = document.getElementById('mainAddBtn');
-    btn.innerText = '+';
-    btn.style.background = 'var(--accent)';
+function cancelAdd() {
+    isAdding = false;
+    document.getElementById('addBtn').innerText = '+';
+    document.getElementById('addBtn').style.background = 'var(--accent)';
     render();
 }
 
-function del(key,i){
+function del(key, i) {
     if(!confirm('삭제하시겠습니까?')) return;
-    let data=load();
-    data[key].splice(i,1);
-    if(data[key].length==0) delete data[key];
+    let data = load();
+    data[key].splice(i, 1);
+    if(data[key].length === 0) delete data[key];
     save(data);
     render();
 }
 
-function moveMonth(n){
-    if(isAddMode) cancelAddMode();
-    current.setMonth(current.getMonth()+n);
+function moveMonth(n) {
+    if(isAdding) cancelAdd();
+    current.setMonth(current.getMonth() + n);
     render();
 }
 
-document.addEventListener('DOMContentLoaded',render);
+document.addEventListener('DOMContentLoaded', render);
 </script>
 
 </body>
