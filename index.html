@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>전원설비 실시간 공유 현황판</title>
-    <!-- [검수수정] Firebase 필수 라이브러리를 정확한 주소로 연결했습니다 -->
+    <!-- Firebase SDK (경로 및 버전 고정) -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <style>
@@ -54,7 +54,7 @@
 </div>
 
 <div class="calendar-grid" id="calendarGrid"></div>
-<button class="food-btn" onclick="window.open('https://icn-cafeteria.web.app/', '_blank')" title="오늘의 식단">🍴</button>
+<button class="food-btn" onclick="window.open('https://web.app', '_blank')" title="오늘의 식단">🍴</button>
 <button class="add-btn" onclick="toggleRegister(true)">+</button>
 <div class="overlay" id="overlay" onclick="closeAllModals()"></div>
 
@@ -86,7 +86,6 @@
 </div>
 
 <script>
-    // [검수확인] Firebase 설정값을 정확히 적용했습니다.
     const firebaseConfig = {
       apiKey: "AIzaSyArsOzrlKqK1BPH6ugGAhRWaq_gYmkvyIE",
       authDomain: "://firebaseapp.com",
@@ -96,15 +95,15 @@
       appId: "1:156358451768:web:5311651d3f83ce23b6fccd"
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
     const cycle = ['주1', '주2', '야1', '야2', '비1', '비2'];
-    const baseDate = new Date(2026, 3, 26); // 기준일
-    const t1StartIdx = 2; // 1조 야1 기준
+    const baseDate = new Date(2026, 3, 26); 
+    const t1StartIdx = 2; 
     let currentViewDate = new Date(2026, 3, 26); 
 
-    window.onload = () => renderCalendar();
+    window.onload = () => { renderCalendar(); };
 
     function moveMonth(step) {
         currentViewDate.setMonth(currentViewDate.getMonth() + step);
@@ -131,7 +130,7 @@
         try {
             const snapshot = await db.collection("vacations").get();
             snapshot.forEach(doc => savedData[doc.id] = doc.data().items);
-        } catch (e) { console.error("데이터 로딩 실패", e); }
+        } catch (e) { console.error(e); }
 
         for (let d = 1; d <= lastDate; d++) {
             const targetDate = new Date(year, month, d);
@@ -169,27 +168,23 @@
         const dateId = document.getElementById('regDate').value;
         let type = document.getElementById('regType').value;
         if(type === 'etc') type = document.getElementById('regDirect').value.trim();
-        if(!name || !dateId || !type) return alert("항목을 모두 입력하세요.");
+        if(!name || !dateId || !type) return alert("내용을 입력하세요.");
 
-        try {
-            const docRef = db.collection("vacations").doc(dateId);
-            const doc = await docRef.get();
-            let items = doc.exists ? doc.data().items : [];
-            items.push({ name, type });
-            await docRef.set({ items });
-            toggleRegister(false); renderCalendar();
-        } catch (e) { alert("저장 실패! 규칙 설정을 확인하세요."); }
+        const docRef = db.collection("vacations").doc(dateId);
+        const doc = await docRef.get();
+        let items = doc.exists ? doc.data().items : [];
+        items.push({ name, type });
+        await docRef.set({ items });
+        toggleRegister(false); renderCalendar();
     }
 
     async function removeVacation(dateId, name, type) {
         if(!confirm("삭제할까요?")) return;
-        try {
-            const docRef = db.collection("vacations").doc(dateId);
-            const doc = await docRef.get();
-            let items = doc.data().items.filter(i => !(i.name === name && i.type === type));
-            await docRef.set({ items });
-            renderCalendar();
-        } catch (e) { alert("삭제 실패"); }
+        const docRef = db.collection("vacations").doc(dateId);
+        const doc = await docRef.get();
+        let items = doc.data().items.filter(i => !(i.name === name && i.type === type));
+        await docRef.set({ items });
+        renderCalendar();
     }
 
     async function openStatistics() {
