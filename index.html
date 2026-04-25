@@ -40,13 +40,13 @@
         <span id="monthDisplay"></span>
         <button class="nav-btn" onclick="moveMonth(1)">다음달 ▶</button>
     </div>
-    <p style="font-size:0.8rem; color:#888; margin-top:10px;">기준: 4/26 1조 야1, 2조 비1, 3조 주1</p>
+    <p style="font-size:0.8rem; color:#888; margin-top:10px;">기준: 4/26 1조 야1, 2조 비1, 3조 주1 (순환: 주주야야비비)</p>
 </div>
 <div class="calendar-grid" id="calendarGrid"></div>
 <button class="add-btn" onclick="openAdd()">+</button>
 
 <script>
-// Firebase 설정
+// 1. Firebase 설정
 const firebaseConfig = {
   apiKey: "AIzaSyArsOzrlKqK1BPH6ugGAhRWaq_gYmkvyIE",
   authDomain: "://firebaseapp.com",
@@ -58,10 +58,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 근무 조 세팅
-const cycle = ['주1','주2','야1','야2','비1','비2'];
-const baseDate = new Date(2026, 3, 26);
-const teamOffsets = [2, 4, 0]; // 1조 야1, 2조 비1, 3조 주1
+// 2. 주주야야비비 로테이션 설정
+const cycle = ['주1', '주2', '야1', '야2', '비1', '비2'];
+const baseDate = new Date(2026, 3, 26); // 2026년 4월 26일
+
+// 4/26 기준 오프셋 계산: 1조 야1(idx 2), 2조 비1(idx 4), 3조 주1(idx 0)
+const teamOffsets = [2, 4, 0]; 
 
 let current = new Date(2026, 3, 26);
 
@@ -72,11 +74,10 @@ function getColorClass(t) {
 }
 
 function getDuty(date, teamIdx) {
-    const d = new Date(date);
-    d.setHours(0,0,0,0);
-    const b = new Date(baseDate);
-    b.setHours(0,0,0,0);
+    const d = new Date(date).setHours(0,0,0,0);
+    const b = new Date(baseDate).setHours(0,0,0,0);
     const diff = Math.floor((d - b) / (1000*60*60*24));
+    // 주주야야비비 순환 계산
     const idx = (((teamOffsets[teamIdx] + diff) % 6) + 6) % 6;
     return cycle[idx];
 }
@@ -91,7 +92,6 @@ async function render() {
         const el = document.createElement('div'); el.className = 'day-label'; el.innerText = d; grid.appendChild(el);
     });
 
-    // 실시간 데이터 로드
     const snapshot = await db.collection("vacations").get();
     const dbData = {};
     snapshot.forEach(doc => dbData[doc.id] = doc.data().items);
@@ -104,8 +104,8 @@ async function render() {
         const date = new Date(y, m, d);
         const key = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const cell = document.createElement('div'); cell.className = 'day-cell';
-        
-        // 근무조 표시
+        if(date.toLocaleDateString() === new Date().toLocaleDateString()) cell.classList.add('is-today');
+
         let dutyHtml = '<div class="duty-container">';
         [0, 1, 2].forEach(team => {
             const v = getDuty(date, team);
@@ -113,11 +113,10 @@ async function render() {
         });
         dutyHtml += '</div>';
 
-        // 연차 리스트 표시
         let vacHtml = '<div class="vacation-list">';
         if (dbData[key]) {
             dbData[key].forEach((v, i) => {
-                // 삭제 함수 호출 부분 핵심 수정: '${key}' 따옴표 추가
+                // 삭제 함수 del의 매개변수를 문자열로 감싸도록 수정 (핵심!)
                 vacHtml += `<span class="vacation-tag ${getColorClass(v.type)}" onclick="del('${key}', ${i})">${v.name}(${v.type})</span>`;
             });
         }
@@ -130,7 +129,7 @@ async function render() {
 
 async function openAdd() {
     const name = prompt('이름을 입력하세요'); if (!name) return;
-    const type = prompt('구분(연차, 반차, 교육 등)'); if (!type) return;
+    const type = prompt('구분(연차/반차/교육 등)'); if (!type) return;
     const date = prompt('날짜(YYYY-MM-DD)', `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-26`);
     if (!date) return;
 
@@ -143,25 +142,18 @@ async function openAdd() {
 }
 
 async function del(dateKey, index) {
-    if (!confirm('해당 기록을 정말 삭제하시겠습니까?')) return;
-    
+    if (!confirm('정말 삭제하시겠습니까?')) return;
     try {
         const docRef = db.collection("vacations").doc(dateKey);
         const doc = await docRef.get();
         if (doc.exists) {
             let items = doc.data().items;
-            items.splice(index, 1); // 선택한 인덱스 삭제
-            
-            if (items.length === 0) {
-                await docRef.delete(); // 데이터가 없으면 문서 삭제
-            } else {
-                await docRef.set({ items }); // 남은 데이터 업데이트
-            }
-            render(); // 화면 새로고침
+            items.splice(index, 1);
+            if (items.length === 0) await docRef.delete();
+            else await docRef.set({ items });
+            render();
         }
-    } catch (e) {
-        alert("삭제 중 오류가 발생했습니다: " + e.message);
-    }
+    } catch (e) { alert("삭제 실패!"); }
 }
 
 function moveMonth(n) { current.setMonth(current.getMonth() + n); render(); }
