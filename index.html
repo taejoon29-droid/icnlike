@@ -76,7 +76,6 @@ body {
     padding: 10px;
 }
 
-/* 등록 모드 시 스타일 */
 .day-cell.add-mode {
     cursor: pointer;
     border: 2px dashed var(--accent);
@@ -124,7 +123,7 @@ body {
     background: #eee;
 }
 
-/* 식단표 링크 버튼 스타일 (a태그 포함) */
+/* 🍴 버튼 */
 .food-link {
     position: fixed;
     bottom: 100px;
@@ -143,6 +142,7 @@ body {
     z-index: 100;
 }
 
+/* + 버튼 */
 .add-btn {
     position: fixed;
     bottom: 30px;
@@ -180,15 +180,15 @@ b[data-type^="비"] { color: #27ae60; }
 
 <div class="calendar-grid" id="calendarGrid"></div>
 
-<!-- 식단표 버튼: a 태그로 직접 감싸서 링크 깨짐 방지 -->
-<a href="https://web.app" target="_blank" class="food-link">🍴</a>
+<!-- 🍴 새창 이동 버튼 -->
+<a href="https://icn-cafeteria.web.app/" target="_blank" rel="noopener noreferrer" class="food-link">🍴</a>
 
 <button class="add-btn" id="mainAddBtn" onclick="toggleAddMode()">+</button>
 
 <script>
 const cycle = ['주1','주2','야1','야2','비1','비2'];
-const baseDate = new Date(2026, 3, 26); // 2026-04-26
-const t1StartIdx = 2; // 1조 야1
+const baseDate = new Date(2026, 3, 26);
+const t1StartIdx = 2;
 
 let current = new Date();
 let isAddMode = false;
@@ -207,7 +207,6 @@ function getDuty(date, off) {
 
 function render() {
     const grid = document.getElementById('calendarGrid');
-    if(!grid) return;
     grid.innerHTML = '';
 
     const y = current.getFullYear();
@@ -245,9 +244,8 @@ function render() {
         if(date.getDay() === 6) cell.classList.add('week-sat');
 
         let dutyHtml = '<div class="duty-container">';
-        // 1조(0), 2조(2), 3조(4) 오프셋 고정
-        const offsets = [0, 2, 4]; 
-        offsets.forEach((off, i) => {
+        const offsets = [0,2,4];
+        offsets.forEach((off,i)=>{
             const v = getDuty(date, off);
             dutyHtml += `<div class="duty-row"><span>${i+1}조</span><b data-type="${v}">${v}</b></div>`;
         });
@@ -255,7 +253,7 @@ function render() {
 
         let vacHtml = '<div class="vacation-list">';
         if(data[key]){
-            data[key].forEach((v, idx) => {
+            data[key].forEach((v, idx)=>{
                 vacHtml += `<span class="vacation-tag" onclick="event.stopPropagation(); del('${key}',${idx})">${v.name}(${v.type})</span>`;
             });
         }
@@ -276,7 +274,7 @@ function toggleAddMode() {
     pendingInfo = { name, type };
     isAddMode = true;
     document.getElementById('mainAddBtn').innerText = '✕';
-    alert('달력에서 등록할 날짜 칸을 클릭해 주세요.');
+    alert('날짜 클릭');
     render();
 }
 
@@ -295,17 +293,17 @@ function resetAddMode() {
 }
 
 function del(key, idx) {
-    if(!confirm('삭제하시겠습니까?')) return;
+    if(!confirm('삭제?')) return;
     let data = load();
-    data[key].splice(idx, 1);
-    if(data[key].length === 0) delete data[key];
+    data[key].splice(idx,1);
+    if(data[key].length===0) delete data[key];
     save(data);
     render();
 }
 
-function moveMonth(n) {
+function moveMonth(n){
     if(isAddMode) resetAddMode();
-    current.setMonth(current.getMonth() + n);
+    current.setMonth(current.getMonth()+n);
     render();
 }
 
