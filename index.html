@@ -3,247 +3,345 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WorkHub Firebase Stable</title>
-
-<!-- Firebase CDN -->
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-
+<title>전원설비 WorkHub</title>
 <style>
-body{
-margin:0;
-font-family:system-ui;
-background:#eef6ff;
+:root {
+--primary: #2c3e50; --accent: #e74c3c; --today: #3498db; --border: #dee2e6;
 }
 
-/* 버튼 */
-.board-float{
-position:fixed;
-right:15px;
-top:50%;
-transform:translateY(-50%);
-z-index:999;
+body {
+font-family: 'Pretendard', -apple-system, sans-serif;
+background: #eaf6ff; margin: 0; padding: 10px; color: #333;
+-webkit-user-select: none; -moz-user-select: none; user-select: none;
 }
 
-.board-float button{
-width:55px;
-height:55px;
-border-radius:50%;
-border:none;
-background:#2c3e50;
-color:#fff;
-font-size:22px;
-cursor:pointer;
+.header {
+background: white; padding: 15px; border-radius: 12px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; margin-bottom: 15px;
 }
 
-/* 모달 */
-.board-modal{
-display:none;
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.6);
-justify-content:center;
-align-items:center;
-z-index:1000;
+.nav-controls { display: flex; justify-content: center; align-items: center; gap: 15px; }
+.nav-btn {
+background: #fff; border: 1px solid #ddd; padding: 8px 12px;
+border-radius: 6px; cursor: pointer; font-weight: bold;
 }
 
-.board-box{
-width:90%;
-max-width:420px;
-background:#fff;
-padding:15px;
-border-radius:10px;
-max-height:80vh;
-overflow:auto;
+#monthDisplay { font-size: 1.2rem; font-weight: 800; min-width: 140px; }
+
+.calendar-grid {
+display: grid; grid-template-columns: repeat(7, 1fr);
+gap: 6px; max-width: 1200px; margin: auto;
 }
 
-input,textarea{
-width:100%;
-padding:8px;
-margin:5px 0;
-box-sizing:border-box;
+.day-label {
+text-align: center; font-weight: bold; padding: 10px 0;
+background: var(--primary); color: white; border-radius: 4px; font-size: 0.8rem;
 }
 
-.board-item{
-border:1px solid #ddd;
-padding:10px;
-margin-top:8px;
-border-radius:8px;
-background:#fafafa;
+.day-cell {
+background: white; border: 1px solid var(--border);
+border-radius: 8px; min-height: 130px; padding: 6px;
+position: relative; display: flex; flex-direction: column;
+box-sizing: border-box;
 }
 
-.board-item img{
-width:100%;
-margin-top:5px;
-border-radius:6px;
+/* [요청사항] 세로 모드(모바일) 근무조 숨김 */
+.duty-container {
+background: #fcfcfc; border-radius: 4px; padding: 4px;
+font-size: 0.7rem; margin-bottom: 5px; border: 1px solid #eee;
 }
 
-button{
-cursor:pointer;
+@media (max-width: 600px) {
+.duty-container { display: none; }
+.day-cell { min-height: 90px; }
+.date-number { font-size: 0.85rem; }
 }
+
+.is-today { border: 2px solid var(--today) !important; background: #f0f8ff; }
+.day-cell.add-mode { cursor: pointer; border: 2px dashed var(--accent); background: #fffafa; }
+
+.date-number { font-size: 1rem; font-weight: bold; margin-bottom: 4px; }
+.duty-row { display: flex; justify-content: space-between; align-items: center; }
+
+.item-list { display: flex; flex-direction: column; gap: 4px; margin-top: auto; }
+.vacation-tag {
+font-size: 0.7rem; font-weight: 700; padding: 2px 4px;
+border-radius: 3px; background: #fdf2f2; color: #c0392b;
+border: 1px solid #fadbd8; cursor: pointer;
+overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+text-align: center;
+}
+
+.img-thumb {
+width: 100%; height: 40px; object-fit: cover;
+border-radius: 4px; border: 1px solid #ddd; cursor: pointer;
+margin-top: 2px;
+}
+
+.quick-wrap {
+position: fixed; bottom: 90px; right: 20px;
+display: flex; flex-direction: column; gap: 10px; z-index: 100;
+}
+.quick-wrap a {
+width: 50px; height: 50px; border-radius: 50%;
+display: flex; align-items: center; justify-content: center;
+color: white; text-decoration: none; font-size: 22px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.2s;
+}
+.quick-wrap a:active { transform: scale(0.9); }
+.map { background: #34495e; } .weather { background: #3498db; }
+.news { background: #e67e22; } .food { background: #27ae60; }
+
+.add-btn {
+position: fixed; bottom: 25px; right: 20px;
+width: 60px; height: 60px; background: var(--accent);
+color: white; border-radius: 50%; border: none;
+font-size: 30px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+z-index: 101;
+}
+
+#imgModal {
+display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+background: rgba(0,0,0,0.9); z-index: 2000;
+justify-content: center; align-items: center;
+}
+#imgModal img { max-width: 95%; max-height: 90%; border: 2px solid white; border-radius: 8px; }
+
+b[data-type^="주"] { color: #d4a017; }
+b[data-type^="야"] { color: #8e44ad; }
+b[data-type^="비"] { color: #27ae60; }
+.week-sun .date-number { color: #e74c3c; }
+.week-sat .date-number { color: #3498db; }
 </style>
 </head>
-
 <body>
 
-<h3 style="text-align:center">📋 Firebase 실시간 게시판</h3>
-
-<!-- 버튼 -->
-<div class="board-float">
-<button onclick="openBoard()">📋</button>
+<div class="header">
+<div class="nav-controls">
+<button class="nav-btn" onclick="moveMonth(-1)">이전달</button>
+<span id="monthDisplay"></span>
+<button class="nav-btn" onclick="moveMonth(1)">다음달</button>
+</div>
 </div>
 
-<!-- 게시판 -->
-<div id="boardModal" class="board-modal" onclick="closeBoard(event)">
-<div class="board-box" onclick="event.stopPropagation()">
-
-<h3>게시판</h3>
-
-<input id="title" placeholder="제목">
-<textarea id="content" placeholder="내용"></textarea>
-<input type="file" id="img">
-
-<button onclick="addPost()">등록</button>
-
-<hr>
-
-<div id="list"></div>
-
+<div class="calendar-grid" id="calendarGrid">
 </div>
+
+<div class="quick-wrap">
+<a href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank" class="map">🗺️</a>
+<a href="https://weather.naver.com/" target="_blank" class="weather">🌤️</a>
+<a href="https://news.naver.com/main/home.naver" target="_blank" class="news">📰</a>
+<a href="https://icn-cafeteria.web.app/" target="_blank" class="food">🍴</a>
+</div>
+
+<button class="add-btn" id="mainAddBtn" onclick="toggleAddMode()">+</button>
+<input type="file" id="imageInput" style="display:none" accept="image/*" onchange="handleFileUpload(this)">
+
+<div id="imgModal" onclick="this.style.display='none'">
+<img id="modalImg" src="">
 </div>
 
 <script>
+// 1. 기본 설정 및 데이터 로직
+const cycle = ['주1','주2','야1','야2','비1','비2'];
+const baseDate = new Date(2026, 3, 26); // 기준일
+const t1StartIdx = 2;
+let current = new Date();
+let isAddMode = false;
+let pendingEntry = { name: '', type: '', img: '' };
+let activeDateKey = '';
 
-console.log("Firebase init start");
+// [검수 핵심] 데이터 저장 키를 새롭게 지정하여 충돌 방지
+const STORAGE_KEY = 'power_system_v5_stable';
 
-/* =========================
-   1. Firebase 초기화
-========================= */
-const firebaseConfig = {
-apiKey: "YOUR_API_KEY",
-authDomain: "YOUR_AUTH_DOMAIN",
-projectId: "YOUR_PROJECT_ID",
-storageBucket: "YOUR_STORAGE_BUCKET",
-messagingSenderId: "YOUR_SENDER_ID",
-appId: "YOUR_APP_ID"
-};
-
-/* 중복 초기화 방지 (검수 핵심) */
-if (!firebase.apps.length) {
-firebase.initializeApp(firebaseConfig);
-}
-
-const db = firebase.firestore();
-const COL = "board";
-
-/* =========================
-   2. 게시판 열기/닫기
-========================= */
-function openBoard(){
-const modal=document.getElementById("boardModal");
-if(modal) modal.style.display="flex";
-}
-
-function closeBoard(e){
-if(e.target.id==="boardModal"){
-document.getElementById("boardModal").style.display="none";
+function getData() {
+const d = localStorage.getItem(STORAGE_KEY);
+try {
+return d ? JSON.parse(d) : {};
+} catch(e) {
+return {};
 }
 }
 
-/* =========================
-   3. 글 작성 (안정형)
-========================= */
-function addPost(){
+function setData(obj) {
+localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+}
 
-const title=document.getElementById("title").value || "";
-const content=document.getElementById("content").value || "";
-const file=document.getElementById("img").files[0];
+function getDutyValue(targetDate, offset) {
+const d1 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+const d2 = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+const diff = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+const idx = (((t1StartIdx + diff + offset) % 6) + 6) % 6;
+return cycle[idx];
+}
 
-if(!title && !content){
-alert("내용 입력");
+// 2. 핵심 렌더링 함수
+function renderCalendar() {
+const grid = document.getElementById('calendarGrid');
+if (!grid) {
+console.error("Grid element not found!");
 return;
 }
+grid.innerHTML = '';
 
-const save=(img="")=>{
-db.collection(COL).add({
-title,
-content,
-img,
-time: Date.now()
+const y = current.getFullYear();
+const m = current.getMonth();
+document.getElementById('monthDisplay').innerText = y + "년 " + (m + 1) + "월";
+
+const data = getData();
+
+// 요일 헤더 생성
+const days = ['일','월','화','수','목','금','토'];
+days.forEach(d => {
+const el = document.createElement('div');
+el.className = 'day-label';
+el.innerText = d;
+grid.appendChild(el);
 });
+
+const firstDay = new Date(y, m, 1).getDay();
+const lastDate = new Date(y, m + 1, 0).getDate();
+
+// 이전 달 공백
+for(let i=0; i<firstDay; i++) {
+grid.appendChild(document.createElement('div'));
+}
+
+// 날짜 생성
+for(let d=1; d<=lastDate; d++) {
+const dateObj = new Date(y, m, d);
+const dateKey = y + "-" + String(m+1).padStart(2,'0') + "-" + String(d).padStart(2,'0');
+
+const cell = document.createElement('div');
+cell.className = 'day-cell';
+
+// 오늘 표시 및 주말 색상
+if(dateObj.toDateString() === new Date().toDateString()) cell.classList.add('is-today');
+if(dateObj.getDay() === 0) cell.classList.add('week-sun');
+if(dateObj.getDay() === 6) cell.classList.add('week-sat');
+
+if(isAddMode) {
+cell.classList.add('add-mode');
+cell.onclick = () => onCellClick(dateKey);
+}
+
+// 날짜 숫자
+const num = document.createElement('span');
+num.className = 'date-number';
+num.innerText = d;
+cell.appendChild(num);
+
+// 근무조 컨테이너 (모바일 세로 모드에서 CSS로 숨김)
+const dutyBox = document.createElement('div');
+dutyBox.className = 'duty-container';
+for(let k=0; k<3; k++) {
+const dutyName = getDutyValue(dateObj, k*2);
+dutyBox.innerHTML += '<div class="duty-row"><span>' + (k+1) + '조</span><b data-type="' + dutyName + '">' + dutyName + '</b></div>';
+}
+cell.appendChild(dutyBox);
+
+// 등록된 내용 (연차/사진)
+const listContainer = document.createElement('div');
+listContainer.className = 'item-list';
+if(data[dateKey]) {
+data[dateKey].forEach((item, index) => {
+if(item.name) {
+const tag = document.createElement('div');
+tag.className = 'vacation-tag';
+tag.innerText = item.name + "(" + item.type + ")";
+tag.onclick = (e) => { e.stopPropagation(); deleteItem(dateKey, index); };
+listContainer.appendChild(tag);
+}
+if(item.img) {
+const imgEl = document.createElement('img');
+imgEl.src = item.img;
+imgEl.className = 'img-thumb';
+imgEl.onclick = (e) => { e.stopPropagation(); openZoom(item.img); };
+imgEl.oncontextmenu = (e) => { e.preventDefault(); deleteItem(dateKey, index); };
+listContainer.appendChild(imgEl);
+}
+});
+}
+cell.appendChild(listContainer);
+grid.appendChild(cell);
+}
+}
+
+// 3. 인터랙션 함수
+function toggleAddMode() {
+if(isAddMode) {
+isAddMode = false;
+document.getElementById('mainAddBtn').innerText = '+';
+renderCalendar();
+return;
+}
+const name = prompt('성함을 입력하세요 (사진만 올리려면 확인)');
+const type = name ? prompt('종류 (연차/반차/교육 등)') : '';
+pendingEntry = { name: name, type: type, img: '' };
+isAddMode = true;
+document.getElementById('mainAddBtn').innerText = '✕';
+alert('등록할 날짜 칸을 선택해 주세요.');
+renderCalendar();
+}
+
+function onCellClick(key) {
+activeDateKey = key;
+if(confirm('사진(파일)을 함께 등록하시겠습니까?')) {
+document.getElementById('imageInput').click();
+} else if(pendingEntry.name) {
+finishRegistration();
+} else {
+isAddMode = false;
+document.getElementById('mainAddBtn').innerText = '+';
+renderCalendar();
+}
+}
+
+function handleFileUpload(input) {
+if(input.files && input.files[0]) {
+const reader = new FileReader();
+reader.onload = (e) => {
+pendingEntry.img = e.target.result;
+finishRegistration();
 };
-
-if(file){
-const reader=new FileReader();
-reader.onload=e=>save(e.target.result);
-reader.readAsDataURL(file);
-}else{
-save();
+reader.readAsDataURL(input.files[0]);
+}
+input.value = '';
 }
 
-/* 입력 초기화 */
-document.getElementById("title").value="";
-document.getElementById("content").value="";
-document.getElementById("img").value="";
+function finishRegistration() {
+const data = getData();
+if(!data[activeDateKey]) data[activeDateKey] = [];
+data[activeDateKey].push({...pendingEntry});
+setData(data);
+isAddMode = false;
+document.getElementById('mainAddBtn').innerText = '+';
+renderCalendar();
 }
 
-/* =========================
-   4. 실시간 렌더링 (핵심)
-========================= */
-function listen(){
-
-db.collection(COL)
-.orderBy("time","desc")
-.onSnapshot((snap)=>{
-
-const list=document.getElementById("list");
-if(!list) return;
-
-list.innerHTML="";
-
-snap.forEach(doc=>{
-const d=doc.data();
-
-const div=document.createElement("div");
-div.className="board-item";
-
-div.innerHTML=`
-<b>${d.title || ""}</b><br>
-<small>${new Date(d.time).toLocaleString()}</small>
-<p>${d.content || ""}</p>
-${d.img ? `<img src="${d.img}">` : ""}
-<br>
-<button onclick="del('${doc.id}')">삭제</button>
-`;
-
-list.appendChild(div);
-});
-
-}, (err)=>{
-console.error("Firestore error:", err);
-});
-
+function deleteItem(key, idx) {
+if(!confirm('정말 삭제할까요?')) return;
+const data = getData();
+data[key].splice(idx, 1);
+if(data[key].length === 0) delete data[key];
+setData(data);
+renderCalendar();
 }
 
-/* =========================
-   5. 삭제
-========================= */
-function del(id){
-if(!confirm("삭제?")) return;
-
-db.collection(COL)
-.doc(id)
-.delete();
+function openZoom(src) {
+document.getElementById('modalImg').src = src;
+document.getElementById('imgModal').style.display = 'flex';
 }
 
-/* =========================
-   6. 시작
-========================= */
-window.onload = ()=>{
-listen();
+function moveMonth(n) {
+current.setMonth(current.getMonth() + n);
+renderCalendar();
+}
+
+// 초기 실행
+window.onload = () => {
+renderCalendar();
 };
-
 </script>
-
 </body>
 </html>
