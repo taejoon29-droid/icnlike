@@ -333,8 +333,14 @@ b[data-type^="비"] { color: var(--green); }
 <input type="file" id="imageInput" style="display:none" accept="image/*" onchange="handleFileUpload(this)">
 <input type="file" id="boardFileInput" style="display:none" multiple onchange="handleBoardFiles(this)">
 
-<div id="imgModal" onclick="this.style.display='none'">
-  <img id="modalImg" src="">
+<div id="imgModal" onclick="closeImgModal(event)">
+  <div style="position:relative;max-width:95%;max-height:90%;display:flex;flex-direction:column;align-items:center;gap:10px;">
+    <img id="modalImg" src="" style="max-width:100%;max-height:75vh;border-radius:10px;display:block;">
+    <div style="display:flex;gap:10px;">
+      <button id="modalDownBtn" onclick="downloadModalImg(event)" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);color:white;padding:8px 20px;border-radius:20px;cursor:pointer;font-size:0.85rem;font-weight:600;">⬇ 다운로드</button>
+      <button onclick="closeImgModalDirect()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);padding:8px 18px;border-radius:20px;cursor:pointer;font-size:0.85rem;">닫기</button>
+    </div>
+  </div>
 </div>
 
 <!-- 게시판 모달 -->
@@ -343,7 +349,7 @@ b[data-type^="비"] { color: var(--green); }
     <div class="board-header">
       <h2>📋 전원설비 게시판
         <span id="boardSyncBadge" class="sync-badge local" style="font-size:0.68rem">
-          <span class="sync-dot"></span> 실시간
+          <span class="sync-dot"></span> 로컬
         </span>
       </h2>
       <button class="board-close" onclick="closeBoard()">✕</button>
@@ -378,7 +384,7 @@ b[data-type^="비"] { color: var(--green); }
           <input type="text" id="writeTitle" placeholder="제목" maxlength="60">
           <textarea id="writeBody" placeholder="내용을 입력하세요..."></textarea>
           <div class="file-upload-area" onclick="document.getElementById('boardFileInput').click()">
-            📎 파일 첨부 (이미지, PDF 등 여러 개 가능)
+            📎 파일 첨부 (이미지, PDF, 엑셀, 한글, Word 등 · 파일당 5MB 이하)
           </div>
           <div class="file-preview" id="filePreview"></div>
           <div class="upload-progress" id="uploadProgress"></div>
@@ -527,37 +533,61 @@ async function removeVacation(dateKey, index) {
   }
 }
 
-// ── 게시글 저장 ──
-// ✅ 핵심 수정: Storage 대신 이미지는 base64로 Firestore에 직접 저장 → 무한로딩 방지
+// 파일 → base64 변환 (모든 파일 형식)
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result); // "data:mime;base64,..."
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// 파일 아이콘 + 색상
+function getFileIcon(name, mime) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (['xlsx','xls','csv'].includes(ext)) return { icon: '📊', color: '#1d6f42', label: 'Excel' };
+  if (['hwp','hwpx'].includes(ext)) return { icon: '📝', color: '#0052a5', label: 'HWP' };
+  if (['pdf'].includes(ext)) return { icon: '📄', color: '#e74c3c', label: 'PDF' };
+  if (['doc','docx'].includes(ext)) return { icon: '📃', color: '#2b579a', label: 'Word' };
+  if (['ppt','pptx'].includes(ext)) return { icon: '📊', color: '#d24726', label: 'PPT' };
+  if (['zip','7z','rar'].includes(ext)) return { icon: '📦', color: '#888', label: 'ZIP' };
+  if (mime && mime.startsWith('image/')) return { icon: '🖼️', color: '#e8543a', label: 'Image' };
+  return { icon: '📎', color: '#666', label: ext.toUpperCase() };
+}
+
+// ── 게시글 저장 ── (모든 파일 base64로 Firestore 직접 저장)
 async function savePost(post, files) {
   const attachments = [];
   const progressEl = document.getElementById('uploadProgress');
   const errorEl = document.getElementById('uploadError');
+  const MAX_MB = 5;
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    const progressPct = Math.round(((i) / files.length) * 100);
-    progressEl.textContent = `📤 파일 처리 중... (${i + 1}/${files.length})`;
+    progressEl.textContent = `📤 파일 변환 중... (${i + 1}/${files.length}) ${file.name}`;
     progressEl.classList.add('show');
+
+    // 파일 크기 체크 (5MB 초과 경고)
+    if (file.size > MAX_MB * 1024 * 1024) {
+      errorEl.textContent = `⚠️ "${file.name}" 파일이 ${MAX_MB}MB를 초과합니다. 건너뜁니다.`;
+      errorEl.classList.add('show');
+      continue;
+    }
 
     try {
       if (file.type.startsWith('image/')) {
-        // 이미지: base64 압축 후 Firestore에 직접 저장 (Storage 불필요)
-        const b64 = await compressImage(file, 800, 0.75);
-        attachments.push({ name: file.name, url: b64, type: file.type });
-      } else if (firebaseReady) {
-        // 비이미지: Firebase Storage 사용
-        const storageRef = ref(storage, `posts/${Date.now()}_${file.name}`);
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
-        attachments.push({ name: file.name, url, type: file.type, path: storageRef.fullPath });
+        // 이미지: canvas 압축
+        const b64 = await compressImage(file, 1200, 0.85);
+        attachments.push({ name: file.name, url: b64, type: file.type, size: file.size });
       } else {
-        attachments.push({ name: file.name, url: null, type: file.type });
+        // 엑셀, 한글, PDF, Word 등 모든 파일: base64 그대로 저장
+        const b64 = await fileToBase64(file);
+        attachments.push({ name: file.name, url: b64, type: file.type, size: file.size });
       }
     } catch (uploadErr) {
-      console.error('파일 업로드 오류:', uploadErr);
-      // ✅ 수정: 업로드 실패해도 게시글 저장은 계속 진행 (파일만 제외)
-      errorEl.textContent = `⚠️ "${file.name}" 업로드 실패 (파일 제외 후 계속 진행)`;
+      console.error('파일 변환 오류:', uploadErr);
+      errorEl.textContent = `⚠️ "${file.name}" 처리 실패`;
       errorEl.classList.add('show');
     }
   }
@@ -622,6 +652,17 @@ window.dispatchEvent(new Event('boardAPIReady'));
 
 <script>
 // ── 캘린더 로직 ──
+function getFileIcon(name, mime) {
+  const ext = (name || '').split('.').pop().toLowerCase();
+  if (['xlsx','xls','csv'].includes(ext)) return { icon: '📊', color: '#1d6f42', label: 'Excel' };
+  if (['hwp','hwpx'].includes(ext)) return { icon: '📝', color: '#0052a5', label: 'HWP' };
+  if (['pdf'].includes(ext)) return { icon: '📄', color: '#e74c3c', label: 'PDF' };
+  if (['doc','docx'].includes(ext)) return { icon: '📃', color: '#2b579a', label: 'Word' };
+  if (['ppt','pptx'].includes(ext)) return { icon: '📊', color: '#d24726', label: 'PPT' };
+  if (['zip','7z','rar'].includes(ext)) return { icon: '📦', color: '#888', label: 'ZIP' };
+  if (mime && mime.startsWith('image/')) return { icon: '🖼️', color: '#e8543a', label: 'Image' };
+  return { icon: '📎', color: '#666', label: ext.toUpperCase() };
+}
 const cycle = ['주1','주2','야1','야2','비1','비2'];
 const baseDate = new Date(2026, 3, 26);
 const t1StartIdx = 2;
@@ -631,12 +672,14 @@ let pendingEntry = { name: '', type: '', img: '' };
 let activeDateKey = '';
 const STORAGE_KEY = 'power_system_v5_stable';
 
-// ✅ 연차 데이터는 window._vacationData (Firestore 실시간) 또는 localStorage 사용
+// ✅ 연차 데이터: Firestore 실시간 데이터 우선, 없으면 localStorage
 function getData() {
-  if (window._vacationData && Object.keys(window._vacationData).length > 0) {
-    return window._vacationData;
-  }
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { return {}; }
+  const fsData = window._vacationData || {};
+  const lsRaw = localStorage.getItem(STORAGE_KEY);
+  const lsData = lsRaw ? JSON.parse(lsRaw) : {};
+  // Firestore에 데이터가 있으면 우선 사용, 없으면 localStorage 사용
+  if (Object.keys(fsData).length > 0) return fsData;
+  return lsData;
 }
 
 function getDutyValue(targetDate, offset) {
@@ -697,7 +740,7 @@ function renderCalendar() {
         if (item.img) {
           const imgEl = document.createElement('img');
           imgEl.src = item.img; imgEl.className = 'img-thumb';
-          imgEl.onclick = e => { e.stopPropagation(); openZoom(item.img); };
+          imgEl.onclick = e => { e.stopPropagation(); openZoom(item.img, item.name || '이미지'); };
           imgEl.oncontextmenu = e => { e.preventDefault(); deleteItem(dateKey, index); };
           listContainer.appendChild(imgEl);
         }
@@ -761,9 +804,48 @@ async function deleteItem(key, idx) {
     // onSnapshot이 자동으로 renderCalendar() 호출
   }
 }
-function openZoom(src) {
+function openFile(src, filename) {
+  // base64 → Blob → 새 탭에서 열기
+  try {
+    const arr = src.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    const blob = new Blob([u8arr], { type: mime });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    // 메모리 해제 (1분 후)
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch(e) {
+    // Blob 생성 실패 시 다운로드로 폴백
+    downloadImg(src, filename);
+  }
+}
   document.getElementById('modalImg').src = src;
+  document.getElementById('modalDownBtn').dataset.src = src;
+  document.getElementById('modalDownBtn').dataset.name = filename || '이미지';
   document.getElementById('imgModal').style.display = 'flex';
+}
+function closeImgModal(e) {
+  if (e.target === document.getElementById('imgModal')) document.getElementById('imgModal').style.display = 'none';
+}
+function closeImgModalDirect() {
+  document.getElementById('imgModal').style.display = 'none';
+}
+function downloadModalImg(e) {
+  e.stopPropagation();
+  const btn = document.getElementById('modalDownBtn');
+  downloadImg(btn.dataset.src, btn.dataset.name);
+}
+function downloadImg(src, filename) {
+  const a = document.createElement('a');
+  a.href = src;
+  a.download = filename || '이미지.jpg';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 function moveMonth(n) {
   current = new Date(current.getFullYear(), current.getMonth() + n, 1);
@@ -868,11 +950,35 @@ function showPostDetail(post) {
     filesHTML = '<div class="detail-files"><h4>📎 첨부파일</h4>';
     post.attachments.forEach(att => {
       if (att.type && att.type.startsWith('image/') && att.url) {
-        filesHTML += `<img src="${att.url}" class="detail-img" onclick="openZoom('${att.url}')">`;
+        filesHTML += `
+          <div style="margin-bottom:12px;">
+            <img src="${att.url}" class="detail-img" onclick="openZoom('${att.url}','${escHtml(att.name)}')">
+            <div style="display:flex;gap:8px;margin-top:5px;">
+              <button onclick="downloadImg('${att.url}','${escHtml(att.name)}')" style="flex:1;background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:#ff8a76;border-radius:8px;padding:7px;font-size:0.8rem;cursor:pointer;font-weight:600;">⬇ 다운로드</button>
+              <button onclick="openZoom('${att.url}','${escHtml(att.name)}')" style="flex:1;background:var(--bg4);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:7px;font-size:0.8rem;cursor:pointer;">🔍 원본 보기</button>
+            </div>
+          </div>`;
       } else if (att.url) {
+        const fi = getFileIcon(att.name, att.type);
+        const sizeStr = att.size ? (att.size > 1024*1024 ? (att.size/1024/1024).toFixed(1)+'MB' : Math.round(att.size/1024)+'KB') : '';
+        filesHTML += `
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <span style="font-size:24px;">${fi.icon}</span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:0.85rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(att.name)}</div>
+                <div style="font-size:0.72rem;color:var(--text3);">${fi.label}${sizeStr ? ' · '+sizeStr : ''}</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="openFile('${att.url}','${escHtml(att.name)}')" style="flex:1;background:rgba(74,158,255,0.15);border:1px solid rgba(74,158,255,0.3);color:#4a9eff;border-radius:8px;padding:8px;font-size:0.82rem;cursor:pointer;font-weight:600;">📂 파일 열기</button>
+              <button onclick="downloadImg('${att.url}','${escHtml(att.name)}')" style="flex:1;background:rgba(232,84,58,0.12);border:1px solid rgba(232,84,58,0.25);color:#ff8a76;border-radius:8px;padding:8px;font-size:0.82rem;cursor:pointer;font-weight:600;">⬇ 다운로드</button>
+            </div>
+          </div>`;
         filesHTML += `<a href="${att.url}" target="_blank" class="file-link">📄 ${escHtml(att.name)}</a>`;
       } else {
-        filesHTML += `<div class="file-link" style="opacity:0.6">📄 ${escHtml(att.name)}</div>`;
+        const fi = getFileIcon(att.name, att.type);
+        filesHTML += `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;opacity:0.5;"><span style="font-size:22px;">${fi.icon}</span><span style="font-size:0.82rem;color:var(--text2);">${escHtml(att.name)} (저장 실패)</span></div>`;
       }
     });
     filesHTML += '</div>';
