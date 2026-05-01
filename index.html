@@ -274,7 +274,6 @@ b[data-type^="비"] { color: var(--green); }
 
 <button class="add-btn" id="mainAddBtn" onclick="toggleAddMode()">+</button>
 <input type="file" id="imageInput" style="display:none" accept="image/*" onchange="handleFileUpload(this)">
-<input type="file" id="boardFileInput" style="display:none" multiple onchange="handleBoardFiles(this)">
 
 <!-- 이미지 모달 -->
 <div id="imgModal" onclick="closeImgModal(event)">
@@ -323,9 +322,15 @@ b[data-type^="비"] { color: var(--green); }
           </select>
           <input type="text" id="writeTitle" placeholder="제목" maxlength="60">
           <textarea id="writeBody" placeholder="내용을 입력하세요..."></textarea>
-          <div class="file-upload-area" onclick="document.getElementById('boardFileInput').click()">
+          <!-- ✅ label+input 방식: iOS/Android 모두 네이티브 파일 피커 정상 작동 -->
+          <label class="file-upload-area" for="boardFileInput" style="display:block;cursor:pointer;">
             📎 파일 첨부 (이미지, PDF, 엑셀, 한글, Word 등 · 파일당 10MB 이하)
-          </div>
+          </label>
+          <input type="file" id="boardFileInput"
+            style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;"
+            multiple
+            accept="image/*,.pdf,.xlsx,.xls,.csv,.hwp,.hwpx,.doc,.docx,.ppt,.pptx,.zip,.7z,.txt"
+            onchange="handleBoardFiles(this)">
           <div class="file-preview" id="filePreview"></div>
           <div class="upload-progress" id="uploadProgress">
             <span id="uploadProgressText"></span>
@@ -435,38 +440,56 @@ function compressImage(file, maxW, quality) {
 }
 
 // ── Firebase Storage에 파일 업로드 후 URL 반환 ──
-// ✅ 핵심 수정: base64를 Firestore에 저장하지 않고 Storage에 업로드
 function uploadFileToStorage(file, onProgress) {
-  return new Promise((resolve, reject) => {
-    // 경로: posts/파일명_타임스탬프
-    const safeName = file.name.replace(/[^a-zA-Z0-9._\-가-힣]/g, '_');
-    const path = `posts/${Date.now()}_${safeName}`;
-    const fileRef = storageRef(storage, path);
+  return new Promise(async (resolve, reject) => {
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._\-가-힣]/g, '_');
+      const path = `posts/${Date.now()}_${safeName}`;
+      const fileRef = storageRef(storage, path);
 
-    // 이미지면 압축 후 업로드, 아니면 원본 업로드
-    const uploadPromise = file.type.startsWith('image/')
-      ? compressImage(file, 1200, 0.85).then(blob => uploadBytesResumable(fileRef, blob))
-      : Promise.resolve(uploadBytesResumable(fileRef, file));
+      // 스마트폰에서 file.type이 빈 문자열로 올 수 있으므로 확장자로도 판단
+      const ext = (file.name || '').split('.').pop().toLowerCase();
+      const isImage = file.type.startsWith('image/') || ['jpg','jpeg','png','gif','webp','heic','heif'].includes(ext);
 
-    uploadPromise.then(uploadTask => {
+      let uploadTask;
+      if (isImage) {
+        // 이미지: 압축 후 업로드
+        // ✅ await로 blob을 먼저 받은 뒤 uploadBytesResumable 호출 (체인 버그 수정)
+        try {
+          const blob = await compressImage(file, 1200, 0.85);
+          uploadTask = uploadBytesResumable(fileRef, blob);
+        } catch(compressErr) {
+          // 압축 실패 시 원본으로 업로드
+          console.warn('이미지 압축 실패, 원본 업로드:', compressErr);
+          uploadTask = uploadBytesResumable(fileRef, file);
+        }
+      } else {
+        // 이미지 외 파일: 원본 그대로 업로드
+        uploadTask = uploadBytesResumable(fileRef, file);
+      }
+
       uploadTask.on('state_changed',
         (snapshot) => {
-          const pct = Math.round(snapshot.bytesTransferred / snapshot.totalBytes * 100);
+          const pct = snapshot.totalBytes > 0
+            ? Math.round(snapshot.bytesTransferred / snapshot.totalBytes * 100)
+            : 0;
           if (onProgress) onProgress(pct);
         },
         (err) => reject(err),
         async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          resolve({
-            name: file.name,
-            url: downloadURL,       // ← Storage URL (짧음, Firestore에 안전하게 저장 가능)
-            path: path,             // ← 삭제 시 사용
-            type: file.type,
-            size: file.size
-          });
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve({
+              name: file.name,
+              url: downloadURL,
+              path: path,
+              type: file.type || ('image/' + ext),
+              size: file.size
+            });
+          } catch(urlErr) { reject(urlErr); }
         }
       );
-    }).catch(reject);
+    } catch(err) { reject(err); }
   });
 }
 
@@ -1075,11 +1098,16 @@ async function confirmDeletePost(id, attachments) {
 }
 
 function handleBoardFiles(input) {
+  if (!input.files || input.files.length === 0) return;
   Array.from(input.files).forEach(f => {
-    if (!boardFiles.find(x => x.name === f.name)) boardFiles.push(f);
+    // 같은 이름+크기 조합으로 중복 체크 (스마트폰에서 동명 파일 재선택 허용)
+    if (!boardFiles.find(x => x.name === f.name && x.size === f.size)) {
+      boardFiles.push(f);
+    }
   });
   renderFilePreview();
-  input.value = '';
+  // ✅ input.value 초기화: 같은 파일 다시 선택 가능하게
+  try { input.value = ''; } catch(e) {}
 }
 
 function renderFilePreview() {
