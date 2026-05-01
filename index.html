@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>전원설비 WorkHub</title>
 <style>
 :root {
@@ -263,7 +263,7 @@ b[data-type^="비"] { color: var(--green); }
 <button class="add-btn" id="mainAddBtn" onclick="toggleAddMode()">+</button>
 <!-- ✅ BUG1 FIX: 연차 이미지 input과 게시판 파일 input 분리 유지 -->
 <input type="file" id="imageInput" style="display:none" accept="image/*" onchange="handleFileUpload(this)">
-<input type="file" id="boardFileInput" style="display:none" multiple onchange="handleBoardFiles(this)">
+<input type="file" id="boardFileInput" style="display:none" multiple accept="*/*" onchange="handleBoardFiles(this)">
 
 <!-- 이미지 모달 -->
 <div id="imgModal" onclick="closeImgModal(event)">
@@ -313,7 +313,7 @@ b[data-type^="비"] { color: var(--green); }
           <input type="text" id="writeTitle" placeholder="제목" maxlength="60">
           <textarea id="writeBody" placeholder="내용을 입력하세요..."></textarea>
           <div class="file-upload-area" onclick="document.getElementById('boardFileInput').click()">
-            📎 파일 첨부 (이미지, PDF, 엑셀, 한글, Word 등 · 파일당 5MB 이하)
+            📎 파일 첨부 (이미지, PDF, 엑셀, 한글, Word 등 · 파일당 10MB 이하)
           </div>
           <div class="file-preview" id="filePreview"></div>
           <div class="upload-progress" id="uploadProgress"></div>
@@ -337,6 +337,9 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
 
 const firebaseConfig = {
+  // ⚠️ 보안 주의: API 키가 소스코드에 노출되어 있습니다.
+  // Firebase Console → 프로젝트 설정 → 승인된 도메인을 반드시 설정하여 무단 사용을 방지하세요.
+  // 공개 저장소(GitHub 등)에 업로드하지 마세요.
   apiKey: "AIzaSyArsOzrlKqK1BPH6ugGAhRWaq_gYmkvyIE",
   authDomain: "gogo-3d2c8.firebaseapp.com",
   projectId: "gogo-3d2c8",
@@ -492,7 +495,7 @@ async function savePost(post, files) {
   const attachments = [];
   const progressEl = document.getElementById('uploadProgress');
   const errorEl = document.getElementById('uploadError');
-  const MAX_MB = 5;
+  const MAX_MB = 10; // ✅ FIX: 요구사항(10MB)과 UI 표시 일치
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -500,15 +503,15 @@ async function savePost(post, files) {
     progressEl.classList.add('show');
 
     if (file.size > MAX_MB * 1024 * 1024) {
-      errorEl.textContent = `⚠️ "${file.name}" 파일이 ${MAX_MB}MB 초과합니다. 건너뜁니다.`;
+      errorEl.textContent = `⚠️ "${file.name}" 파일이 ${MAX_MB}MB를 초과합니다 (현재: ${(file.size/1024/1024).toFixed(1)}MB). 건너뜁니다.`;
       errorEl.classList.add('show');
       continue;
     }
 
     try {
-      // ✅ BUG7 FIX: 파일 변환에 10초 타임아웃 설정 (무한로딩 방지)
+      // ✅ FIX: maxW를 800px로 낮춤 — Firestore 문서 1MB 제한 대비
       const convertPromise = file.type.startsWith('image/')
-        ? compressImage(file, 1200, 0.85)
+        ? compressImage(file, 800, 0.80)
         : fileToBase64(file);
 
       const timeoutPromise = new Promise((_, reject) =>
@@ -748,7 +751,15 @@ function handleFileUpload(input) {
     const reader = new FileReader();
     reader.onload = e => {
       pendingEntry.img = e.target.result;
-      finishRegistration();
+      // ✅ FIX: 연차 이미지도 압축하여 Firestore 문서 1MB 초과 방지
+      if (input.files[0].type.startsWith('image/') && e.target.result.length > 500000) {
+        compressImageFromDataUrl(e.target.result, 600, 0.75).then(compressed => {
+          pendingEntry.img = compressed;
+          finishRegistration();
+        }).catch(() => finishRegistration());
+      } else {
+        finishRegistration();
+      }
     };
     reader.onerror = () => {
       alert('파일 읽기 실패');
@@ -841,6 +852,23 @@ async function deleteItem(key, idx) {
       window.renderCalendar();
     }
   }
+}
+
+// ✅ FIX: DataURL 형태의 이미지를 canvas로 재압축 (연차 이미지 Firestore 용량 초과 방지)
+function compressImageFromDataUrl(dataUrl, maxW, quality) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onerror = () => reject(new Error('이미지 로드 실패'));
+    img.onload = () => {
+      const ratio = Math.min(maxW / img.width, maxW / img.height, 1);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
 }
 
 // ✅ BUG1 FIX: openZoom 함수 정의 (원본 코드에서 누락된 함수)
@@ -1097,6 +1125,14 @@ function showListView() {
 }
 
 async function confirmDeletePost(id, attachments) {
+  // ✅ FIX: 삭제 전 확인 강화 — 실무에서는 Firebase Rules로 작성자 검증 추가 권장
+  const pw = prompt('삭제하려면 작성자 이름을 입력하세요:');
+  if (!pw) return;
+  const post = (window._allPosts || []).find(p => p.id === id);
+  if (post && post.author && post.author !== pw) {
+    alert('작성자 이름이 일치하지 않습니다.');
+    return;
+  }
   if (!confirm('게시글을 삭제할까요?')) return;
   try {
     if (window._boardAPI) {
