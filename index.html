@@ -464,12 +464,10 @@ b[data-type^="비"]{color:var(--green);}
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {
-  getFirestore, collection, addDoc, deleteDoc, doc,
+  getFirestore, collection, addDoc, deleteDoc, doc, setDoc, getDoc,
   query, orderBy, serverTimestamp, onSnapshot
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import {
-  getStorage, ref as sRef, uploadBytes, uploadBytesResumable, getDownloadURL, deleteObject
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+// Storage는 사용하지 않음 — 모바일 CORS 문제로 base64+Firestore 방식으로 대체
 
 const CFG = {
   apiKey:"AIzaSyArsOzrlKqK1BPH6ugGAhRWaq_gYmkvyIE",
@@ -480,17 +478,14 @@ const CFG = {
   appId:"1:156358451768:web:5311651d3f83ce23b6fccd"
 };
 
-let db=null, storage=null, firebaseReady=false;
+let db=null, firebaseReady=false;
 if(!window._vacationData) window._vacationData={};
 if(!window._allPosts) window._allPosts=[];
 
 try {
   const app = initializeApp(CFG);
   db = getFirestore(app);
-  storage = getStorage(app);
   firebaseReady = true;
-
-  // Storage 연결 확인 (조용히)
   window._storageReady = true;
 
   // 연차 실시간
@@ -538,49 +533,63 @@ function compressImage(file, maxW, quality) {
   });
 }
 
-// ── Storage 업로드 ──
-// ✅ uploadBytes 사용 (uploadBytesResumable보다 모바일에서 안정적)
-// ✅ HEIC/HEIF(아이폰 기본) 압축 불가 → 원본 그대로 업로드
-// ✅ 90초 타임아웃으로 무한로딩 방지
-async function uploadFileToStorage(file, onProgress) {
+// ── 파일 → base64 변환 (Storage 없이 Firestore에 직접 저장) ──
+// ✅ Firebase Storage CORS/Rules 문제 완전 제거
+// ✅ 이미지는 압축, 나머지는 원본 base64
+// ✅ 10초 타임아웃으로 무한로딩 방지
+async function fileToAttachment(file, onProgress) {
   const ext = (file.name||'').split('.').pop().toLowerCase();
-  const isCompressible = (file.type.startsWith('image/') && !['heic','heif'].includes(ext))
-    || ['jpg','jpeg','png','gif','webp'].includes(ext);
-  const safeName = file.name.replace(/[^a-zA-Z0-9._\-가-힣]/g,'_');
-  const path = `posts/${Date.now()}_${safeName}`;
-  const fileRef = sRef(storage, path);
+  const isJpgCompatible = ['jpg','jpeg','png','gif','webp'].includes(ext)
+    || (file.type.startsWith('image/') && !['heic','heif'].includes(ext));
 
-  // 진행 표시: 압축 단계
-  if(onProgress) onProgress(5);
+  if(onProgress) onProgress(10);
 
-  let uploadData = file;
-  if (isCompressible) {
-    try {
-      uploadData = await Promise.race([
+  let b64;
+  try {
+    if(isJpgCompatible) {
+      // 이미지 압축 후 base64
+      const blob = await Promise.race([
         compressImage(file, 1200, 0.85),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('압축 타임아웃')),15000))
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('압축 타임아웃')),10000))
       ]);
-    } catch(ce) {
-      console.warn('이미지 압축 실패, 원본 업로드:', ce.message);
-      uploadData = file;
+      b64 = await new Promise((res,rej)=>{
+        const r=new FileReader();
+        r.onload=e=>res(e.target.result);
+        r.onerror=()=>rej(new Error('읽기 실패'));
+        r.readAsDataURL(blob);
+      });
+    } else {
+      // 그 외 파일 (엑셀·한글·PDF·HEIC 등): 원본 그대로 base64
+      b64 = await Promise.race([
+        new Promise((res,rej)=>{
+          const r=new FileReader();
+          r.onload=e=>res(e.target.result);
+          r.onerror=()=>rej(new Error('파일 읽기 실패'));
+          r.readAsDataURL(file);
+        }),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('파일 읽기 타임아웃 (10초)')),10000))
+      ]);
     }
+  } catch(e) {
+    // 압축 실패 시 원본 그대로 재시도
+    b64 = await Promise.race([
+      new Promise((res,rej)=>{
+        const r=new FileReader();
+        r.onload=e=>res(e.target.result);
+        r.onerror=()=>rej(new Error('파일 읽기 최종 실패'));
+        r.readAsDataURL(file);
+      }),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('파일 읽기 타임아웃')),10000))
+    ]);
   }
 
-  if(onProgress) onProgress(15);
-
-  // uploadBytes: 단일 요청, 모바일 환경에서 더 안정적
-  const snapshot = await Promise.race([
-    uploadBytes(fileRef, uploadData),
-    new Promise((_,rej)=>setTimeout(()=>rej(new Error('업로드 시간 초과 (90초)')),90000))
-  ]);
-
   if(onProgress) onProgress(90);
-
-  const url = await getDownloadURL(snapshot.ref);
-  if(onProgress) onProgress(100);
-
-  const mimeType = file.type || (isCompressible ? 'image/jpeg' : 'application/octet-stream');
-  return { name:file.name, url, path, type:mimeType, size:file.size };
+  return {
+    name: file.name,
+    url: b64,          // base64 data URL — Firestore 별도 문서에 저장됨
+    type: file.type || 'application/octet-stream',
+    size: file.size
+  };
 }
 
 // ── 로컬 폴백 ──
@@ -628,7 +637,7 @@ async function savePost(post, files) {
   const progressBar = document.getElementById('progressBar');
   const progressPct = document.getElementById('uploadPct');
   const errorEl = document.getElementById('uploadError');
-  const MAX_MB = 10;
+  const MAX_MB = 5; // base64는 원본보다 ~33% 커지므로 5MB 제한
 
   errorEl.classList.remove('show');
 
@@ -640,72 +649,72 @@ async function savePost(post, files) {
       continue;
     }
 
-    progressText.textContent = `(${i+1}/${files.length}) ${file.name} 업로드 중...`;
-    progressBar.style.width = '5%';
-    progressPct.textContent = '5%';
+    progressText.textContent = `(${i+1}/${files.length}) ${file.name} 변환 중...`;
+    progressBar.style.width = '10%';
+    progressPct.textContent = '10%';
     progressEl.classList.add('show');
 
     try {
-      let att;
-      if(firebaseReady) {
-        att = await uploadFileToStorage(file, pct => {
-          progressBar.style.width = pct+'%';
-          progressPct.textContent = pct+'%';
-          progressText.textContent = `(${i+1}/${files.length}) ${file.name} ${pct}%`;
-        });
-      } else {
-        // 로컬 폴백: base64
-        const ext=(file.name||'').split('.').pop().toLowerCase();
-        const isImg=file.type.startsWith('image/')||['jpg','jpeg','png','gif','webp'].includes(ext);
-        let url;
-        try {
-          url = isImg
-            ? await (async()=>{ const b=await compressImage(file,1200,.85); return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(b);}); })()
-            : await fileToBase64(file);
-        } catch(ce) {
-          url = await fileToBase64(file); // 압축 실패시 원본
-        }
-        att = { name:file.name, url, type:file.type, size:file.size };
-      }
+      // ✅ Storage 없이 base64로 변환 — 네트워크 의존 없음
+      const att = await fileToAttachment(file, pct => {
+        progressBar.style.width = pct+'%';
+        progressPct.textContent = pct+'%';
+        progressText.textContent = `(${i+1}/${files.length}) ${file.name} ${pct}%`;
+      });
       attachments.push(att);
       progressBar.style.width = '100%';
       progressPct.textContent = '100%';
       progressText.textContent = `✅ ${file.name} 완료`;
     } catch(err) {
-      console.error('파일 업로드 오류:', err);
-      // 에러 코드별 한국어 안내
-      let msg = err.message || '알 수 없는 오류';
-      if(err.code === 'storage/unauthorized') msg = '업로드 권한이 없습니다. Firebase Storage 규칙을 확인하세요.';
-      else if(err.code === 'storage/canceled') msg = '업로드가 취소됐습니다.';
-      else if(err.code === 'storage/unknown') msg = '네트워크 오류. 와이파이/데이터 연결을 확인하세요.';
-      else if(msg.includes('타임아웃') || msg.includes('timeout')) msg = '업로드 시간 초과. 파일 크기를 줄이거나 네트워크를 확인하세요.';
-      errorEl.textContent = `⚠️ "${file.name}" 실패: ${msg}`;
+      console.error('파일 변환 오류:', err);
+      errorEl.textContent = `⚠️ "${file.name}" 실패: ${err.message}`;
       errorEl.classList.add('show');
-      // 실패해도 continue — 나머지 파일 + 게시글 저장 계속
+      // 실패해도 continue
     }
   }
 
   progressEl.classList.remove('show');
 
-  const postData = { ...post, attachments, createdAt: firebaseReady ? serverTimestamp() : Date.now() };
+  // ✅ Firestore 1MB 제한 우회:
+  // 첨부파일(base64)은 별도 'attachments' 문서에 저장
+  // posts 문서에는 첨부파일 ID 참조만 저장
+  let attDocId = null;
+  if(attachments.length > 0 && firebaseReady) {
+    const attRef = await Promise.race([
+      addDoc(collection(db,'attachments'), { files: attachments }),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('첨부파일 저장 시간 초과')),20000))
+    ]);
+    attDocId = attRef.id;
+  }
+
+  const postData = {
+    ...post,
+    // Firestore posts 문서에는 base64 없이 참조 ID만
+    attachments: attachments.map(a=>({ name:a.name, type:a.type, size:a.size })),
+    attDocId: attDocId || null,
+    createdAt: firebaseReady ? serverTimestamp() : Date.now()
+  };
 
   if(firebaseReady) {
     const docRef = await Promise.race([
       addDoc(collection(db,'posts'), postData),
-      new Promise((_,rej)=>setTimeout(()=>rej(new Error('서버 저장 시간 초과')), 30000))
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('서버 저장 시간 초과')), 20000))
     ]);
-    return { id:docRef.id, ...postData };
+    // 로컬 캐시용으로 attachments도 붙여서 반환
+    return { id:docRef.id, ...postData, _localAttachments: attachments };
   } else {
     const k='workhub_board_v1', id='local_'+Date.now();
-    const posts=[{id,...postData},...(JSON.parse(localStorage.getItem(k)||'[]'))];
+    const fullPost = { id, ...postData, attachments }; // 로컬은 base64 포함
+    const posts=[fullPost,...(JSON.parse(localStorage.getItem(k)||'[]'))];
     localStorage.setItem(k,JSON.stringify(posts));
-    return { id, ...postData };
+    return fullPost;
   }
 }
 
-async function deletePost(id, attachments) {
+async function deletePost(id, attachments, attDocId) {
   if(firebaseReady){
-    for(const a of (attachments||[])) if(a.path) try{await deleteObject(sRef(storage,a.path));}catch(e){}
+    // 첨부파일 별도 문서도 함께 삭제
+    if(attDocId) try{ await deleteDoc(doc(db,'attachments',attDocId)); }catch(e){}
     await deleteDoc(doc(db,'posts',id));
   } else {
     const k='workhub_board_v1';
@@ -716,7 +725,19 @@ async function loadPostsLocal() {
   return (JSON.parse(localStorage.getItem('workhub_board_v1')||'[]')).sort((a,b)=>b.createdAt-a.createdAt);
 }
 
-window._boardAPI = { savePost, deletePost, loadPostsLocal, firebaseReady:()=>firebaseReady };
+async function loadAttachments(attDocId) {
+  if(!firebaseReady || !attDocId) return null;
+  try {
+    const snap = await Promise.race([
+      getDoc(doc(db,'attachments',attDocId)),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('첨부파일 로드 타임아웃')),10000))
+    ]);
+    if(snap.exists()) return snap.data().files || [];
+  } catch(e) { console.warn('loadAttachments error:', e); }
+  return null;
+}
+
+window._boardAPI = { savePost, deletePost, loadPostsLocal, loadAttachments, firebaseReady:()=>firebaseReady };
 window._vacationAPI = { saveVacation, removeVacation };
 window.dispatchEvent(new Event('boardAPIReady'));
 </script>
@@ -961,17 +982,30 @@ window.renderPostList=function(){
   });
 };
 
-function showPostDetail(post){
+async function showPostDetail(post){
   document.getElementById('postListWrap').classList.add('hide');
   document.getElementById('catFilters').style.display='none';
   const detail=document.getElementById('postDetail'); detail.classList.add('show');
+
+  // 첨부파일 로컬 캐시 or Firestore에서 로드
+  let fullAttachments = post._localAttachments || post.attachments || [];
+  if(post.attDocId && window._boardAPI && window._boardAPI.firebaseReady()) {
+    try {
+      const loaded = await window._boardAPI.loadAttachments(post.attDocId);
+      if(loaded) fullAttachments = loaded;
+    } catch(e) { console.warn('첨부파일 로드 실패:', e); }
+  }
+  // 렌더용 임시 저장
+  post._resolvedAttachments = fullAttachments;
+
   let ts; try{ts=post.createdAt?.seconds?new Date(post.createdAt.seconds*1000):new Date(post.createdAt);}catch(e){ts=new Date();}
   const color=CAT_COLORS[post.category]||'#888';
 
   let filesHTML='';
-  if(post.attachments?.length){
-    filesHTML='<div class="detail-files-section"><div class="detail-files-title">📎 첨부파일 '+post.attachments.length+'개</div>';
-    post.attachments.forEach((att,i)=>{
+  const attList = post._resolvedAttachments || [];
+  if(attList.length){
+    filesHTML='<div class="detail-files-section"><div class="detail-files-title">📎 첨부파일 '+attList.length+'개</div>';
+    attList.forEach((att,i)=>{
       const k=(post.id||'local')+'_'+i; window._attStore[k]=att;
       const ext=(att.name||'').split('.').pop().toLowerCase();
       const isImg=att.type?.startsWith('image/')||['jpg','jpeg','png','gif','webp'].includes(ext);
@@ -1015,17 +1049,17 @@ function showPostDetail(post){
     <button class="delete-post-btn" id="delBtn_${escHtml(post.id)}">🗑 게시글 삭제</button>`;
 
   const del=document.getElementById('delBtn_'+post.id);
-  if(del) del.addEventListener('click',()=>confirmDeletePost(post.id,post.attachments||[]));
+  if(del) del.addEventListener('click',()=>confirmDeletePost(post.id, post.attachments||[], post.attDocId||null));
 }
 function showListView(){
   document.getElementById('postListWrap').classList.remove('hide');
   document.getElementById('catFilters').style.display='';
   const d=document.getElementById('postDetail'); d.classList.remove('show'); d.innerHTML='';
 }
-async function confirmDeletePost(id,atts){
+async function confirmDeletePost(id,atts,attDocId){
   if(!confirm('정말 삭제할까요?')) return;
   try{
-    if(window._boardAPI) await window._boardAPI.deletePost(id,atts);
+    if(window._boardAPI) await window._boardAPI.deletePost(id, atts, attDocId);
     if(!window._boardAPI?.firebaseReady()){
       window._allPosts=(window._allPosts||[]).filter(p=>p.id!==id);
       window.renderPostList();
