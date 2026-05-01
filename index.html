@@ -344,9 +344,9 @@ b[data-type^="비"]{color:var(--green);}
 
 <div class="header">
   <div class="nav-controls">
-    <button class="nav-btn" onclick="moveMonth(-1)">이전달</button>
+    <button class="nav-btn" onclick="moveMonthInMode(-1)">이전달</button>
     <span id="monthDisplay"></span>
-    <button class="nav-btn" onclick="moveMonth(1)">다음달</button>
+    <button class="nav-btn" onclick="moveMonthInMode(1)">다음달</button>
     <span id="calSyncBadge" class="sync-badge local"><span class="sync-dot"></span> 로컬</span>
   </div>
 </div>
@@ -437,7 +437,6 @@ b[data-type^="비"]{color:var(--green);}
             <input type="file" id="boardFileInput"
               style="clip:rect(0,0,0,0);position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;"
               multiple
-              accept=".jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.pdf,.xlsx,.xls,.csv,.hwp,.hwpx,.doc,.docx,.ppt,.pptx,.zip,.7z,.txt"
               onchange="handleBoardFiles(this)">
           </div>
           <div class="file-preview" id="filePreview"></div>
@@ -849,7 +848,7 @@ function toggleAddMode(){
   const type=name?(prompt('종류 (연차/반차/교육 등)')||''):'';
   pendingEntry={name,type,img:''};isAddMode=true;
   document.getElementById('mainAddBtn').innerText='✕';
-  alert('등록할 날짜 칸을 선택해 주세요.');window.renderCalendar();
+  alert('등록할 날짜 칸을 선택하세요.\n이전달/다음달 이동 후 선택도 가능합니다.');window.renderCalendar();
 }
 function onCellClick(key){
   activeDateKey=key;
@@ -916,6 +915,14 @@ function openFile(k){
 }
 function downloadAtt(k){const a=window._attStore[k];if(!a?.url){alert('파일 없음');return;}dlImg(a.url,a.name);}
 function moveMonth(n){current=new Date(current.getFullYear(),current.getMonth()+n,1);window.renderCalendar();}
+
+// add-mode 중 이전달/다음달 — isAddMode 상태 유지하며 월 이동
+function moveMonthInMode(n){
+  current=new Date(current.getFullYear(),current.getMonth()+n,1);
+  window.renderCalendar();
+  // add-mode였으면 안내 버튼 텍스트 유지
+  if(isAddMode) document.getElementById('mainAddBtn').innerText='✕';
+}
 
 // ── 게시판 ──
 function openBoard(){document.getElementById('boardModal').style.display='flex';loadBoardPosts();}
