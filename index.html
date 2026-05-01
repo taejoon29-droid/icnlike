@@ -3,55 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WorkHub Premium</title>
+<title>WORKHUB MensStyle</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Pretendard&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Pretendard&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg:#f6f1eb;
-  --card:#ffffff;
-  --accent:#ff6a00;
-  --text:#2c2c2c;
-  --sub:#777;
-  --border:#e5ded6;
+  --bg:#0b0f14;
+  --card:#111821;
+  --line:#1e2a36;
+  --text:#e6edf3;
+  --sub:#8b949e;
+  --accent:#ff2d2d;
 }
 
 body{
   margin:0;
-  font-family:'Pretendard', sans-serif;
-  background:var(--bg);
+  background:linear-gradient(180deg,#0b0f14,#06080c);
   color:var(--text);
+  font-family:'Pretendard',sans-serif;
 }
 
-/* 상단 */
-.topbar{
+/* HEADER */
+.header{
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  padding:20px;
-  border-bottom:1px solid var(--border);
+  padding:16px 20px;
+  border-bottom:1px solid var(--line);
 }
 
 .logo{
-  font-family:'Playfair Display', serif;
-  font-size:28px;
+  font-family:'Oswald';
+  font-size:32px;
+  color:#ff2d2d;
 }
 
-.month-nav button{
-  border:none;
-  background:none;
-  font-size:20px;
-  cursor:pointer;
+.month{
+  font-size:18px;
 }
 
-/* 레이아웃 */
-.layout{
+/* LAYOUT */
+.wrap{
   display:flex;
   gap:20px;
   padding:20px;
 }
 
+/* CALENDAR */
 .calendar{
   flex:2;
   background:var(--card);
@@ -59,26 +57,19 @@ body{
   padding:20px;
 }
 
-.board{
-  flex:1;
-  background:var(--card);
-  border-radius:16px;
-  padding:20px;
-}
-
-/* 캘린더 */
 .grid{
   display:grid;
   grid-template-columns:repeat(7,1fr);
-  gap:8px;
+  gap:6px;
 }
 
 .day{
-  border:1px solid var(--border);
+  border:1px solid var(--line);
   border-radius:10px;
   padding:6px;
-  min-height:90px;
+  min-height:110px;
   cursor:pointer;
+  position:relative;
 }
 
 .day:hover{
@@ -86,38 +77,42 @@ body{
 }
 
 .date{
-  font-weight:bold;
+  font-weight:700;
+  font-size:14px;
+}
+
+.shift{
+  font-size:11px;
+  margin-top:2px;
 }
 
 .tag{
-  background:rgba(255,106,0,0.1);
-  color:var(--accent);
+  background:rgba(255,45,45,0.2);
+  color:#ff6b6b;
+  font-size:11px;
   padding:2px 6px;
   border-radius:6px;
-  font-size:12px;
   margin-top:4px;
 }
 
-/* 게시판 */
-.write input, .write textarea{
+.thumb{
   width:100%;
-  margin-bottom:8px;
-  padding:8px;
-  border-radius:8px;
-  border:1px solid var(--border);
+  height:40px;
+  object-fit:cover;
+  border-radius:6px;
+  margin-top:4px;
 }
 
-button{
-  background:var(--accent);
-  color:white;
-  border:none;
-  padding:10px;
-  border-radius:8px;
-  cursor:pointer;
+/* BOARD */
+.board{
+  flex:1;
+  background:var(--card);
+  border-radius:16px;
+  padding:16px;
 }
 
 .post{
-  border-bottom:1px solid var(--border);
+  border-bottom:1px solid var(--line);
   padding:10px 0;
 }
 
@@ -125,41 +120,77 @@ button{
   font-size:14px;
 }
 
+.badge{
+  font-size:10px;
+  padding:2px 6px;
+  border-radius:6px;
+  margin-right:6px;
+}
+
+.notice{background:#ff2d2d;}
+.work{background:#4a9eff;}
+.q{background:#ffb340;}
+.free{background:#34c975;}
+
+/* FLOAT BTN */
+.fab{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:var(--accent);
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:30px;
+  cursor:pointer;
+}
+
+/* MODAL */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  justify-content:center;
+  align-items:center;
+}
+
+.modal img{
+  max-width:90%;
+  max-height:80%;
+}
 </style>
 </head>
 
 <body>
 
-<div class="topbar">
-  <div class="logo">WorkHub.</div>
-  <div class="month-nav">
-    <button onclick="moveMonth(-1)">‹</button>
-    <span id="month"></span>
-    <button onclick="moveMonth(1)">›</button>
-  </div>
+<div class="header">
+  <div class="logo">MensHealth</div>
+  <div id="month" class="month"></div>
 </div>
 
-<div class="layout">
+<div class="wrap">
 
   <!-- 캘린더 -->
   <div class="calendar">
-    <div class="grid" id="calendar"></div>
+    <div id="calendar" class="grid"></div>
   </div>
 
   <!-- 게시판 -->
   <div class="board">
     <h3>게시판</h3>
-
-    <div class="write">
-      <input id="author" placeholder="작성자">
-      <input id="title" placeholder="제목">
-      <textarea id="content" placeholder="내용"></textarea>
-      <button onclick="addPost()">등록</button>
-    </div>
-
     <div id="posts"></div>
   </div>
 
+</div>
+
+<div class="fab" onclick="writePost()">+</div>
+
+<div id="imgModal" class="modal" onclick="this.style.display='none'">
+  <img id="modalImg">
 </div>
 
 <script type="module">
@@ -169,116 +200,150 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const firebaseConfig = {
-  apiKey: "여기에키",
-  authDomain: "여기에",
-  projectId: "여기에"
+  apiKey:"여기",
+  authDomain:"여기",
+  projectId:"여기"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-window.db = db;
-window.addDoc = addDoc;
-window.collection = collection;
-window.onSnapshot = onSnapshot;
-
-/* =========================
+/* =====================
    캘린더
-========================= */
+===================== */
+
 let current = new Date();
 let data = {};
 
+const cycle=['주1','주2','야1','야2','비1','비2'];
+
+function getShift(day){
+  return cycle[day%6];
+}
+
 function renderCalendar(){
-  const el = document.getElementById('calendar');
-  el.innerHTML = '';
+  const el=document.getElementById('calendar');
+  el.innerHTML='';
 
-  const y = current.getFullYear();
-  const m = current.getMonth();
+  const y=current.getFullYear();
+  const m=current.getMonth();
 
-  document.getElementById('month').innerText = `${y}.${m+1}`;
+  document.getElementById('month').innerText=`${y}년 ${m+1}월`;
 
-  const last = new Date(y, m+1, 0).getDate();
+  const last=new Date(y,m+1,0).getDate();
 
   for(let i=1;i<=last;i++){
-    const key = `${y}-${m+1}-${i}`;
-
-    const d = document.createElement('div');
+    const key=`${y}-${m+1}-${i}`;
+    const d=document.createElement('div');
     d.className='day';
 
-    d.innerHTML = `<div class="date">${i}</div>`;
+    d.innerHTML=`<div class="date">${i}</div>`;
+
+    for(let j=0;j<3;j++){
+      const s=document.createElement('div');
+      s.className='shift';
+      s.innerText=`${j+1}조 ${getShift(i+j)}`;
+      d.appendChild(s);
+    }
 
     if(data[key]){
       data[key].forEach(v=>{
-        const tag = document.createElement('div');
+        const tag=document.createElement('div');
         tag.className='tag';
-        tag.innerText = v;
+        tag.innerText=v.name;
         d.appendChild(tag);
+
+        if(v.img){
+          const img=document.createElement('img');
+          img.src=v.img;
+          img.className='thumb';
+          img.onclick=e=>{
+            e.stopPropagation();
+            openImg(v.img);
+          };
+          d.appendChild(img);
+        }
       });
     }
 
-    d.onclick = ()=>{
-      const name = prompt('이름 입력');
-      if(!name) return;
-
-      if(!data[key]) data[key]=[];
-      data[key].push(name);
-
-      saveVacation(key,name);
-    };
+    d.onclick=()=>addVacation(key);
 
     el.appendChild(d);
   }
 }
 
-function moveMonth(n){
-  current.setMonth(current.getMonth()+n);
-  renderCalendar();
-}
+function addVacation(key){
+  const name=prompt('이름');
+  if(!name) return;
 
-/* =========================
-   연차 Firebase
-========================= */
-function saveVacation(date,name){
+  const img=prompt('이미지URL (없으면 엔터)');
+
   addDoc(collection(db,'vacation'),{
-    date,name
+    date:key,
+    name,
+    img:img||''
   });
 }
 
-onSnapshot(collection(db,'vacation'), snap=>{
+onSnapshot(collection(db,'vacation'),snap=>{
   data={};
   snap.forEach(doc=>{
     const d=doc.data();
     if(!data[d.date]) data[d.date]=[];
-    data[d.date].push(d.name);
+    data[d.date].push(d);
   });
   renderCalendar();
 });
 
-/* =========================
+/* =====================
    게시판
-========================= */
-const postsEl = document.getElementById('posts');
+===================== */
 
-window.addPost = function(){
-  const author = document.getElementById('author').value;
-  const title = document.getElementById('title').value;
-  const content = document.getElementById('content').value;
+const postsEl=document.getElementById('posts');
+
+function writePost(){
+  const title=prompt('제목');
+  const body=prompt('내용');
+  const cat=prompt('카테고리(공지/업무/질문/자유)');
 
   addDoc(collection(db,'posts'),{
-    author,title,content,createdAt:Date.now()
+    title,body,cat,created:Date.now()
   });
 }
 
-onSnapshot(collection(db,'posts'), snap=>{
+onSnapshot(collection(db,'posts'),snap=>{
   postsEl.innerHTML='';
   snap.forEach(doc=>{
-    const d = doc.data();
-    const div = document.createElement('div');
+    const d=doc.data();
+
+    const div=document.createElement('div');
     div.className='post';
-    div.innerHTML = `<b>${d.title}</b><div>${d.author}</div><p>${d.content}</p>`;
+
+    div.innerHTML=`
+      <span class="badge ${getCatClass(d.cat)}">${d.cat}</span>
+      <b>${d.title}</b>
+      <p>${d.body}</p>
+    `;
+
     postsEl.appendChild(div);
   });
 });
+
+function getCatClass(c){
+  if(c==='공지') return 'notice';
+  if(c==='업무') return 'work';
+  if(c==='질문') return 'q';
+  return 'free';
+}
+
+/* =====================
+   이미지
+===================== */
+
+function openImg(src){
+  document.getElementById('modalImg').src=src;
+  document.getElementById('imgModal').style.display='flex';
+}
 
 renderCalendar();
 
