@@ -435,7 +435,7 @@ b[data-type^="비"]{color:var(--green);}
               <div style="font-size:.76rem;">이미지 · PDF · 엑셀 · 한글 · Word 등 (파일당 10MB)</div>
             </label>
             <input type="file" id="boardFileInput"
-              style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden;"
+              style="clip:rect(0,0,0,0);position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;"
               multiple
               accept="image/*,.pdf,.xlsx,.xls,.csv,.hwp,.hwpx,.doc,.docx,.ppt,.pptx,.zip,.7z,.txt"
               onchange="handleBoardFiles(this)">
@@ -468,7 +468,7 @@ import {
   query, orderBy, serverTimestamp, onSnapshot
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
-  getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject
+  getStorage, ref as sRef, uploadBytes, uploadBytesResumable, getDownloadURL, deleteObject
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
 
 const CFG = {
@@ -489,6 +489,9 @@ try {
   db = getFirestore(app);
   storage = getStorage(app);
   firebaseReady = true;
+
+  // Storage 연결 확인 (조용히)
+  window._storageReady = true;
 
   // 연차 실시간
   onSnapshot(collection(db,'vacations'), snap => {
@@ -535,46 +538,49 @@ function compressImage(file, maxW, quality) {
   });
 }
 
-// ── Storage 업로드 (타임아웃 포함) ──
-// ✅ 무한로딩 방지: 업로드 자체에 60초 타임아웃 + 상태 변화 없으면 에러 처리
-function uploadFileToStorage(file, onProgress) {
-  return new Promise(async (resolve, reject) => {
-    // 60초 타임아웃
-    const timer = setTimeout(() => {
-      reject(new Error(`업로드 시간 초과 (60초) — 파일: ${file.name}`));
-    }, 60000);
+// ── Storage 업로드 ──
+// ✅ uploadBytes 사용 (uploadBytesResumable보다 모바일에서 안정적)
+// ✅ HEIC/HEIF(아이폰 기본) 압축 불가 → 원본 그대로 업로드
+// ✅ 90초 타임아웃으로 무한로딩 방지
+async function uploadFileToStorage(file, onProgress) {
+  const ext = (file.name||'').split('.').pop().toLowerCase();
+  const isCompressible = (file.type.startsWith('image/') && !['heic','heif'].includes(ext))
+    || ['jpg','jpeg','png','gif','webp'].includes(ext);
+  const safeName = file.name.replace(/[^a-zA-Z0-9._\-가-힣]/g,'_');
+  const path = `posts/${Date.now()}_${safeName}`;
+  const fileRef = sRef(storage, path);
 
+  // 진행 표시: 압축 단계
+  if(onProgress) onProgress(5);
+
+  let uploadData = file;
+  if (isCompressible) {
     try {
-      const ext = (file.name||'').split('.').pop().toLowerCase();
-      const isImg = file.type.startsWith('image/') || ['jpg','jpeg','png','gif','webp','heic','heif'].includes(ext);
-      const safeName = file.name.replace(/[^a-zA-Z0-9._\-가-힣]/g,'_');
-      const path = `posts/${Date.now()}_${safeName}`;
-      const fileRef = sRef(storage, path);
+      uploadData = await Promise.race([
+        compressImage(file, 1200, 0.85),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('압축 타임아웃')),15000))
+      ]);
+    } catch(ce) {
+      console.warn('이미지 압축 실패, 원본 업로드:', ce.message);
+      uploadData = file;
+    }
+  }
 
-      let uploadData = file;
-      if (isImg) {
-        try { uploadData = await compressImage(file, 1200, 0.85); }
-        catch(ce) { console.warn('압축 실패, 원본 사용:', ce); }
-      }
+  if(onProgress) onProgress(15);
 
-      const task = uploadBytesResumable(fileRef, uploadData);
+  // uploadBytes: 단일 요청, 모바일 환경에서 더 안정적
+  const snapshot = await Promise.race([
+    uploadBytes(fileRef, uploadData),
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error('업로드 시간 초과 (90초)')),90000))
+  ]);
 
-      task.on('state_changed',
-        snap => {
-          const pct = snap.totalBytes>0 ? Math.round(snap.bytesTransferred/snap.totalBytes*100) : 0;
-          if(onProgress) onProgress(pct);
-        },
-        err => { clearTimeout(timer); reject(err); },
-        async () => {
-          clearTimeout(timer);
-          try {
-            const url = await getDownloadURL(task.snapshot.ref);
-            resolve({ name:file.name, url, path, type:file.type||(isImg?'image/jpeg':'application/octet-stream'), size:file.size });
-          } catch(e) { reject(e); }
-        }
-      );
-    } catch(e) { clearTimeout(timer); reject(e); }
-  });
+  if(onProgress) onProgress(90);
+
+  const url = await getDownloadURL(snapshot.ref);
+  if(onProgress) onProgress(100);
+
+  const mimeType = file.type || (isCompressible ? 'image/jpeg' : 'application/octet-stream');
+  return { name:file.name, url, path, type:mimeType, size:file.size };
 }
 
 // ── 로컬 폴백 ──
@@ -634,9 +640,9 @@ async function savePost(post, files) {
       continue;
     }
 
-    progressText.textContent = `(${i+1}/${files.length}) ${file.name}`;
-    progressBar.style.width = '0%';
-    progressPct.textContent = '0%';
+    progressText.textContent = `(${i+1}/${files.length}) ${file.name} 업로드 중...`;
+    progressBar.style.width = '5%';
+    progressPct.textContent = '5%';
     progressEl.classList.add('show');
 
     try {
@@ -645,24 +651,37 @@ async function savePost(post, files) {
         att = await uploadFileToStorage(file, pct => {
           progressBar.style.width = pct+'%';
           progressPct.textContent = pct+'%';
+          progressText.textContent = `(${i+1}/${files.length}) ${file.name} ${pct}%`;
         });
       } else {
         // 로컬 폴백: base64
         const ext=(file.name||'').split('.').pop().toLowerCase();
         const isImg=file.type.startsWith('image/')||['jpg','jpeg','png','gif','webp'].includes(ext);
-        const url = isImg
-          ? await (async()=>{ const b=await compressImage(file,1200,.85); return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(b);}); })()
-          : await fileToBase64(file);
+        let url;
+        try {
+          url = isImg
+            ? await (async()=>{ const b=await compressImage(file,1200,.85); return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=rej;r.readAsDataURL(b);}); })()
+            : await fileToBase64(file);
+        } catch(ce) {
+          url = await fileToBase64(file); // 압축 실패시 원본
+        }
         att = { name:file.name, url, type:file.type, size:file.size };
       }
       attachments.push(att);
       progressBar.style.width = '100%';
       progressPct.textContent = '100%';
+      progressText.textContent = `✅ ${file.name} 완료`;
     } catch(err) {
       console.error('파일 업로드 오류:', err);
-      errorEl.textContent = `⚠️ "${file.name}" 업로드 실패: ${err.message}`;
+      // 에러 코드별 한국어 안내
+      let msg = err.message || '알 수 없는 오류';
+      if(err.code === 'storage/unauthorized') msg = '업로드 권한이 없습니다. Firebase Storage 규칙을 확인하세요.';
+      else if(err.code === 'storage/canceled') msg = '업로드가 취소됐습니다.';
+      else if(err.code === 'storage/unknown') msg = '네트워크 오류. 와이파이/데이터 연결을 확인하세요.';
+      else if(msg.includes('타임아웃') || msg.includes('timeout')) msg = '업로드 시간 초과. 파일 크기를 줄이거나 네트워크를 확인하세요.';
+      errorEl.textContent = `⚠️ "${file.name}" 실패: ${msg}`;
       errorEl.classList.add('show');
-      // ✅ 실패해도 continue — 나머지 파일 + 게시글 저장은 계속 진행
+      // 실패해도 continue — 나머지 파일 + 게시글 저장 계속
     }
   }
 
@@ -1047,6 +1066,13 @@ async function submitPost(){
   if(!title){alert('제목을 입력하세요.');return;}
   if(!body){alert('내용을 입력하세요.');return;}
   if(!window._boardAPI){alert('초기화 중입니다. 잠시 후 다시 시도하세요.');return;}
+  // Storage 미연결 상태에서 파일 있으면 경고
+  if(boardFiles.length > 0 && !window._storageReady) {
+    const go = confirm('Firebase Storage에 연결되지 않아 파일을 서버에 저장할 수 없습니다.\n파일 없이 글만 등록할까요?');
+    if(!go) return;
+    boardFiles = [];
+    renderFilePreview();
+  }
 
   const btn=document.getElementById('submitBtn');
   const errorEl=document.getElementById('uploadError');
