@@ -228,8 +228,20 @@ b[data-type^="비"] { color: var(--green); }
 .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .sync-dot.pulse { animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-.upload-progress { font-size: 0.8rem; color: var(--accent2); margin-top: 4px; display: none; }
+.upload-progress {
+  font-size: 0.8rem; color: var(--accent2); margin-top: 4px; display: none;
+  background: rgba(232,84,58,0.08); border-radius: 8px; padding: 8px 12px;
+}
 .upload-progress.show { display: block; }
+/* 업로드 진행바 */
+.progress-bar-wrap {
+  width: 100%; height: 6px; background: var(--bg4);
+  border-radius: 3px; margin-top: 6px; overflow: hidden;
+}
+.progress-bar {
+  height: 100%; background: var(--accent); border-radius: 3px;
+  transition: width 0.3s ease; width: 0%;
+}
 .error-msg {
   background: rgba(232,84,58,0.12); border: 1px solid rgba(232,84,58,0.3); color: #ff8a76;
   border-radius: 8px; padding: 10px 12px; font-size: 0.85rem; margin-top: 6px; display: none;
@@ -261,7 +273,6 @@ b[data-type^="비"] { color: var(--green); }
 </div>
 
 <button class="add-btn" id="mainAddBtn" onclick="toggleAddMode()">+</button>
-<!-- ✅ BUG1 FIX: 연차 이미지 input과 게시판 파일 input 분리 유지 -->
 <input type="file" id="imageInput" style="display:none" accept="image/*" onchange="handleFileUpload(this)">
 <input type="file" id="boardFileInput" style="display:none" multiple onchange="handleBoardFiles(this)">
 
@@ -313,10 +324,13 @@ b[data-type^="비"] { color: var(--green); }
           <input type="text" id="writeTitle" placeholder="제목" maxlength="60">
           <textarea id="writeBody" placeholder="내용을 입력하세요..."></textarea>
           <div class="file-upload-area" onclick="document.getElementById('boardFileInput').click()">
-            📎 파일 첨부 (이미지, PDF, 엑셀, 한글, Word 등 · 파일당 5MB 이하)
+            📎 파일 첨부 (이미지, PDF, 엑셀, 한글, Word 등 · 파일당 10MB 이하)
           </div>
           <div class="file-preview" id="filePreview"></div>
-          <div class="upload-progress" id="uploadProgress"></div>
+          <div class="upload-progress" id="uploadProgress">
+            <span id="uploadProgressText"></span>
+            <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+          </div>
           <div class="error-msg" id="uploadError"></div>
           <button class="submit-btn" id="submitBtn" onclick="submitPost()">게시하기</button>
         </div>
@@ -333,7 +347,7 @@ import {
   query, orderBy, serverTimestamp, onSnapshot
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {
-  getStorage, ref, deleteObject
+  getStorage, ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
 
 const firebaseConfig = {
@@ -347,8 +361,6 @@ const firebaseConfig = {
 
 let db = null, storage = null, firebaseReady = false;
 
-// ✅ BUG2 FIX: window._vacationData / _allPosts를 module 진입 즉시 초기화
-// (일반 script보다 module이 늦게 실행될 수 있으므로 여기서 선행 초기화)
 if (!window._vacationData) window._vacationData = {};
 if (!window._allPosts) window._allPosts = [];
 
@@ -358,8 +370,7 @@ try {
   storage = getStorage(app);
   firebaseReady = true;
 
-  // ✅ BUG3 FIX: onSnapshot 연차 실시간 동기화
-  // — 변경 시 _vacationData를 교체하고 renderCalendar() 호출
+  // 연차 실시간 동기화
   const vacRef = collection(db, 'vacations');
   onSnapshot(vacRef, (snapshot) => {
     const firestoreData = {};
@@ -372,26 +383,19 @@ try {
       }
     });
     window._vacationData = firestoreData;
-    // ✅ renderCalendar가 정의된 후 호출되도록 requestAnimationFrame 사용
-    if (typeof window.renderCalendar === 'function') {
-      window.renderCalendar();
-    }
+    if (typeof window.renderCalendar === 'function') window.renderCalendar();
     const badge = document.getElementById('calSyncBadge');
     if (badge) {
       badge.className = 'sync-badge live';
       badge.innerHTML = '<span class="sync-dot pulse"></span> 실시간';
     }
-  }, (err) => {
-    console.warn('연차 onSnapshot 오류:', err);
-  });
+  }, (err) => { console.warn('연차 onSnapshot 오류:', err); });
 
-  // ✅ BUG4 FIX: 게시글 실시간 구독
+  // 게시글 실시간 구독
   const postsRef = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
   onSnapshot(postsRef, (snapshot) => {
     window._allPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    if (document.getElementById('tabListContent') &&
-        document.getElementById('tabListContent').style.display !== 'none' &&
-        document.getElementById('boardModal').style.display === 'flex') {
+    if (document.getElementById('boardModal').style.display === 'flex') {
       if (typeof window.renderPostList === 'function') window.renderPostList();
     }
     const badge = document.getElementById('boardSyncBadge');
@@ -399,15 +403,13 @@ try {
       badge.className = 'sync-badge live';
       badge.innerHTML = '<span class="sync-dot pulse"></span> 실시간';
     }
-  }, (err) => {
-    console.warn('게시글 onSnapshot 오류:', err);
-  });
+  }, (err) => { console.warn('게시글 onSnapshot 오류:', err); });
 
 } catch(e) {
   console.warn('Firebase 초기화 실패, 로컬 모드:', e);
 }
 
-// ── 이미지 압축 (canvas) ──
+// ── 이미지 압축 ──
 function compressImage(file, maxW, quality) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -421,7 +423,10 @@ function compressImage(file, maxW, quality) {
         canvas.width = img.width * ratio;
         canvas.height = img.height * ratio;
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        canvas.toBlob(blob => {
+          if (!blob) reject(new Error('압축 실패'));
+          else resolve(blob);
+        }, 'image/jpeg', quality);
       };
       img.src = e.target.result;
     };
@@ -429,8 +434,43 @@ function compressImage(file, maxW, quality) {
   });
 }
 
-// ── 파일 → base64 변환 (엑셀·한글·PDF 등 모든 바이너리 파일) ──
-// ✅ BUG5 FIX: Promise reject 처리 추가
+// ── Firebase Storage에 파일 업로드 후 URL 반환 ──
+// ✅ 핵심 수정: base64를 Firestore에 저장하지 않고 Storage에 업로드
+function uploadFileToStorage(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    // 경로: posts/파일명_타임스탬프
+    const safeName = file.name.replace(/[^a-zA-Z0-9._\-가-힣]/g, '_');
+    const path = `posts/${Date.now()}_${safeName}`;
+    const fileRef = storageRef(storage, path);
+
+    // 이미지면 압축 후 업로드, 아니면 원본 업로드
+    const uploadPromise = file.type.startsWith('image/')
+      ? compressImage(file, 1200, 0.85).then(blob => uploadBytesResumable(fileRef, blob))
+      : Promise.resolve(uploadBytesResumable(fileRef, file));
+
+    uploadPromise.then(uploadTask => {
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const pct = Math.round(snapshot.bytesTransferred / snapshot.totalBytes * 100);
+          if (onProgress) onProgress(pct);
+        },
+        (err) => reject(err),
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve({
+            name: file.name,
+            url: downloadURL,       // ← Storage URL (짧음, Firestore에 안전하게 저장 가능)
+            path: path,             // ← 삭제 시 사용
+            type: file.type,
+            size: file.size
+          });
+        }
+      );
+    }).catch(reject);
+  });
+}
+
+// ── 로컬 폴백: base64 변환 (Firebase 불가 시) ──
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -443,14 +483,8 @@ function fileToBase64(file) {
 // ── 연차 저장 ──
 async function saveVacation(dateKey, entry) {
   if (firebaseReady) {
-    const docData = {
-      dateKey,
-      name: entry.name || '',
-      type: entry.type || '',
-      img: entry.img || ''
-    };
+    const docData = { dateKey, name: entry.name || '', type: entry.type || '', img: entry.img || '' };
     await addDoc(collection(db, 'vacations'), docData);
-    // onSnapshot이 자동으로 UI 갱신
   } else {
     const STORAGE_KEY = 'power_system_v5_stable';
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -470,10 +504,9 @@ async function removeVacation(dateKey, index) {
     const item = items[index];
     if (item && item._firestoreId) {
       await deleteDoc(doc(db, 'vacations', item._firestoreId));
-      return; // onSnapshot이 자동 갱신
+      return;
     }
   }
-  // 로컬 폴백
   const STORAGE_KEY = 'power_system_v5_stable';
   const raw = localStorage.getItem(STORAGE_KEY);
   const data = raw ? JSON.parse(raw) : {};
@@ -486,18 +519,19 @@ async function removeVacation(dateKey, index) {
   }
 }
 
-// ── 게시글 저장 ──
-// ✅ BUG6 FIX: 파일 처리에 타임아웃 추가 → 무한로딩 방지
+// ── 게시글 저장 (핵심 수정) ──
 async function savePost(post, files) {
   const attachments = [];
   const progressEl = document.getElementById('uploadProgress');
+  const progressText = document.getElementById('uploadProgressText');
+  const progressBar = document.getElementById('progressBar');
   const errorEl = document.getElementById('uploadError');
-  const MAX_MB = 5;
+  const MAX_MB = 10;
+
+  errorEl.classList.remove('show');
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    progressEl.textContent = `📤 파일 변환 중... (${i+1}/${files.length}) ${file.name}`;
-    progressEl.classList.add('show');
 
     if (file.size > MAX_MB * 1024 * 1024) {
       errorEl.textContent = `⚠️ "${file.name}" 파일이 ${MAX_MB}MB 초과합니다. 건너뜁니다.`;
@@ -505,36 +539,49 @@ async function savePost(post, files) {
       continue;
     }
 
+    progressText.textContent = `📤 업로드 중... (${i+1}/${files.length}) ${file.name}`;
+    progressBar.style.width = '0%';
+    progressEl.classList.add('show');
+
     try {
-      // ✅ BUG7 FIX: 파일 변환에 10초 타임아웃 설정 (무한로딩 방지)
-      const convertPromise = file.type.startsWith('image/')
-        ? compressImage(file, 1200, 0.85)
-        : fileToBase64(file);
-
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('변환 시간 초과 (10초)')), 10000)
-      );
-
-      const b64 = await Promise.race([convertPromise, timeoutPromise]);
-      attachments.push({ name: file.name, url: b64, type: file.type, size: file.size });
+      if (firebaseReady) {
+        // ✅ Firebase Storage에 직접 업로드 → URL만 Firestore에 저장
+        const att = await uploadFileToStorage(file, (pct) => {
+          progressBar.style.width = pct + '%';
+          progressText.textContent = `📤 업로드 중... (${i+1}/${files.length}) ${file.name} ${pct}%`;
+        });
+        attachments.push(att);
+      } else {
+        // 로컬 폴백: base64 (Firebase 없을 때만)
+        const b64 = file.type.startsWith('image/')
+          ? await new Promise((resolve, reject) => {
+              compressImage(file, 1200, 0.85).then(blob => {
+                const r = new FileReader();
+                r.onload = e => resolve(e.target.result);
+                r.onerror = () => reject(new Error('읽기 실패'));
+                r.readAsDataURL(blob);
+              }).catch(reject);
+            })
+          : await fileToBase64(file);
+        attachments.push({ name: file.name, url: b64, type: file.type, size: file.size });
+      }
     } catch (err) {
-      console.error('파일 변환 오류:', err);
-      errorEl.textContent = `⚠️ "${file.name}" 처리 실패: ${err.message}`;
+      console.error('파일 업로드 오류:', err);
+      errorEl.textContent = `⚠️ "${file.name}" 업로드 실패: ${err.message}`;
       errorEl.classList.add('show');
-      // ✅ 실패한 파일은 건너뛰고 계속 진행 (무한로딩 방지)
     }
   }
 
   progressEl.classList.remove('show');
+  progressBar.style.width = '0%';
 
   const postData = {
     ...post,
-    attachments,
+    attachments,   // ← URL만 담긴 배열 (base64 없음 → Firestore 크기 제한 문제 해결)
     createdAt: firebaseReady ? serverTimestamp() : Date.now()
   };
 
   if (firebaseReady) {
-    // ✅ BUG8 FIX: Firestore 저장에도 30초 타임아웃 (무한로딩 방지)
     const savePromise = addDoc(collection(db, 'posts'), postData);
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('서버 저장 시간 초과. 네트워크를 확인하세요.')), 30000)
@@ -552,12 +599,12 @@ async function savePost(post, files) {
   }
 }
 
-// ── 게시글 삭제 ──
+// ── 게시글 삭제 (Storage 파일도 함께 삭제) ──
 async function deletePost(id, attachments) {
   if (firebaseReady) {
     for (const att of (attachments || [])) {
       if (att.path) {
-        try { await deleteObject(ref(storage, att.path)); } catch(e) {}
+        try { await deleteObject(storageRef(storage, att.path)); } catch(e) {}
       }
     }
     await deleteDoc(doc(db, 'posts', id));
@@ -577,18 +624,12 @@ async function loadPostsLocal() {
   return posts.sort((a, b) => b.createdAt - a.createdAt);
 }
 
-// ── 전역 API 노출 ──
 window._boardAPI = { savePost, deletePost, loadPostsLocal, firebaseReady: () => firebaseReady };
 window._vacationAPI = { saveVacation, removeVacation };
 window.dispatchEvent(new Event('boardAPIReady'));
 </script>
 
 <script>
-// ═══════════════════════════════════════════
-// 캘린더 + 게시판 메인 로직
-// ═══════════════════════════════════════════
-
-// ✅ BUG2 FIX: 일반 script 실행 시점에 미리 초기화 (module보다 먼저 실행)
 window._vacationData = window._vacationData || {};
 window._allPosts = window._allPosts || [];
 
@@ -601,8 +642,6 @@ let pendingEntry = { name: '', type: '', img: '' };
 let activeDateKey = '';
 const STORAGE_KEY = 'power_system_v5_stable';
 
-// ✅ BUG9 FIX: 첨부파일 상세 렌더링을 위한 전역 데이터 저장소
-// (base64를 onclick 속성에 직접 넣으면 HTML이 깨지므로 Map으로 참조)
 window._attStore = {};
 
 function escHtml(s) {
@@ -622,10 +661,7 @@ function getFileIcon(name, mime) {
   return { icon: '📎', color: '#666', label: ext.toUpperCase() || 'FILE' };
 }
 
-// ── 연차 데이터 접근 ──
-function getData() {
-  return window._vacationData || {};
-}
+function getData() { return window._vacationData || {}; }
 
 function getDutyValue(targetDate, offset) {
   const d1 = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
@@ -635,8 +671,7 @@ function getDutyValue(targetDate, offset) {
   return cycle[idx];
 }
 
-// ✅ window.renderCalendar으로 노출 (module에서 호출 가능하도록)
-window.renderCalendar = function renderCalendar() {
+window.renderCalendar = function() {
   const grid = document.getElementById('calendarGrid');
   if (!grid) return;
   grid.innerHTML = '';
@@ -662,10 +697,7 @@ window.renderCalendar = function renderCalendar() {
     if (dateObj.toDateString() === new Date().toDateString()) cell.classList.add('is-today');
     if (dateObj.getDay() === 0) cell.classList.add('week-sun');
     if (dateObj.getDay() === 6) cell.classList.add('week-sat');
-    if (isAddMode) {
-      cell.classList.add('add-mode');
-      cell.onclick = () => onCellClick(dateKey);
-    }
+    if (isAddMode) { cell.classList.add('add-mode'); cell.onclick = () => onCellClick(dateKey); }
 
     const num = document.createElement('span');
     num.className = 'date-number'; num.innerText = d; cell.appendChild(num);
@@ -726,16 +758,12 @@ function toggleAddMode() {
 
 function onCellClick(key) {
   activeDateKey = key;
-  // 이름이 있든 없든(사진만 모드) 항상 사진 여부를 먼저 물어봄
   if (confirm('사진(파일)을 함께 등록하시겠습니까?')) {
     document.getElementById('imageInput').click();
-    // 파일 선택 취소 시를 대비해 별도 처리는 handleFileUpload에서 담당
   } else {
-    // 사진 없이 등록 (이름이 없으면 등록 불필요)
     if (pendingEntry.name || pendingEntry.img) {
       finishRegistration();
     } else {
-      // 이름도 없고 사진도 없으면 그냥 모드 해제
       isAddMode = false;
       document.getElementById('mainAddBtn').innerText = '+';
       window.renderCalendar();
@@ -746,30 +774,16 @@ function onCellClick(key) {
 function handleFileUpload(input) {
   if (input.files && input.files[0]) {
     const reader = new FileReader();
-    reader.onload = e => {
-      pendingEntry.img = e.target.result;
-      finishRegistration();
-    };
-    reader.onerror = () => {
-      alert('파일 읽기 실패');
-      // 사진 실패해도 이름이 있으면 이름만 등록
-      finishRegistration();
-    };
+    reader.onload = e => { pendingEntry.img = e.target.result; finishRegistration(); };
+    reader.onerror = () => { alert('파일 읽기 실패'); finishRegistration(); };
     reader.readAsDataURL(input.files[0]);
   } else {
-    // 파일 선택 취소 → 이름이 있으면 이름만 등록
-    if (pendingEntry.name) {
-      finishRegistration();
-    } else {
-      isAddMode = false;
-      document.getElementById('mainAddBtn').innerText = '+';
-      window.renderCalendar();
-    }
+    if (pendingEntry.name) finishRegistration();
+    else { isAddMode = false; document.getElementById('mainAddBtn').innerText = '+'; window.renderCalendar(); }
   }
   input.value = '';
 }
 
-// _vacationAPI가 준비될 때까지 최대 5초 대기
 function waitForVacationAPI(timeout = 5000) {
   return new Promise((resolve) => {
     if (window._vacationAPI) { resolve(true); return; }
@@ -784,26 +798,11 @@ function waitForVacationAPI(timeout = 5000) {
 async function finishRegistration() {
   isAddMode = false;
   document.getElementById('mainAddBtn').innerText = '+';
-
-  // 이름도 없고 이미지도 없으면 저장할 게 없음
-  if (!pendingEntry.name && !pendingEntry.img) {
-    window.renderCalendar();
-    return;
-  }
-
-  // _vacationAPI 준비 대기 (최대 5초)
+  if (!pendingEntry.name && !pendingEntry.img) { window.renderCalendar(); return; }
   const apiReady = await waitForVacationAPI(5000);
-
-  if (!apiReady || !window._vacationAPI) {
-    // API 끝내 안 됨 → 로컬 저장
-    localSaveVacation(activeDateKey, { ...pendingEntry });
-    return;
-  }
-
+  if (!apiReady || !window._vacationAPI) { localSaveVacation(activeDateKey, { ...pendingEntry }); return; }
   try {
     await window._vacationAPI.saveVacation(activeDateKey, { ...pendingEntry });
-    // ✅ Firestore 모드: onSnapshot이 자동으로 renderCalendar() 호출
-    // ✅ 로컬 모드: saveVacation 내부에서 renderCalendar() 호출
   } catch(e) {
     console.warn('연차 저장 실패, 로컬 폴백:', e);
     localSaveVacation(activeDateKey, { ...pendingEntry });
@@ -824,12 +823,8 @@ async function deleteItem(key, idx) {
   if (!confirm('정말 삭제할까요?')) return;
   await waitForVacationAPI(3000);
   if (window._vacationAPI) {
-    try {
-      await window._vacationAPI.removeVacation(key, idx);
-    } catch(e) {
-      console.warn('연차 삭제 실패:', e);
-      alert('삭제 실패: ' + e.message);
-    }
+    try { await window._vacationAPI.removeVacation(key, idx); }
+    catch(e) { console.warn('연차 삭제 실패:', e); alert('삭제 실패: ' + e.message); }
   } else {
     const raw = localStorage.getItem(STORAGE_KEY);
     const data = raw ? JSON.parse(raw) : {};
@@ -843,7 +838,6 @@ async function deleteItem(key, idx) {
   }
 }
 
-// ✅ BUG1 FIX: openZoom 함수 정의 (원본 코드에서 누락된 함수)
 function openZoom(src, filename) {
   document.getElementById('modalImg').src = src;
   document.getElementById('modalDownBtn').dataset.src = src;
@@ -852,42 +846,33 @@ function openZoom(src, filename) {
 }
 
 function closeImgModal(e) {
-  if (e.target === document.getElementById('imgModal')) {
-    document.getElementById('imgModal').style.display = 'none';
-  }
+  if (e.target === document.getElementById('imgModal')) document.getElementById('imgModal').style.display = 'none';
 }
-
-function closeImgModalDirect() {
-  document.getElementById('imgModal').style.display = 'none';
-}
-
+function closeImgModalDirect() { document.getElementById('imgModal').style.display = 'none'; }
 function downloadModalImg(e) {
   e.stopPropagation();
   const btn = document.getElementById('modalDownBtn');
   downloadImg(btn.dataset.src, btn.dataset.name);
 }
-
 function downloadImg(src, filename) {
   const a = document.createElement('a');
-  a.href = src;
-  a.download = filename || '이미지.jpg';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  a.href = src; a.download = filename || '이미지.jpg';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
-// ✅ BUG10 FIX: openFile — base64 → Blob URL로 열기 (엑셀, 한글, PDF 등)
-// MIME을 안전하게 파싱 + 오류 처리 강화
+// 파일 열기 — Storage URL이면 바로 새탭, base64면 Blob으로 열기
 function openFile(attKey) {
   const att = window._attStore[attKey];
   if (!att || !att.url) { alert('파일 데이터가 없습니다.'); return; }
   try {
     const src = att.url;
+    // Storage에서 받은 https URL이면 바로 새탭에서 열기
+    if (src.startsWith('https://')) { window.open(src, '_blank'); return; }
+    // base64 (로컬 폴백) 처리
     if (!src.startsWith('data:')) { window.open(src, '_blank'); return; }
     const commaIdx = src.indexOf(',');
-    if (commaIdx === -1) throw new Error('잘못된 base64 형식');
-    const header = src.substring(5, commaIdx); // "mime;base64" 또는 "mime"
-    const mime = header.split(';')[0] || 'application/octet-stream';
+    if (commaIdx === -1) throw new Error('잘못된 형식');
+    const mime = src.substring(5, commaIdx).split(';')[0] || 'application/octet-stream';
     const b64 = src.substring(commaIdx + 1);
     const bstr = atob(b64);
     const u8arr = new Uint8Array(bstr.length);
@@ -898,7 +883,6 @@ function openFile(attKey) {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   } catch(e) {
     console.error('파일 열기 실패:', e);
-    // 폴백: 다운로드
     downloadImg(att.url, att.name);
   }
 }
@@ -906,7 +890,12 @@ function openFile(attKey) {
 function downloadAtt(attKey) {
   const att = window._attStore[attKey];
   if (!att || !att.url) { alert('파일 데이터가 없습니다.'); return; }
-  downloadImg(att.url, att.name);
+  // Storage URL이면 링크 다운로드
+  const a = document.createElement('a');
+  a.href = att.url;
+  a.download = att.name || '파일';
+  a.target = '_blank';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
 function moveMonth(n) {
@@ -921,18 +910,9 @@ const CATEGORIES = ['전체','공지','업무','질문','자유'];
 const CAT_COLORS = { '공지':'#e74c3c', '업무':'#3498db', '질문':'#e67e22', '자유':'#27ae60' };
 let boardFiles = [], currentCatFilter = '전체';
 
-function openBoard() {
-  document.getElementById('boardModal').style.display = 'flex';
-  loadBoardPosts();
-}
-
-function closeBoard() {
-  document.getElementById('boardModal').style.display = 'none';
-}
-
-function closeBoardIfOutside(e) {
-  if (e.target === document.getElementById('boardModal')) closeBoard();
-}
+function openBoard() { document.getElementById('boardModal').style.display = 'flex'; loadBoardPosts(); }
+function closeBoard() { document.getElementById('boardModal').style.display = 'none'; }
+function closeBoardIfOutside(e) { if (e.target === document.getElementById('boardModal')) closeBoard(); }
 
 function switchTab(tab) {
   document.getElementById('tabList').classList.toggle('active', tab === 'list');
@@ -967,9 +947,7 @@ async function loadBoardPosts() {
     const list = document.getElementById('postList');
     list.innerHTML = '<div class="post-loading"><span class="spinner"></span>불러오는 중...</div>';
     try {
-      if (window._boardAPI) {
-        window._allPosts = await window._boardAPI.loadPostsLocal();
-      }
+      if (window._boardAPI) window._allPosts = await window._boardAPI.loadPostsLocal();
       window.renderPostList();
     } catch(e) {
       list.innerHTML = '<div class="post-empty">불러오기 실패.</div>';
@@ -977,24 +955,19 @@ async function loadBoardPosts() {
   }
 }
 
-// ✅ window.renderPostList으로 노출 (module에서 호출 가능)
-window.renderPostList = function renderPostList() {
+window.renderPostList = function() {
   const list = document.getElementById('postList');
   if (!list) return;
   const all = window._allPosts || [];
   const filtered = currentCatFilter === '전체' ? all : all.filter(p => p.category === currentCatFilter);
-  if (filtered.length === 0) {
-    list.innerHTML = '<div class="post-empty">게시글이 없습니다.</div>';
-    return;
-  }
+  if (filtered.length === 0) { list.innerHTML = '<div class="post-empty">게시글이 없습니다.</div>'; return; }
   list.innerHTML = '';
   filtered.forEach(post => {
     const card = document.createElement('div');
     card.className = 'post-card';
     let ts;
-    try {
-      ts = post.createdAt?.seconds ? new Date(post.createdAt.seconds * 1000) : new Date(post.createdAt);
-    } catch(e) { ts = new Date(); }
+    try { ts = post.createdAt?.seconds ? new Date(post.createdAt.seconds * 1000) : new Date(post.createdAt); }
+    catch(e) { ts = new Date(); }
     const dateStr = ts.toLocaleDateString('ko-KR', { month:'2-digit', day:'2-digit' }) + ' ' +
                     ts.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' });
     const color = CAT_COLORS[post.category] || '#888';
@@ -1019,26 +992,22 @@ function showPostDetail(post) {
   detail.classList.add('show');
 
   let ts;
-  try {
-    ts = post.createdAt?.seconds ? new Date(post.createdAt.seconds * 1000) : new Date(post.createdAt);
-  } catch(e) { ts = new Date(); }
+  try { ts = post.createdAt?.seconds ? new Date(post.createdAt.seconds * 1000) : new Date(post.createdAt); }
+  catch(e) { ts = new Date(); }
   const dateStr = ts.toLocaleString('ko-KR');
   const color = CAT_COLORS[post.category] || '#888';
 
-  // ✅ BUG10 FIX: 첨부파일을 _attStore에 저장 후 key로만 참조
-  // (base64를 onclick 속성에 직접 넣으면 수만 자가 들어가 HTML 파싱 깨짐)
   let filesHTML = '';
   if (post.attachments && post.attachments.length > 0) {
     filesHTML = '<div class="detail-files"><h4>📎 첨부파일</h4>';
     post.attachments.forEach((att, i) => {
-      // 이 게시글 고유 key 생성
       const attKey = (post.id || 'local') + '_' + i;
-      window._attStore[attKey] = att; // ← base64 등 대용량 데이터는 여기에만 저장
+      window._attStore[attKey] = att;
 
       if (att.type && att.type.startsWith('image/') && att.url) {
         filesHTML += `
           <div style="margin-bottom:12px;">
-            <img src="${att.url}" class="detail-img" id="attimg_${attKey}" style="cursor:pointer" onclick="openZoom(window._attStore['${attKey}'].url,'${escHtml(att.name)}')">
+            <img src="${escHtml(att.url)}" class="detail-img" onclick="openZoom(window._attStore['${attKey}'].url,'${escHtml(att.name)}')">
             <div style="display:flex;gap:8px;margin-top:5px;">
               <button onclick="downloadAtt('${attKey}')" style="flex:1;background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:#ff8a76;border-radius:8px;padding:7px;font-size:0.8rem;cursor:pointer;font-weight:600;">⬇ 다운로드</button>
               <button onclick="openZoom(window._attStore['${attKey}'].url,'${escHtml(att.name)}')" style="flex:1;background:var(--bg4);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:7px;font-size:0.8rem;cursor:pointer;">🔍 원본 보기</button>
@@ -1081,11 +1050,8 @@ function showPostDetail(post) {
     <button class="delete-post-btn" id="delBtn_${escHtml(post.id)}">삭제</button>
   `;
 
-  // ✅ BUG10 FIX: 삭제 버튼도 onclick 속성 대신 addEventListener로 연결
   const delBtn = document.getElementById('delBtn_' + post.id);
-  if (delBtn) {
-    delBtn.addEventListener('click', () => confirmDeletePost(post.id, post.attachments || []));
-  }
+  if (delBtn) delBtn.addEventListener('click', () => confirmDeletePost(post.id, post.attachments || []));
 }
 
 function showListView() {
@@ -1099,17 +1065,13 @@ function showListView() {
 async function confirmDeletePost(id, attachments) {
   if (!confirm('게시글을 삭제할까요?')) return;
   try {
-    if (window._boardAPI) {
-      await window._boardAPI.deletePost(id, attachments);
-    }
+    if (window._boardAPI) await window._boardAPI.deletePost(id, attachments);
     if (!window._boardAPI || !window._boardAPI.firebaseReady()) {
       window._allPosts = (window._allPosts || []).filter(p => p.id !== id);
       window.renderPostList();
     }
     showListView();
-  } catch(e) {
-    alert('삭제 실패: ' + e.message);
-  }
+  } catch(e) { alert('삭제 실패: ' + e.message); }
 }
 
 function handleBoardFiles(input) {
@@ -1135,7 +1097,6 @@ function renderFilePreview() {
   });
 }
 
-// ✅ BUG6+8 FIX: submitPost — finally로 버튼 무조건 복구 + _boardAPI 없을 때 처리
 async function submitPost() {
   const author = document.getElementById('writeAuthor').value.trim();
   const title = document.getElementById('writeTitle').value.trim();
@@ -1145,12 +1106,7 @@ async function submitPost() {
   if (!author) { alert('작성자 이름을 입력하세요.'); return; }
   if (!title)  { alert('제목을 입력하세요.'); return; }
   if (!body)   { alert('내용을 입력하세요.'); return; }
-
-  // ✅ BUG8 FIX: _boardAPI 없으면 즉시 에러 처리
-  if (!window._boardAPI) {
-    alert('서비스 초기화 중입니다. 잠시 후 다시 시도하세요.');
-    return;
-  }
+  if (!window._boardAPI) { alert('서비스 초기화 중입니다. 잠시 후 다시 시도하세요.'); return; }
 
   const btn = document.getElementById('submitBtn');
   const errorEl = document.getElementById('uploadError');
@@ -1159,14 +1115,10 @@ async function submitPost() {
   btn.innerHTML = '<span class="spinner"></span>등록 중...';
 
   try {
-    const newPost = await window._boardAPI.savePost(
-      { author, title, body, category },
-      boardFiles
-    );
+    const newPost = await window._boardAPI.savePost({ author, title, body, category }, boardFiles);
     if (!window._boardAPI.firebaseReady()) {
       window._allPosts = [newPost, ...(window._allPosts || [])];
     }
-    // 폼 초기화
     document.getElementById('writeAuthor').value = '';
     document.getElementById('writeTitle').value = '';
     document.getElementById('writeBody').value = '';
@@ -1178,25 +1130,17 @@ async function submitPost() {
     errorEl.classList.add('show');
     console.error('게시글 등록 오류:', e);
   } finally {
-    // ✅ 무한로딩 완전 방지: 성공·실패 무관하게 버튼 복구
     btn.disabled = false;
     btn.innerText = '게시하기';
     document.getElementById('uploadProgress').classList.remove('show');
   }
 }
 
-// ── 초기화 ──
 window.addEventListener('boardAPIReady', () => {
-  if (document.getElementById('boardModal').style.display === 'flex') {
-    loadBoardPosts();
-  }
+  if (document.getElementById('boardModal').style.display === 'flex') loadBoardPosts();
 });
 
-// ✅ BUG2 FIX: DOMContentLoaded 시점에 renderCalendar 호출
-// (module script가 아직 실행 전일 수 있으므로 window._vacationData는 {} 이미 설정됨)
-document.addEventListener('DOMContentLoaded', () => {
-  window.renderCalendar();
-});
+document.addEventListener('DOMContentLoaded', () => { window.renderCalendar(); });
 </script>
 </body>
 </html>
