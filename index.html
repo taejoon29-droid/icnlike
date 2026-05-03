@@ -1897,7 +1897,13 @@ window.renderCalendar = function renderCalendar() {
           tag.className = 'vacation-tag';
           tag.innerText = '연차 ' + vacCount2 + '명';
           tag.title = vacItems2.filter(i=>i.name).map(i=>i.name+'('+(i.type||'')+')').join(', ');
-          tag.onclick = e => { e.stopPropagation(); openDayDetail(dateKey, dateObj); };
+          tag.onclick = e => {
+            e.stopPropagation();
+            if (document.body.classList.contains('pc-mode')) {
+              if (isPcPortrait()) { openPcPortraitPanel(dateKey, dateObj); }
+              else { renderSidebarSchedule(); }
+            } else { openDayDetail(dateKey, dateObj); }
+          };
           listContainer.appendChild(tag);
         }
         if (schedCount2 > 0) {
@@ -1908,7 +1914,13 @@ window.renderCalendar = function renderCalendar() {
           tag.style.borderColor = 'rgba(232,84,58,0.3)';
           tag.innerText = '일정 ' + schedCount2 + '건';
           tag.title = schedItems2.filter(i=>i.name).map(i=>i.name+'('+(i.type||'')+')').join(', ');
-          tag.onclick = e => { e.stopPropagation(); openDayDetail(dateKey, dateObj); };
+          tag.onclick = e => {
+            e.stopPropagation();
+            if (document.body.classList.contains('pc-mode')) {
+              if (isPcPortrait()) { openPcPortraitPanel(dateKey, dateObj); }
+              else { renderSidebarSchedule(); }
+            } else { openDayDetail(dateKey, dateObj); }
+          };
           listContainer.appendChild(tag);
         }
       } else {
@@ -1927,7 +1939,14 @@ window.renderCalendar = function renderCalendar() {
             const label = item.name + (item.type ? '(' + item.type + ')' : '');
             tag.innerText = item.name;
             tag.title = label;
-            tag.onclick = e => { e.stopPropagation(); deleteItem(dateKey, origIndex); };
+            tag.onclick = e => {
+              e.stopPropagation();
+              if (document.body.classList.contains('pc-mode')) {
+                openItemAction(dateKey, origIndex);
+              } else {
+                openDayDetail(dateKey, dateObj);
+              }
+            };
             listContainer.appendChild(tag);
           }
           if (item.img) {
@@ -3160,7 +3179,15 @@ async function saveItemEdit() {
   }
 
   closeItemActionModalDirect();
-  if (document.body.classList.contains('pc-mode')) renderSidebarSchedule();
+  if (document.body.classList.contains('pc-mode')) {
+    renderSidebarSchedule();
+    // PC 세로 모드 인라인 패널 갱신
+    const pppPanel = document.getElementById('pcPortraitPanel');
+    if (pppPanel && pppPanel.classList.contains('visible')) {
+      const dateObj = new Date(newDateKey + 'T00:00:00');
+      openPcPortraitPanel(newDateKey, dateObj);
+    }
+  }
 
   // 모바일: 상세 팝업 갱신
   const overlay = document.getElementById('dayDetailOverlay');
@@ -3753,6 +3780,15 @@ async function _checkPassword() {
       if (_pwTargetKey === null) {
         document.getElementById('deletePwModal').style.display = 'none';
       }
+      // PC모드: 사이드바 및 세로 패널 갱신
+      if (document.body.classList.contains('pc-mode')) {
+        if (typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
+        const pppPanel = document.getElementById('pcPortraitPanel');
+        if (pppPanel && pppPanel.classList.contains('visible')) {
+          const dateObj2 = new Date(key + 'T00:00:00');
+          openPcPortraitPanel(key, dateObj2);
+        }
+      }
       // 모바일 상세 팝업 갱신
       const overlay = document.getElementById('dayDetailOverlay');
       if (overlay && overlay.classList.contains('show')) {
@@ -3811,16 +3847,20 @@ function openPcPortraitPanel(dateKey, dateObj) {
   } else {
     allItems2.forEach(item => {
       const isVac = VAC_TYPES_SET.has(item.type);
-      const dotColor = isVac ? '#ff8a76' : 'var(--blue)';
-      const typeBg   = isVac ? 'rgba(232,84,58,0.15)' : 'rgba(74,158,255,0.15)';
-      const typeColor= isVac ? '#ff8a76' : 'var(--blue)';
-      const typeBorder= isVac ? 'rgba(232,84,58,0.3)' : 'rgba(74,158,255,0.3)';
+      const dotColor = isVac ? 'var(--green)' : 'var(--blue)';
+      const typeBg   = isVac ? 'rgba(52,201,117,0.15)' : 'rgba(74,158,255,0.15)';
+      const typeColor= isVac ? 'var(--green)' : 'var(--blue)';
+      const typeBorder= isVac ? 'rgba(52,201,117,0.3)' : 'rgba(74,158,255,0.3)';
+      const origIdx = (window._vacationData[dateKey] || []).indexOf(item);
       const el = document.createElement('div');
       el.className = 'ppp-item';
+      el.style.justifyContent = 'space-between';
       el.innerHTML = `
         <span class="ppp-dot" style="background:${dotColor};"></span>
         <span class="ppp-name">${escHtml(item.name)}</span>
         ${item.type ? `<span class="ppp-type" style="background:${typeBg};color:${typeColor};border:1px solid ${typeBorder};">${escHtml(item.type)}</span>` : ''}
+        <button onclick="openItemAction('${dateKey}',${origIdx})" title="수정/삭제"
+          style="background:var(--bg4);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 8px;font-size:0.75rem;cursor:pointer;font-family:inherit;flex-shrink:0;margin-left:6px;">⋯</button>
       `;
       body.appendChild(el);
     });
