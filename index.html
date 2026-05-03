@@ -457,6 +457,65 @@ body.pc-mode .pc-dashboard { display: flex; }
   display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
 }
 
+/* ════ 항목 액션 모달 (수정/삭제) ════ */
+#itemActionModal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65); z-index: 8500;
+  justify-content: center; align-items: center;
+  padding: 20px; box-sizing: border-box;
+}
+#itemActionModal.show { display: flex; }
+.iam-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 20px; width: 100%; max-width: 400px;
+  overflow: hidden; animation: iamIn 0.2s ease;
+}
+@keyframes iamIn {
+  from { opacity:0; transform: scale(0.95) translateY(10px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+.iam-header {
+  background: var(--bg3); padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.iam-title { font-size: 0.95rem; font-weight: 800; color: var(--text); }
+.iam-close {
+  background: var(--bg4); border: none; color: var(--text2);
+  width: 28px; height: 28px; border-radius: 50%; font-size: 15px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.iam-info { padding: 14px 18px 10px; display: flex; flex-direction: column; gap: 4px; }
+.iam-info-name { font-size: 1rem; font-weight: 800; color: var(--text); }
+.iam-info-meta { font-size: 0.78rem; color: var(--text3); display: flex; align-items: center; gap: 6px; }
+.iam-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 8px; white-space: nowrap; }
+.iam-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 18px 18px; }
+.iam-btn {
+  padding: 12px 10px; border-radius: 12px; border: none;
+  font-size: 0.9rem; font-weight: 700; cursor: pointer;
+  font-family: inherit; transition: 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.iam-btn-edit { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.3); }
+.iam-btn-edit:hover { background: rgba(74,158,255,0.28); }
+.iam-btn-delete { background: rgba(232,84,58,0.12); color: #ff8a76; border: 1px solid rgba(232,84,58,0.3); }
+.iam-btn-delete:hover { background: rgba(232,84,58,0.25); }
+.iam-edit-form { display: none; flex-direction: column; gap: 10px; padding: 0 18px 18px; }
+.iam-edit-form.show { display: flex; }
+.iam-edit-form label { font-size: 0.72rem; color: var(--text3); font-weight: 700; display: block; margin-bottom: 3px; }
+.iam-edit-form input, .iam-edit-form select, .iam-edit-form textarea {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 9px 12px; font-size: 0.88rem;
+  color: var(--text); outline: none; font-family: inherit; box-sizing: border-box;
+}
+.iam-edit-form textarea { resize: none; height: 64px; }
+.iam-btn-save {
+  background: var(--accent); color: white; border: none;
+  border-radius: 12px; padding: 13px; font-size: 0.95rem;
+  font-weight: 700; cursor: pointer; font-family: inherit; width: 100%; transition: 0.15s;
+}
+.iam-btn-save:hover { opacity: 0.88; }
+
 /* ── 푸터 ── */
 .dash-footer {
   display: none;
@@ -975,6 +1034,66 @@ body.pc-mode .vacation-tag {
       <button class="ddp-close" onclick="closeDayDetailDirect()">✕</button>
     </div>
     <div id="ddpBody"></div>
+  </div>
+</div>
+
+<!-- ✏️ 항목 수정/삭제 액션 모달 -->
+<div id="itemActionModal" onclick="closeItemActionModal(event)">
+  <div class="iam-box">
+    <div class="iam-header">
+      <span class="iam-title" id="iamTitle">일정 관리</span>
+      <button class="iam-close" onclick="closeItemActionModalDirect()">✕</button>
+    </div>
+    <div class="iam-info">
+      <div class="iam-info-name" id="iamName"></div>
+      <div class="iam-info-meta">
+        <span id="iamDate"></span>
+        <span class="iam-badge" id="iamBadge"></span>
+        <span id="iamMemo" style="color:var(--text3);font-size:0.75rem;"></span>
+      </div>
+    </div>
+    <div class="iam-actions" id="iamActions">
+      <button class="iam-btn iam-btn-edit" onclick="openItemEdit()">✏️ 수정</button>
+      <button class="iam-btn iam-btn-delete" onclick="requestItemDelete()">🗑️ 삭제</button>
+    </div>
+    <!-- 수정 폼 (기본 숨김) -->
+    <div class="iam-edit-form" id="iamEditForm">
+      <div id="iamEditVacFields">
+        <label>👤 이름</label>
+        <input id="iamEditName" type="text" maxlength="20" placeholder="이름">
+        <label style="margin-top:6px;">📂 종류</label>
+        <select id="iamEditVacType">
+          <option value="연차">연차</option>
+          <option value="전반차">전반차 (오전)</option>
+          <option value="후반차">후반차 (오후)</option>
+          <option value="교육">교육</option>
+          <option value="출장">출장</option>
+          <option value="기타">기타</option>
+        </select>
+        <label style="margin-top:6px;">📅 날짜</label>
+        <input id="iamEditVacDate" type="date">
+      </div>
+      <div id="iamEditSchedFields" style="display:none;">
+        <label>📝 제목</label>
+        <input id="iamEditSchedTitle" type="text" maxlength="30" placeholder="일정 제목">
+        <label style="margin-top:6px;">🏷️ 종류</label>
+        <select id="iamEditSchedType">
+          <option value="점검">점검</option>
+          <option value="회의">회의</option>
+          <option value="작업">작업</option>
+          <option value="행사">행사</option>
+          <option value="기타">기타</option>
+        </select>
+        <label style="margin-top:6px;">📅 날짜</label>
+        <input id="iamEditSchedDate" type="date">
+        <label style="margin-top:6px;">💬 메모 (선택)</label>
+        <textarea id="iamEditMemo" placeholder="메모..."></textarea>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="iam-btn iam-btn-edit" style="flex:1;" onclick="cancelItemEdit()">← 취소</button>
+        <button class="iam-btn-save" style="flex:2;" onclick="saveItemEdit()">💾 저장</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1938,13 +2057,21 @@ function renderSidebarSchedule() {
       const item = document.createElement('div');
       item.className = 'sidebar-item';
       item.style.borderLeft = '3px solid var(--green)';
+      item.style.cursor = 'default';
+      const eIdx = (window._vacationData[baseKey] || []).indexOf(window._vacationData[baseKey]?.find(x => x === e || (x.name===e.name&&x.type===e.type)));
+      const realIdx = (window._vacationData[baseKey] || []).findIndex((x,i) => {
+        const vacs = (window._vacationData[baseKey]||[]).filter((_,ii) => VAC_TYPES_SET.has((window._vacationData[baseKey]||[])[ii]?.type));
+        return x === e;
+      });
       item.innerHTML = `
         <div class="sidebar-item-date">
           <span class="sdate-m">${baseM}월</span>
           ${baseDay}일
         </div>
-        <div class="sidebar-item-name">${escHtml(e.name || '—')}</div>
-        ${e.type ? `<span class="sidebar-item-type ${badgeClass}">${escHtml(e.type)}</span>` : ''}
+        <div class="sidebar-item-name" style="flex:1;">${escHtml(e.name || '—')}</div>
+        ${e.type ? `<span class="sidebar-item-type badge-${e.type||'기타'}">${escHtml(e.type)}</span>` : ''}
+        <button onclick="openItemAction('${baseKey}',${(window._vacationData[baseKey]||[]).indexOf(e)})" title="수정/삭제"
+          style="background:var(--bg4);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 8px;font-size:0.75rem;cursor:pointer;font-family:inherit;flex-shrink:0;margin-left:4px;">⋯</button>
       `;
       vacList.appendChild(item);
     });
@@ -1961,6 +2088,7 @@ function renderSidebarSchedule() {
       item.className = 'sidebar-item';
       item.style.alignItems = 'flex-start';
       item.style.borderLeft = '3px solid #ff8a76';
+      item.style.cursor = 'default';
       item.innerHTML = `
         <div class="sidebar-item-date" style="margin-top:2px;">
           <span class="sdate-m">${baseM}월</span>
@@ -1970,7 +2098,9 @@ function renderSidebarSchedule() {
           <div class="sidebar-item-name">${escHtml(e.name || '—')}</div>
           ${e.memo ? `<div class="sidebar-item-memo">💬 ${escHtml(e.memo)}</div>` : ''}
         </div>
-        ${e.type ? `<span class="sidebar-item-type ${badgeClass}" style="margin-top:2px;">${escHtml(e.type)}</span>` : ''}
+        ${e.type ? `<span class="sidebar-item-type badge-${e.type||'일정'}" style="margin-top:2px;">${escHtml(e.type)}</span>` : ''}
+        <button onclick="openItemAction('${baseKey}',${(window._vacationData[baseKey]||[]).indexOf(e)})" title="수정/삭제"
+          style="background:var(--bg4);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 8px;font-size:0.75rem;cursor:pointer;font-family:inherit;flex-shrink:0;margin-left:4px;margin-top:1px;">⋯</button>
       `;
       schedList.appendChild(item);
     });
@@ -2486,6 +2616,7 @@ async function _doDeleteItem(key, idx) {
       window.renderCalendar();
     }
   }
+  if (document.body.classList.contains('pc-mode') && typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
 }
 
 function openZoom(src, filename) {
@@ -2853,15 +2984,18 @@ function openDayDetail(dateKey, dateObj) {
     html += `<div class="ddp-empty">등록된 일정이 없습니다</div>`;
   } else {
     schedItems.forEach(item => {
+      const origIdx = items.indexOf(item);
       const colorMap = {'점검':'var(--amber)','회의':'var(--blue)','작업':'var(--green)','행사':'var(--purple)'};
       const c = colorMap[item.type] || 'var(--blue)';
-      html += `<div class="ddp-item">
+      html += `<div class="ddp-item" style="position:relative;">
         <span class="ddp-item-dot" style="background:${c};margin-top:5px;"></span>
         <div style="flex:1;min-width:0;">
           <div class="ddp-item-name">${escHtml(item.name)}</div>
           ${item.type ? `<div class="ddp-item-sub">${escHtml(item.type)}</div>` : ''}
           ${item.memo ? `<div class="ddp-item-sub" style="margin-top:2px;">💬 ${escHtml(item.memo)}</div>` : ''}
         </div>
+        <button onclick="openItemAction('${dateKey}',${origIdx})" title="수정/삭제"
+          style="background:var(--bg4);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:4px 10px;font-size:0.8rem;cursor:pointer;font-family:inherit;flex-shrink:0;align-self:flex-start;">⋯</button>
       </div>`;
     });
   }
@@ -2873,13 +3007,16 @@ function openDayDetail(dateKey, dateObj) {
     html += `<div class="ddp-empty">등록된 연차가 없습니다</div>`;
   } else {
     vacItems.forEach(item => {
-      html += `<div class="ddp-item">
-        <span class="ddp-item-dot" style="background:var(--accent);margin-top:5px;"></span>
+      const origIdx = items.indexOf(item);
+      html += `<div class="ddp-item" style="position:relative;">
+        <span class="ddp-item-dot" style="background:var(--green);margin-top:5px;"></span>
         <div style="flex:1;min-width:0;">
           <div class="ddp-item-name">${escHtml(item.name)}</div>
           ${item.type ? `<div class="ddp-item-sub">${escHtml(item.type)}</div>` : ''}
           ${item.img ? `<img src="${escHtml(item.img)}" class="ddp-img" onclick="openZoom('${escHtml(item.img)}','${escHtml(item.name)}')">` : ''}
         </div>
+        <button onclick="openItemAction('${dateKey}',${origIdx})" title="수정/삭제"
+          style="background:var(--bg4);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:4px 10px;font-size:0.8rem;cursor:pointer;font-family:inherit;flex-shrink:0;align-self:flex-start;">⋯</button>
       </div>`;
     });
   }
@@ -2897,6 +3034,145 @@ function closeDayDetail(e) {
 function closeDayDetailDirect() {
   document.getElementById('dayDetailOverlay').classList.remove('show');
   document.body.style.overflow = '';
+}
+
+// ════════════════════════════════
+// ✏️ 항목 수정/삭제 액션 모달
+// ════════════════════════════════
+let _iamKey = null;   // dateKey
+let _iamIdx = null;   // 원래 인덱스
+let _iamIsVac = false; // 연차 여부
+
+function openItemAction(dateKey, idx) {
+  const data = window._vacationData || {};
+  const items = data[dateKey] || [];
+  const item = items[idx];
+  if (!item) return;
+
+  _iamKey = dateKey;
+  _iamIdx = idx;
+  _iamIsVac = VAC_TYPES_SET.has(item.type);
+
+  // 모달 정보 채우기
+  const isVac = _iamIsVac;
+  document.getElementById('iamTitle').textContent = isVac ? '🏖️ 연차 · 휴가 관리' : '📅 일정 관리';
+  document.getElementById('iamName').textContent = item.name || '—';
+
+  // 날짜 표시
+  const parts = dateKey.split('-');
+  document.getElementById('iamDate').textContent = `📅 ${parts[1]}월 ${parts[2]}일`;
+
+  // 배지
+  const badge = document.getElementById('iamBadge');
+  badge.textContent = item.type || '';
+  if (isVac) {
+    badge.style.cssText = 'background:rgba(52,201,117,0.15);color:var(--green);border:1px solid rgba(52,201,117,0.3);font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:8px;';
+  } else {
+    badge.style.cssText = 'background:rgba(232,84,58,0.15);color:#ff8a76;border:1px solid rgba(232,84,58,0.25);font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:8px;';
+  }
+
+  // 메모
+  const memoEl = document.getElementById('iamMemo');
+  memoEl.textContent = item.memo ? ('💬 ' + item.memo) : '';
+
+  // 수정 폼 숨기기, 버튼 영역 표시
+  document.getElementById('iamEditForm').classList.remove('show');
+  document.getElementById('iamActions').style.display = '';
+
+  document.getElementById('itemActionModal').classList.add('show');
+}
+
+function closeItemActionModal(e) {
+  if (e.target === document.getElementById('itemActionModal')) closeItemActionModalDirect();
+}
+function closeItemActionModalDirect() {
+  document.getElementById('itemActionModal').classList.remove('show');
+  _iamKey = null; _iamIdx = null;
+}
+
+function openItemEdit() {
+  const data = window._vacationData || {};
+  const item = (data[_iamKey] || [])[_iamIdx];
+  if (!item) return;
+
+  // 버튼 숨기기, 폼 표시
+  document.getElementById('iamActions').style.display = 'none';
+  document.getElementById('iamEditForm').classList.add('show');
+
+  if (_iamIsVac) {
+    document.getElementById('iamEditVacFields').style.display = '';
+    document.getElementById('iamEditSchedFields').style.display = 'none';
+    document.getElementById('iamEditName').value = item.name || '';
+    const typeSelect = document.getElementById('iamEditVacType');
+    const knownVacTypes = ['연차','전반차','후반차','교육','출장','기타'];
+    typeSelect.value = knownVacTypes.includes(item.type) ? item.type : '기타';
+    document.getElementById('iamEditVacDate').value = _iamKey;
+  } else {
+    document.getElementById('iamEditVacFields').style.display = 'none';
+    document.getElementById('iamEditSchedFields').style.display = '';
+    document.getElementById('iamEditSchedTitle').value = item.name || '';
+    const schedSelect = document.getElementById('iamEditSchedType');
+    schedSelect.value = item.type || '기타';
+    document.getElementById('iamEditSchedDate').value = _iamKey;
+    document.getElementById('iamEditMemo').value = item.memo || '';
+  }
+}
+
+function cancelItemEdit() {
+  document.getElementById('iamEditForm').classList.remove('show');
+  document.getElementById('iamActions').style.display = '';
+}
+
+async function saveItemEdit() {
+  const data = window._vacationData || {};
+  const items = data[_iamKey] || [];
+  const item = items[_iamIdx];
+  if (!item) return;
+
+  let newDateKey, newEntry;
+
+  if (_iamIsVac) {
+    const newName = document.getElementById('iamEditName').value.trim();
+    const newType = document.getElementById('iamEditVacType').value;
+    newDateKey = document.getElementById('iamEditVacDate').value;
+    if (!newName) { alert('이름을 입력해주세요.'); return; }
+    if (!newDateKey) { alert('날짜를 선택해주세요.'); return; }
+    newEntry = { name: newName, type: newType, img: item.img || '', memo: item.memo || '' };
+  } else {
+    const newTitle = document.getElementById('iamEditSchedTitle').value.trim();
+    const newType = document.getElementById('iamEditSchedType').value;
+    newDateKey = document.getElementById('iamEditSchedDate').value;
+    const newMemo = document.getElementById('iamEditMemo').value.trim();
+    if (!newTitle) { alert('제목을 입력해주세요.'); return; }
+    if (!newDateKey) { alert('날짜를 선택해주세요.'); return; }
+    newEntry = { name: newTitle, type: newType, img: '', memo: newMemo };
+  }
+
+  // 기존 항목 삭제
+  await _doDeleteItem(_iamKey, _iamIdx);
+
+  // 새 항목 저장 (날짜가 바뀌었을 수도 있음)
+  try {
+    if (window._vacationAPI) await window._vacationAPI.saveVacation(newDateKey, newEntry);
+    else localSaveVacation(newDateKey, newEntry);
+  } catch(e) {
+    localSaveVacation(newDateKey, newEntry);
+  }
+
+  closeItemActionModalDirect();
+  if (document.body.classList.contains('pc-mode')) renderSidebarSchedule();
+
+  // 모바일: 상세 팝업 갱신
+  const overlay = document.getElementById('dayDetailOverlay');
+  if (overlay && overlay.classList.contains('show')) {
+    const dateObj = new Date(newDateKey + 'T00:00:00');
+    openDayDetail(newDateKey, dateObj);
+  }
+}
+
+function requestItemDelete() {
+  closeItemActionModalDirect();
+  showDeletePwModal(_iamKey, _iamIdx);
 }
 
 // ════════════════════════════════
@@ -3476,6 +3752,12 @@ async function _checkPassword() {
       // 더 삭제할 항목이 없으면 모달 닫기
       if (_pwTargetKey === null) {
         document.getElementById('deletePwModal').style.display = 'none';
+      }
+      // 모바일 상세 팝업 갱신
+      const overlay = document.getElementById('dayDetailOverlay');
+      if (overlay && overlay.classList.contains('show')) {
+        const dateObj = new Date(key + 'T00:00:00');
+        openDayDetail(key, dateObj);
       }
     }, 350);
   } else {
