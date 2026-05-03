@@ -26,9 +26,6 @@
 }
 #pcModeBtn:active { transform: scale(0.94); }
 
-/* ══════════════════════════════════════
-   가로 방향 유도 오버레이
-══════════════════════════════════════ */
 #rotateOverlay {
   display: none;
   position: fixed;
@@ -62,14 +59,12 @@
 #rotateOverlay .rotate-dismiss:active { background: var(--bg4); }
 body.pc-mode.portrait-warn #rotateOverlay { display: flex; }
 
-/* ── PC 모드 레이아웃 ── */
 body.pc-mode {
   max-width: 1400px;
   margin: 0 auto;
   padding: 10px 16px 80px;
 }
 
-/* PC모드: 캘린더 + 일정 사이드바 2컬럼 */
 body.pc-mode .pc-layout-wrap {
   display: grid;
   grid-template-columns: 1fr 400px;
@@ -103,7 +98,6 @@ body.pc-mode .pc-board-col {
 body.pc-mode .duty-container { display: block !important; }
 body.pc-mode .day-cell { min-height: 110px; }
 
-/* ── 우측 사이드바: 일정 요약 헤더 ── */
 .pc-board-sidebar-header {
   display: none;
   background: var(--bg3);
@@ -117,14 +111,11 @@ body.pc-mode .day-cell { min-height: 110px; }
 }
 body.pc-mode .pc-board-sidebar-header { display: flex; }
 
-/* PC모드에서 게시판 모달을 사이드바로 전환 */
 body.pc-mode #boardModal { display: none !important; }
 
-/* PC모드 사이드바 일정 인라인 */
 .pc-board-inline { display: none; }
 body.pc-mode .pc-board-inline { display: block; }
 
-/* 실시간 뱃지 */
 .pc-sync-badge {
   display: inline-flex; align-items: center; gap: 4px;
   font-size: 0.65rem; padding: 2px 7px; border-radius: 10px;
@@ -136,7 +127,6 @@ body.pc-mode .pc-board-inline { display: block; }
 body.pc-mode .quick-wrap { display: none; }
 body.pc-mode .add-btn { bottom: 20px; }
 
-/* PC모드 상단 퀵링크 바 */
 .pc-top-quickbar {
   display: none;
   gap: 8px;
@@ -160,7 +150,6 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 }
 .pc-quick-link:hover { background: var(--bg4); color: var(--text); }
 
-/* WORKHUB 브랜드 */
 .workhub-brand {
   font-size: 1.1rem; font-weight: 900; color: var(--text);
   letter-spacing: 0.05em; margin-bottom: 6px;
@@ -169,7 +158,6 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 .workhub-brand .wh-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
 .workhub-sub { font-size: 0.72rem; color: var(--text3); font-weight: 500; letter-spacing: 0.08em; }
 
-/* ── 일정 등록 모달 공용 ── */
 .type-sel-btn {
   padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border);
   background: var(--bg3); font-size: 0.8rem; cursor: pointer;
@@ -185,7 +173,6 @@ body.pc-mode .pc-top-quickbar { display: flex; }
   border-color: rgba(74,158,255,0.4);
 }
 
-/* ── 대시보드 ── */
 .dash-loading { color: var(--text3); font-size: 0.82rem; padding: 16px 0; text-align: center; }
 .dash-link-btn {
   display: block; text-align: center; text-decoration: none;
@@ -195,7 +182,6 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 }
 .dash-link-btn:hover { background: var(--bg4); color: var(--text2); }
 
-/* 날씨 카드 */
 .weather-main { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
 .weather-icon-big { font-size: 2.6rem; line-height: 1; }
 .weather-temp-big { font-size: 2rem; font-weight: 800; color: var(--text); }
@@ -204,7 +190,6 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 .weather-detail-item { background: var(--bg3); border-radius: 8px; padding: 7px 10px; font-size: 0.75rem; color: var(--text2); }
 .weather-detail-item strong { color: var(--text); font-size: 0.82rem; display: block; }
 
-/* ══ 우측 사이드바: 일정+연차 분리 표시 ══ */
 .sidebar-section {
   padding: 14px 16px 10px;
   border-bottom: 1px solid var(--border);
@@ -237,7 +222,6 @@ body.pc-mode .pc-top-quickbar { display: flex; }
   border: 1px solid rgba(74,158,255,0.25);
 }
 
-/* 일정 아이템 */
 .sidebar-item {
   display: flex;
   align-items: center;
@@ -267,13 +251,11 @@ body.pc-mode .pc-top-quickbar { display: flex; }
   padding: 2px 7px; border-radius: 8px;
   white-space: nowrap;
 }
-/* 연차 타입 배지 */
 .badge-연차 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
 .badge-반차 { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.25); }
 .badge-교육 { background: rgba(52,201,117,0.15); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
 .badge-출장 { background: rgba(255,179,64,0.15); color: var(--amber); border: 1px solid rgba(255,179,64,0.25); }
 .badge-기타 { background: rgba(191,90,242,0.15); color: var(--purple); border: 1px solid rgba(191,90,242,0.25); }
-/* 일정 타입 배지 */
 .badge-점검 { background: rgba(255,179,64,0.15); color: var(--amber); border: 1px solid rgba(255,179,64,0.25); }
 .badge-회의 { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.25); }
 .badge-작업 { background: rgba(52,201,117,0.15); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
@@ -290,7 +272,6 @@ body.pc-mode .pc-top-quickbar { display: flex; }
   white-space: pre-wrap; word-break: break-all; line-height: 1.4;
 }
 
-/* 이번달 네비게이션 */
 .sidebar-month-nav {
   display: flex; align-items: center; justify-content: space-between;
   padding: 11px 16px 0;
@@ -304,7 +285,6 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 }
 .sidebar-month-btn:hover { background: var(--bg4); }
 
-/* 일정 요약 뱃지 (대시보드 하단 카드용) */
 .vac-count-badge {
   font-size: 0.72rem; font-weight: 700;
   background: rgba(232,84,58,0.15); color: var(--accent2);
@@ -312,7 +292,6 @@ body.pc-mode .pc-top-quickbar { display: flex; }
   border: 1px solid rgba(232,84,58,0.2);
 }
 
-/* ══ PC 모드 하단 대시보드 ══ */
 .pc-dashboard {
   display: none;
   margin-top: 20px;
@@ -328,7 +307,6 @@ body.pc-mode .pc-dashboard { display: flex; }
   .dash-row-2 { grid-template-columns: 1fr !important; }
 }
 
-/* 카드 공통 */
 .dash-card {
   background: var(--bg2);
   border: 1px solid var(--border);
@@ -354,7 +332,6 @@ body.pc-mode .pc-dashboard { display: flex; }
 }
 .dash-card-body { padding: 14px 16px; }
 
-/* ── 푸터 ── */
 .dash-footer {
   display: none;
   background: var(--bg2);
@@ -373,6 +350,159 @@ body.pc-mode .dash-footer { display: flex; }
   letter-spacing: 0.1em; display: flex; align-items: center; gap: 10px;
 }
 .footer-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+
+/* ══ 일괄등록 모달 ══ */
+#bulkModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 6000;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 0;
+  box-sizing: border-box;
+}
+#bulkPanel {
+  background: var(--bg2);
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.25s cubic-bezier(0.32,0.72,0,1);
+}
+.bulk-handle {
+  width: 40px; height: 4px; border-radius: 2px;
+  background: var(--bg4); margin: 12px auto 0; flex-shrink: 0;
+}
+.bulk-header {
+  background: var(--bg3);
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+.bulk-header-title {
+  font-size: 1rem; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.bulk-close {
+  background: var(--bg4); border: none; color: var(--text2);
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  font-size: 16px; display: flex; align-items: center; justify-content: center;
+}
+.bulk-body { overflow-y: auto; flex: 1; padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+
+/* 형식 안내 박스 */
+.bulk-guide {
+  background: var(--bg3);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 0.76rem;
+  color: var(--text3);
+  line-height: 1.9;
+  border: 1px solid var(--border);
+}
+.bulk-guide-title { font-weight: 800; color: var(--text2); margin-bottom: 5px; font-size: 0.78rem; }
+.bulk-guide code {
+  background: var(--bg4); padding: 1px 6px; border-radius: 4px;
+  font-family: monospace; color: var(--text2); font-size: 0.74rem;
+}
+
+/* 빠른 입력 칩 */
+.bulk-chips {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.bulk-chip {
+  padding: 4px 11px; border-radius: 16px; border: 1px solid var(--border);
+  background: var(--bg3); font-size: 0.76rem; cursor: pointer; color: var(--text2);
+  font-family: inherit; transition: 0.15s; font-weight: 600;
+}
+.bulk-chip:hover { background: var(--bg4); color: var(--text); }
+.bulk-chip:active { transform: scale(0.94); }
+
+/* 텍스트 입력창 */
+#bulkInput {
+  width: 100%;
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 13px 15px;
+  font-size: 0.9rem;
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+  resize: none;
+  line-height: 1.85;
+  box-sizing: border-box;
+  min-height: 160px;
+  transition: border-color 0.2s;
+}
+#bulkInput:focus { border-color: var(--accent); }
+#bulkInput::placeholder { color: var(--text3); }
+
+/* 결과 미리보기 */
+#bulkResultWrap { display: none; }
+.bulk-result-title {
+  font-size: 0.76rem; font-weight: 800; color: var(--text2);
+  margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
+}
+.bulk-result-list { display: flex; flex-direction: column; gap: 7px; }
+.bulk-result-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg3); border-radius: 10px; padding: 9px 12px;
+  border: 1px solid var(--border); position: relative;
+}
+.bulk-result-item.err-item { border-color: rgba(232,84,58,0.4); background: rgba(232,84,58,0.07); }
+.bulk-result-item-date {
+  font-size: 0.72rem; font-weight: 700; color: var(--text3);
+  background: var(--bg4); border-radius: 6px;
+  padding: 3px 7px; white-space: nowrap; flex-shrink: 0; text-align: center; min-width: 44px;
+}
+.bulk-result-item-name { font-size: 0.88rem; font-weight: 700; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bulk-result-item-type {
+  font-size: 0.65rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 8px; white-space: nowrap; flex-shrink: 0;
+}
+.bulk-remove-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  font-size: 13px; padding: 2px 4px; flex-shrink: 0;
+  transition: color 0.15s;
+}
+.bulk-remove-btn:hover { color: var(--accent2); }
+
+/* 하단 버튼 영역 */
+.bulk-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.bulk-btn-parse {
+  flex: 1;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text2); border-radius: 12px; padding: 13px;
+  font-size: 0.92rem; font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: 0.15s;
+}
+.bulk-btn-parse:hover { background: var(--bg4); color: var(--text); }
+.bulk-btn-register {
+  flex: 2;
+  background: var(--accent); color: white; border: none;
+  border-radius: 12px; padding: 13px;
+  font-size: 0.92rem; font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: 0.15s;
+}
+.bulk-btn-register:hover { background: var(--accent2); }
+.bulk-btn-register:disabled { background: var(--bg4); color: var(--text3); cursor: not-allowed; }
+
+#bulkError {
+  display: none;
+  background: rgba(232,84,58,0.1); border: 1px solid rgba(232,84,58,0.3);
+  border-radius: 10px; padding: 10px 13px; color: #ff8a76; font-size: 0.84rem;
+}
 </style>
 <style>
 :root {
@@ -421,7 +551,6 @@ body {
   display: flex; flex-direction: column; transition: 0.1s;
 }
 .day-cell:hover { border-color: var(--bg4); background: var(--bg3); }
-/* ── 모바일: 이벤트 점 표시 ── */
 .event-dot-wrap {
   display: none;
   gap: 3px;
@@ -444,7 +573,6 @@ body {
 .event-dot.dot-sched { background: var(--blue); }
 .event-dot.dot-holiday { background: #ff6b6b; }
 
-/* ── 날짜 상세 팝업 ── */
 #dayDetailOverlay {
   display: none;
   position: fixed; inset: 0;
@@ -548,7 +676,6 @@ body.light-mode .ddp-duty-value.v-비 { color: #157a40; }
   margin-bottom: 2px; line-height: 1.2;
 }
 body.light-mode .holiday-name { color: #c0392b; }
-/* 테마 토글 버튼 (인라인) */
 #themeModeBtn {
   background: var(--bg3);
   color: var(--text2);
@@ -738,10 +865,6 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
   vertical-align: middle; margin-right: 6px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-@keyframes aiDot {
-  0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
-  40% { transform: scale(1.1); opacity: 1; }
-}
 .sync-badge {
   display: inline-flex; align-items: center; gap: 4px;
   font-size: 0.68rem; padding: 2px 7px; border-radius: 10px;
@@ -763,7 +886,6 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
 </head>
 <body>
 
-<!-- 가로 방향 유도 오버레이 -->
 <div id="rotateOverlay">
   <div class="rotate-icon">📱</div>
   <div class="rotate-title">화면을 가로로 돌려주세요<br>PC 모드는 가로 방향에 최적화되어 있습니다</div>
@@ -771,8 +893,6 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
   <button class="rotate-dismiss" onclick="dismissRotateOverlay()">그냥 세로로 볼게요</button>
 </div>
 
-<!-- PC 모드 전환 버튼 -->
-<!-- 날짜 상세 팝업 (모바일) -->
 <div id="dayDetailOverlay" onclick="closeDayDetail(event)">
   <div id="dayDetailPanel">
     <div class="ddp-handle"></div>
@@ -784,14 +904,10 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
   </div>
 </div>
 
-
 <div class="pc-layout-wrap">
-  <!-- 왼쪽: 캘린더 컬럼 -->
   <div class="pc-cal-col">
-
-    <!-- PC모드 상단 퀵링크 -->
     <div class="pc-top-quickbar">
-      <span class="workhub-brand"><span class="wh-dot"></span>WORKHUB. <span class="workhub-sub">전원설비 스케줄 & 커뮤니티</span></span>
+      <span class="workhub-brand"><span class="wh-dot"></span>WORKHUB. <span class="workhub-sub">전원설비 스케줄 &amp; 커뮤니티</span></span>
       <a class="pc-quick-link" href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️ 지도</a>
       <a class="pc-quick-link" href="https://weather.naver.com/" target="_blank">🌤️ 날씨</a>
       <a class="pc-quick-link" href="https://news.naver.com/main/home.naver" target="_blank">📰 뉴스</a>
@@ -812,21 +928,17 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
     <div class="calendar-grid" id="calendarGrid"></div>
   </div>
 
-  <!-- ══ 오른쪽: 일정 요약 사이드바 (PC모드) ══ -->
   <div class="pc-board-col">
     <div class="pc-board-sidebar-header">
       📋 이번 달 일정
     </div>
-
     <div class="pc-board-inline">
-      <!-- 월 네비게이션 -->
       <div class="sidebar-month-nav">
         <button class="sidebar-month-btn" onclick="sidebarMoveMonth(-1)">◀</button>
         <span id="sidebarMonthLabel" style="font-size:0.9rem;font-weight:800;"></span>
         <button class="sidebar-month-btn" onclick="sidebarMoveMonth(1)">▶</button>
       </div>
 
-      <!-- 일정 섹션 -->
       <div class="sidebar-section">
         <div class="sidebar-section-title sched-title">
           <span>📅 일정</span>
@@ -837,7 +949,6 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
         </div>
       </div>
 
-      <!-- 연차/휴가 섹션 -->
       <div class="sidebar-section">
         <div class="sidebar-section-title vac-title">
           <span>🏖️ 연차 · 휴가</span>
@@ -848,7 +959,6 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
         </div>
       </div>
 
-      <!-- 일정 등록 바로가기 -->
       <div style="padding: 12px 16px;">
         <button onclick="openRegisterModal()" style="width:100%;background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:10px;padding:10px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;" onmouseover="this.style.background='rgba(232,84,58,0.25)'" onmouseout="this.style.background='rgba(232,84,58,0.15)'">
           + 일정 · 연차 등록
@@ -858,11 +968,8 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
   </div>
 </div>
 
-<!-- ══ PC 모드 하단 대시보드 (날씨만) ══ -->
 <div class="pc-dashboard" id="pcDashboard">
   <div class="dash-row dash-row-2">
-
-    <!-- 날씨 카드 -->
     <div class="dash-card">
       <div class="dash-card-header">
         <div class="dash-card-title">
@@ -879,7 +986,6 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
       </div>
     </div>
 
-    <!-- 게시판 인라인 카드 (PC모드 대시보드) -->
     <div class="dash-card" style="display:flex;flex-direction:column;min-height:280px;">
       <div class="dash-card-header">
         <div class="dash-card-title">
@@ -888,20 +994,16 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
         </div>
         <button onclick="switchTab('write');openBoard();" style="background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:8px;padding:4px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 글쓰기</button>
       </div>
-      <!-- 카테고리 필터 -->
       <div id="dashBoardCatFilters" style="display:flex;gap:5px;flex-wrap:wrap;padding:8px 14px 0;"></div>
-      <!-- 게시글 목록 -->
       <div style="flex:1;overflow-y:auto;padding:8px 14px 14px;">
         <div id="dashPostList" style="display:flex;flex-direction:column;gap:6px;">
           <div class="dash-loading">불러오는 중...</div>
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- 푸터 슬로건 -->
 <div class="dash-footer">
   <div class="footer-slogan"></div>
   <div class="footer-brand-right">
@@ -913,135 +1015,82 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
   </div>
 </div>
 
+<!-- 하단 퀵 네비게이션 (AI등록 → 일괄등록으로 교체) -->
 <div class="quick-wrap">
   <a href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️<span class="ql">지도</span></a>
   <a href="https://weather.naver.com/" target="_blank">🌤️<span class="ql">날씨</span></a>
   <a href="https://news.naver.com/main/home.naver" target="_blank">📰<span class="ql">뉴스</span></a>
   <a href="https://icn-cafeteria.web.app/" target="_blank">🍴<span class="ql">식당</span></a>
   <a href="#" onclick="openBoard(); return false;">📋<span class="ql">게시판</span></a>
-  <a href="#" onclick="openAiScan(); return false;">🤖<span class="ql">AI등록</span></a>
+  <a href="#" onclick="openBulkModal(); return false;">📝<span class="ql">일괄등록</span></a>
 </div>
 
 <button class="add-btn" id="mainAddBtn" onclick="openRegisterModal()">+</button>
 <input type="file" id="imageInput" style="display:none" accept="image/*" onchange="handleFileUpload(this)">
 <input type="file" id="boardFileInput" style="display:none" multiple onchange="handleBoardFiles(this)">
-<input type="file" id="aiScanInput" style="display:none" accept="image/*" onchange="handleAiScanFile(this)">
 
-<!-- AI 스케줄 스캔 모달 -->
-<div id="aiScanModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:6000;justify-content:center;align-items:flex-end;padding:0;box-sizing:border-box;" onclick="closeAiScanIfOutside(event)">
-  <div style="background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:520px;margin:0 auto;border:1px solid var(--border);overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
-
-    <!-- 헤더 -->
-    <div style="background:var(--bg3);padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
-      <div style="font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;">
-        🤖 AI 일정 자동 등록
-      </div>
-      <button onclick="closeAiScan()" style="background:var(--bg4);border:none;color:var(--text2);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+<!-- ══════════════════════════════════════
+     📝 일괄 등록 모달 (AI 없이 텍스트 파싱)
+══════════════════════════════════════ -->
+<div id="bulkModal" onclick="closeBulkIfOutside(event)">
+  <div id="bulkPanel">
+    <div class="bulk-handle"></div>
+    <div class="bulk-header">
+      <div class="bulk-header-title">📝 일괄 등록</div>
+      <button class="bulk-close" onclick="closeBulkModal()">✕</button>
     </div>
 
-    <!-- 탭 -->
-    <div style="display:flex;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0;">
-      <button id="aiTabPhoto" onclick="switchAiTab('photo')"
-        style="flex:1;padding:11px;border:none;background:none;font-size:0.88rem;font-weight:700;cursor:pointer;color:var(--accent2);border-bottom:2px solid var(--accent2);margin-bottom:-1px;transition:0.15s;font-family:inherit;">
-        📷 사진 등록
-      </button>
-      <button id="aiTabText" onclick="switchAiTab('text')"
-        style="flex:1;padding:11px;border:none;background:none;font-size:0.88rem;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:0.15s;font-family:inherit;">
-        ✏️ 텍스트 등록
-      </button>
-    </div>
+    <div class="bulk-body">
 
-    <div style="overflow-y:auto;flex:1;">
-
-      <!-- ══ API 키 (공통) ══ -->
-      <div style="padding:14px 20px 0;">
-        <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:0.72rem;color:var(--text3);font-weight:700;white-space:nowrap;">🔑 API Key</span>
-          <input id="aiApiKeyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false"
-            style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:0.78rem;color:var(--text);outline:none;font-family:monospace;min-width:0;">
-          <button onclick="toggleApiKeyVisibility()" id="aiApiKeyToggle"
-            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 9px;cursor:pointer;color:var(--text2);font-size:0.8rem;font-family:inherit;flex-shrink:0;">👁️</button>
+      <!-- 입력 형식 안내 -->
+      <div class="bulk-guide">
+        <div class="bulk-guide-title">✏️ 한 줄에 하나씩 입력 · 아래 형식 참고</div>
+        <div><span style="color:var(--accent2);">이름</span> <span style="color:var(--blue);">날짜</span> <span style="color:var(--green);">종류</span>
+          &nbsp;|&nbsp; 날짜: <code>5/12</code> <code>5.12</code> <code>5월12일</code>
         </div>
-        <div style="font-size:0.68rem;color:var(--text3);margin-top:4px;">
-          <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--blue);text-decoration:none;">console.anthropic.com</a>에서 발급 · 이 기기에만 저장
+        <div>범위: <code>5/13~5/15</code> &nbsp;|&nbsp; 종류: <code>연차</code> <code>반차</code> <code>출장</code> <code>교육</code> <code>점검</code> <code>회의</code> <code>작업</code> <code>행사</code></div>
+        <div style="color:var(--text2);margin-top:3px;">
+          예) <em>홍길동 5/12 연차</em> &nbsp; <em>김철수 5/13~5/15 출장</em> &nbsp; <em>5/22 팀 회의</em>
         </div>
       </div>
 
-      <!-- ══ 사진 탭 콘텐츠 ══ -->
-      <div id="aiPhotoPanel">
-        <!-- Step 1: 사진 업로드 -->
-        <div id="aiStep1" style="padding:16px 20px 20px;">
-          <div id="aiDropZone" onclick="document.getElementById('aiScanInput').click()"
-            style="border:2px dashed var(--border);border-radius:16px;padding:32px 20px;text-align:center;cursor:pointer;transition:0.2s;background:var(--bg3);"
-            ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
-            ondragleave="this.style.borderColor='var(--border)'"
-            ondrop="handleAiDrop(event)">
-            <div style="font-size:2.2rem;margin-bottom:8px;">📷</div>
-            <div style="font-size:0.92rem;font-weight:700;color:var(--text);margin-bottom:4px;">사진을 탭하여 선택</div>
-            <div style="font-size:0.75rem;color:var(--text3);">연차신청서 · 일정표 · 달력 캡처 등</div>
-          </div>
-          <div id="aiPreviewWrap" style="display:none;margin-top:12px;">
-            <img id="aiPreviewImg" style="width:100%;border-radius:12px;border:1px solid var(--border);max-height:200px;object-fit:contain;background:var(--bg3);">
-            <button onclick="document.getElementById('aiScanInput').click()" style="margin-top:8px;width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:8px;font-size:0.82rem;cursor:pointer;font-family:inherit;">🔄 다른 사진 선택</button>
-          </div>
-          <button id="aiAnalyzeBtn" onclick="runAiAnalysis()" style="display:none;width:100%;margin-top:12px;background:var(--accent);color:white;border:none;border-radius:12px;padding:13px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;">🔍 AI 분석 시작</button>
-        </div>
-
-        <!-- Step 2: 분석 중 -->
-        <div id="aiStep2" style="display:none;padding:36px 20px;text-align:center;">
-          <div style="font-size:2.6rem;margin-bottom:14px;">🤖</div>
-          <div style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:6px;">AI가 분석 중입니다...</div>
-          <div style="font-size:0.82rem;color:var(--text3);margin-bottom:18px;">사진에서 일정 정보를 읽고 있어요</div>
-          <div style="display:flex;justify-content:center;gap:6px;">
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:aiDot 1.2s infinite 0s;display:inline-block;"></span>
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:aiDot 1.2s infinite 0.2s;display:inline-block;"></span>
-            <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:aiDot 1.2s infinite 0.4s;display:inline-block;"></span>
-          </div>
-        </div>
-
-        <!-- Step 3: 결과 확인 (사진) -->
-        <div id="aiStep3" style="display:none;padding:14px 20px 20px;">
-          <div style="font-size:0.82rem;color:var(--text3);margin-bottom:10px;font-weight:600;">✅ 아래 내용을 확인하고 등록하세요</div>
-          <div id="aiResultList" style="display:flex;flex-direction:column;gap:8px;"></div>
-          <div id="aiResultError" style="display:none;background:rgba(232,84,58,0.1);border:1px solid rgba(232,84,58,0.3);border-radius:10px;padding:12px;color:#ff8a76;font-size:0.85rem;margin-top:8px;"></div>
-          <div style="display:flex;gap:8px;margin-top:14px;">
-            <button onclick="goAiStep1()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:12px;font-size:0.88rem;cursor:pointer;font-family:inherit;font-weight:600;">↩ 다시 찍기</button>
-            <button id="aiRegisterBtn" onclick="registerAiResults()" style="flex:2;background:var(--accent);color:white;border:none;border-radius:10px;padding:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">📥 전체 등록</button>
-          </div>
+      <!-- 빠른 입력 칩 -->
+      <div>
+        <div style="font-size:0.72rem;color:var(--text3);font-weight:700;margin-bottom:7px;">⚡ 빠른 종류 선택 (클릭하면 커서 위치에 삽입)</div>
+        <div class="bulk-chips" id="bulkChips">
+          <button class="bulk-chip" onclick="insertChip('연차')">🏖️ 연차</button>
+          <button class="bulk-chip" onclick="insertChip('반차')">🌙 반차</button>
+          <button class="bulk-chip" onclick="insertChip('출장')">✈️ 출장</button>
+          <button class="bulk-chip" onclick="insertChip('교육')">📚 교육</button>
+          <button class="bulk-chip" onclick="insertChip('점검')">🔧 점검</button>
+          <button class="bulk-chip" onclick="insertChip('회의')">💬 회의</button>
+          <button class="bulk-chip" onclick="insertChip('작업')">⚙️ 작업</button>
+          <button class="bulk-chip" onclick="insertChip('행사')">🎉 행사</button>
         </div>
       </div>
 
-      <!-- ══ 텍스트 탭 콘텐츠 (API 불필요 규칙 파서) ══ -->
-      <div id="aiTextPanel" style="display:none;padding:16px 20px 20px;">
+      <!-- 입력창 -->
+      <textarea id="bulkInput"
+        placeholder="홍길동 5/12 연차&#10;김철수 5/13~5/15 출장&#10;박영희 5/20 반차&#10;5/22 팀 회의&#10;5/28 전기 점검"></textarea>
 
-        <!-- 입력 형식 안내 -->
-        <div style="background:var(--bg3);border-radius:12px;padding:11px 13px;margin-bottom:12px;font-size:0.76rem;color:var(--text3);line-height:1.8;">
-          <div style="font-weight:800;color:var(--text2);margin-bottom:4px;">✏️ 한 줄에 하나씩 입력하세요</div>
-          <div><span style="color:var(--accent2);">이름</span> <span style="color:var(--blue);">날짜</span> <span style="color:var(--green);">종류</span> &nbsp;|&nbsp; 날짜: <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5/12</code> <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5.12</code> <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5월12일</code></div>
-          <div>범위: <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5/13~5/15</code> &nbsp;종류: 연차·반차·출장·교육·점검·회의·작업·행사</div>
-          <div style="margin-top:4px;color:var(--text2);">예) <em>홍길동 5/12 연차</em> &nbsp; <em>김철수 5/13~5/15 출장</em> &nbsp; <em>5/20 팀 회의</em></div>
+      <!-- 오류 메시지 -->
+      <div id="bulkError"></div>
+
+      <!-- 미리보기 결과 -->
+      <div id="bulkResultWrap">
+        <div class="bulk-result-title">
+          <span>✅ 등록 미리보기</span>
+          <span id="bulkResultCount" style="font-size:0.72rem;color:var(--text3);font-weight:600;"></span>
         </div>
-
-        <textarea id="aiTextInput" placeholder="홍길동 5/12 연차&#10;김철수 5/13~5/15 출장&#10;박영희 5/20 반차&#10;5/22 팀 회의&#10;5/28 전기 점검" rows="7"
-          style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;resize:vertical;line-height:1.8;box-sizing:border-box;"></textarea>
-
-        <!-- 파싱 결과 -->
-        <div id="aiTextResultWrap" style="display:none;margin-top:12px;">
-          <div style="font-size:0.8rem;color:var(--text3);margin-bottom:8px;font-weight:600;">✅ 아래 내용을 확인하고 등록하세요</div>
-          <div id="aiTextResultList" style="display:flex;flex-direction:column;gap:7px;"></div>
-        </div>
-
-        <div id="aiTextError" style="display:none;background:rgba(232,84,58,0.1);border:1px solid rgba(232,84,58,0.3);border-radius:10px;padding:12px;color:#ff8a76;font-size:0.85rem;margin-top:10px;"></div>
-
-        <div style="display:flex;gap:8px;margin-top:12px;">
-          <button onclick="clearAiText()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:12px;font-size:0.88rem;cursor:pointer;font-family:inherit;font-weight:600;">🗑️ 초기화</button>
-          <button id="aiTextAnalyzeBtn" onclick="runAiTextParse()" style="flex:2;background:var(--blue);color:white;border:none;border-radius:10px;padding:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">📋 파싱 &amp; 미리보기</button>
-        </div>
-        <div id="aiTextRegisterWrap" style="display:none;margin-top:8px;">
-          <button id="aiTextRegisterBtn" onclick="registerAiTextResults()" style="width:100%;background:var(--accent);color:white;border:none;border-radius:10px;padding:13px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;">📥 전체 등록</button>
-        </div>
+        <div class="bulk-result-list" id="bulkResultList"></div>
       </div>
 
+    </div><!-- /bulk-body -->
+
+    <!-- 하단 버튼 -->
+    <div class="bulk-actions" style="padding:0 20px 20px;flex-shrink:0;">
+      <button class="bulk-btn-parse" onclick="runBulkParse()">🔍 미리보기</button>
+      <button class="bulk-btn-register" id="bulkRegisterBtn" onclick="registerBulkItems()" disabled>📥 전체 등록</button>
     </div>
   </div>
 </div>
@@ -1143,7 +1192,7 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
   </div>
 </div>
 
-<!-- 게시판 모달 (모바일 + PC 공용) -->
+<!-- 게시판 모달 -->
 <div id="boardModal" onclick="closeBoardIfOutside(event)">
   <div class="board-container">
     <div class="board-header">
@@ -1395,10 +1444,8 @@ let activeDateKey = '';
 const STORAGE_KEY = 'power_system_v5_stable';
 window._attStore = {};
 
-// ─── 사이드바 전용 월 상태 ───
-let sidebarMonth = new Date(); // 현재 달로 초기화
+let sidebarMonth = new Date();
 
-// ── 가로 방향 유도 ──
 let _rotateDismissed = false;
 function checkOrientation() {
   if (!document.body.classList.contains('pc-mode')) return;
@@ -1476,20 +1523,15 @@ window.renderCalendar = function renderCalendar() {
     if (dateObj.getDay() === 0) cell.classList.add('week-sun');
     if (dateObj.getDay() === 6) cell.classList.add('week-sat');
 
-    // 공휴일 체크
     const holidayName = KR_HOLIDAYS[dateKey];
     if (holidayName) cell.classList.add('is-holiday');
 
     if (isAddMode) { cell.classList.add('add-mode'); cell.onclick = () => onCellClick(dateKey); }
-    else {
-      // 모바일: 날짜 클릭 → 상세 팝업
-      cell.onclick = () => openDayDetail(dateKey, dateObj);
-    }
+    else { cell.onclick = () => openDayDetail(dateKey, dateObj); }
 
     const num = document.createElement('span');
     num.className = 'date-number'; num.innerText = d; cell.appendChild(num);
 
-    // 공휴일 이름 표시
     if (holidayName) {
       const hn = document.createElement('div');
       hn.className = 'holiday-name'; hn.textContent = holidayName;
@@ -1511,7 +1553,6 @@ window.renderCalendar = function renderCalendar() {
     listContainer.className = 'item-list';
     if (data[dateKey]) {
       const allItems = data[dateKey];
-      // 일정(schedule) 먼저, 연차(vacation) 나중에
       const schedItems2 = allItems.filter(item => item.name && !VAC_TYPES_SET.has(item.type));
       const vacItems2   = allItems.filter(item => item.name && VAC_TYPES_SET.has(item.type));
       const sortedItems = [...schedItems2, ...vacItems2];
@@ -1520,7 +1561,6 @@ window.renderCalendar = function renderCalendar() {
         if (item.name) {
           const tag = document.createElement('div');
           tag.className = 'vacation-tag';
-          // 일정은 파란 계열, 연차는 빨간 계열
           if (!VAC_TYPES_SET.has(item.type)) {
             tag.style.background = 'rgba(74,158,255,0.18)';
             tag.style.color = 'var(--blue)';
@@ -1541,7 +1581,6 @@ window.renderCalendar = function renderCalendar() {
     }
     cell.appendChild(listContainer);
 
-    // 모바일 이벤트 점 표시
     const dotWrap = document.createElement('div');
     dotWrap.className = 'event-dot-wrap';
     if (holidayName) {
@@ -1564,16 +1603,12 @@ window.renderCalendar = function renderCalendar() {
     grid.appendChild(cell);
   }
 
-  // 사이드바도 같이 업데이트
   if (document.body.classList.contains('pc-mode')) {
     renderSidebarSchedule();
     renderDutyCard();
   }
 };
 
-// ════════════════════════════════
-// 우측 사이드바: 일정+연차 분리 렌더링
-// ════════════════════════════════
 const VAC_TYPES_SET = new Set(['연차','반차','교육','출장','기타']);
 const SCHED_TYPES_SET = new Set(['점검','회의','작업','행사','일정']);
 
@@ -1603,12 +1638,8 @@ function renderSidebarSchedule() {
       (data[key] || []).forEach(item => {
         if (!item.name && !item.type) return;
         const entry = { dateKey: key, day: kd, ...item };
-        // 타입으로 분류: 연차 계열 vs 일정 계열
-        if (VAC_TYPES_SET.has(item.type)) {
-          vacEntries.push(entry);
-        } else {
-          schedEntries.push(entry); // 점검/회의/작업 등
-        }
+        if (VAC_TYPES_SET.has(item.type)) { vacEntries.push(entry); }
+        else { schedEntries.push(entry); }
       });
     }
   });
@@ -1619,7 +1650,6 @@ function renderSidebarSchedule() {
   if (vacCount) vacCount.textContent = vacEntries.length + '건';
   if (schedCount) schedCount.textContent = schedEntries.length + '건';
 
-  // 연차 렌더
   if (vacEntries.length === 0) {
     vacList.innerHTML = '<div class="sidebar-empty">등록된 연차·휴가가 없습니다</div>';
   } else {
@@ -1640,7 +1670,6 @@ function renderSidebarSchedule() {
     });
   }
 
-  // 일정 렌더
   if (schedEntries.length === 0) {
     schedList.innerHTML = '<div class="sidebar-empty">등록된 일정이 없습니다</div>';
   } else {
@@ -1666,9 +1695,6 @@ function renderSidebarSchedule() {
   }
 }
 
-// ════════════════════════════════
-// 대시보드: 오늘의 근무조 카드
-// ════════════════════════════════
 function renderDutyCard() {
   const body = document.getElementById('dutyCardBody');
   const labelEl = document.getElementById('dutyTodayLabel');
@@ -1682,7 +1708,7 @@ function renderDutyCard() {
           '<th style="text-align:center;padding:6px 8px;color:var(--text3);font-size:0.75rem;border-bottom:1px solid var(--border);">근무</th></tr>';
   for (let k = 0; k < 3; k++) {
     const duty = getDutyValue(today, k*2);
-    const type = duty.slice(0,1); // 주/야/비
+    const type = duty.slice(0,1);
     const colorMap = { '주': 'var(--amber)', '야': 'var(--purple)', '비': 'var(--green)' };
     const bgMap = { '주': 'rgba(255,179,64,0.12)', '야': 'rgba(191,90,242,0.12)', '비': 'rgba(52,201,117,0.12)' };
     html += `<tr>
@@ -1696,9 +1722,6 @@ function renderDutyCard() {
   body.innerHTML = html;
 }
 
-// ════════════════════════════════
-// 날씨
-// ════════════════════════════════
 async function fetchWeather() {
   const body = document.getElementById('weatherCardBody');
   if (!body) return;
@@ -1742,17 +1765,12 @@ function renderDashboard() {
   renderDashBoardInline();
 }
 
-// ════════════════════════════════
-// 대시보드: 게시판 인라인 렌더링
-// ════════════════════════════════
 let _dashCatFilter = '전체';
-
 function renderDashBoardInline() {
   const listEl = document.getElementById('dashPostList');
   const filterEl = document.getElementById('dashBoardCatFilters');
   if (!listEl) return;
 
-  // 카테고리 필터 버튼 렌더 (최초 1회)
   if (filterEl && filterEl.children.length === 0) {
     const cats = ['전체', '공지', '업무', '질문', '자유'];
     cats.forEach(cat => {
@@ -1805,14 +1823,6 @@ function renderDashBoardInline() {
     more.style.cssText = 'width:100%;margin-top:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:7px;font-size:0.78rem;cursor:pointer;font-family:inherit;';
     more.onclick = () => openBoard();
     listEl.appendChild(more);
-  }
-
-  // 동기화 뱃지 업데이트
-  const badge = document.getElementById('dashBoardSyncBadge');
-  const boardBadge = document.getElementById('boardSyncBadge');
-  if (badge && boardBadge) {
-    badge.className = boardBadge.className.replace('sync-badge','pc-sync-badge');
-    badge.innerHTML = boardBadge.innerHTML;
   }
 }
 
@@ -2051,7 +2061,7 @@ function moveMonth(n) {
 }
 
 // ════════════════════════════════
-// 게시판 (모바일 모달용)
+// 게시판
 // ════════════════════════════════
 const CATEGORIES = ['전체','공지','업무','질문','자유'];
 const CAT_COLORS = { '공지':'#e74c3c', '업무':'#3498db', '질문':'#e67e22', '자유':'#27ae60' };
@@ -2131,7 +2141,6 @@ window.renderPostList = function renderPostList() {
       list.appendChild(card);
     });
   }
-  // 대시보드 게시판도 함께 갱신
   if (typeof renderDashBoardInline === 'function') renderDashBoardInline();
 };
 
@@ -2255,68 +2264,48 @@ async function submitPost() {
 }
 
 // ════════════════════════════════
-// 대한민국 공휴일 (2024~2026)
+// 공휴일
 // ════════════════════════════════
 const KR_HOLIDAYS = {
-  // ── 2024 ──
   '2024-01-01':'신정',
   '2024-02-09':'설날 연휴','2024-02-10':'설날','2024-02-11':'설날 연휴','2024-02-12':'대체공휴일',
-  '2024-03-01':'삼일절',
-  '2024-04-10':'국회의원선거일',
-  '2024-05-05':'어린이날','2024-05-06':'대체공휴일',
-  '2024-05-15':'부처님오신날',
-  '2024-06-06':'현충일',
-  '2024-08-15':'광복절',
+  '2024-03-01':'삼일절','2024-04-10':'국회의원선거일',
+  '2024-05-05':'어린이날','2024-05-06':'대체공휴일','2024-05-15':'부처님오신날',
+  '2024-06-06':'현충일','2024-08-15':'광복절',
   '2024-09-16':'추석 연휴','2024-09-17':'추석','2024-09-18':'추석 연휴',
-  '2024-10-03':'개천절','2024-10-09':'한글날',
-  '2024-12-25':'크리스마스',
-  // ── 2025 ──
+  '2024-10-03':'개천절','2024-10-09':'한글날','2024-12-25':'크리스마스',
   '2025-01-01':'신정',
   '2025-01-28':'설날 연휴','2025-01-29':'설날','2025-01-30':'설날 연휴',
   '2025-03-01':'삼일절','2025-03-03':'대체공휴일',
-  '2025-05-05':'어린이날','2025-05-06':'대체공휴일',
-  '2025-05-13':'부처님오신날',
-  '2025-06-06':'현충일',
-  '2025-08-15':'광복절',
-  '2025-10-03':'개천절',
+  '2025-05-05':'어린이날','2025-05-06':'대체공휴일','2025-05-13':'부처님오신날',
+  '2025-06-06':'현충일','2025-08-15':'광복절','2025-10-03':'개천절',
   '2025-10-05':'추석 연휴','2025-10-06':'추석','2025-10-07':'추석 연휴','2025-10-08':'대체공휴일',
-  '2025-10-09':'한글날',
-  '2025-12-25':'크리스마스',
-  // ── 2026 ──
+  '2025-10-09':'한글날','2025-12-25':'크리스마스',
   '2026-01-01':'신정',
   '2026-02-16':'설날 연휴','2026-02-17':'설날','2026-02-18':'설날 연휴','2026-02-19':'대체공휴일',
   '2026-03-01':'삼일절','2026-03-02':'대체공휴일',
-  '2026-05-05':'어린이날',
-  '2026-05-24':'부처님오신날','2026-05-25':'대체공휴일',
-  '2026-06-06':'현충일',
-  '2026-08-15':'광복절',
+  '2026-05-05':'어린이날','2026-05-24':'부처님오신날','2026-05-25':'대체공휴일',
+  '2026-06-06':'현충일','2026-08-15':'광복절',
   '2026-09-24':'추석 연휴','2026-09-25':'추석','2026-09-26':'추석 연휴','2026-09-28':'대체공휴일',
-  '2026-10-03':'개천절','2026-10-05':'대체공휴일',
-  '2026-10-09':'한글날',
-  '2026-12-25':'크리스마스',
+  '2026-10-03':'개천절','2026-10-05':'대체공휴일','2026-10-09':'한글날','2026-12-25':'크리스마스',
 };
 
 // ════════════════════════════════
 // 날짜 상세 팝업 (모바일)
 // ════════════════════════════════
 function openDayDetail(dateKey, dateObj) {
-  // PC모드에서는 팝업 비활성화
   if (document.body.classList.contains('pc-mode')) return;
   const overlay = document.getElementById('dayDetailOverlay');
   const titleEl = document.getElementById('ddpTitle');
   const body    = document.getElementById('ddpBody');
-
   const DOW = ['일','월','화','수','목','금','토'];
   const y = dateObj.getFullYear(), mo = dateObj.getMonth()+1, d = dateObj.getDate();
   const dow = DOW[dateObj.getDay()];
   const holidayName = KR_HOLIDAYS[dateKey];
-
-  // 헤더
   titleEl.innerHTML =
     `${y}년 ${mo}월 ${d}일 (${dow})` +
     (holidayName ? ` <span class="ddp-holiday-badge">${escHtml(holidayName)}</span>` : '');
 
-  // 근무조
   let html = `<div class="ddp-section">
     <div class="ddp-section-title title-duty">👷 조별 근무</div>
     <div class="ddp-duty-grid">`;
@@ -2330,7 +2319,6 @@ function openDayDetail(dateKey, dateObj) {
   }
   html += `</div></div>`;
 
-  // 일정 & 연차
   const data = getData();
   const items = data[dateKey] || [];
   const schedItems = items.filter(i => i.name && !VAC_TYPES_SET.has(i.type));
@@ -2389,7 +2377,7 @@ function closeDayDetailDirect() {
 }
 
 // ════════════════════════════════
-// 테마 (라이트/다크) 전환
+// 테마
 // ════════════════════════════════
 function toggleTheme() {
   const isLight = document.body.classList.toggle('light-mode');
@@ -2406,16 +2394,11 @@ window.addEventListener('boardAPIReady', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   sidebarMonth = new Date(current.getFullYear(), current.getMonth(), 1);
-
-  // 테마 복원
   if (localStorage.getItem('workhub_theme') === 'light') {
     document.body.classList.add('light-mode');
     document.getElementById('themeModeBtn').textContent = '🌙 다크';
   }
-
   window.renderCalendar();
-
-  // PC모드: 명시적으로 '1'일 때만 PC모드, 그 외(null 포함)는 모바일 기본
   if (localStorage.getItem('workhub_pcmode') === '1') {
     document.body.classList.add('pc-mode');
     document.getElementById('pcModeBtn').innerHTML = '📱 모바일';
@@ -2448,36 +2431,9 @@ function togglePcMode() {
 }
 
 // ════════════════════════════════
-// 🤖 AI 스케줄 자동 등록
+// 📝 일괄 등록 (텍스트 파서)
 // ════════════════════════════════
-let _aiImageBase64 = '';
-let _aiParsedItems = [];
-
-function switchAiTab(tab) {
-  const isPhoto = tab === 'photo';
-  document.getElementById('aiTabPhoto').style.cssText = isPhoto
-    ? 'flex:1;padding:11px;border:none;background:none;font-size:0.88rem;font-weight:700;cursor:pointer;color:var(--accent2);border-bottom:2px solid var(--accent2);margin-bottom:-1px;transition:0.15s;font-family:inherit;'
-    : 'flex:1;padding:11px;border:none;background:none;font-size:0.88rem;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:0.15s;font-family:inherit;';
-  document.getElementById('aiTabText').style.cssText = isPhoto
-    ? 'flex:1;padding:11px;border:none;background:none;font-size:0.88rem;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:0.15s;font-family:inherit;'
-    : 'flex:1;padding:11px;border:none;background:none;font-size:0.88rem;font-weight:700;cursor:pointer;color:var(--blue);border-bottom:2px solid var(--blue);margin-bottom:-1px;transition:0.15s;font-family:inherit;';
-  document.getElementById('aiPhotoPanel').style.display = isPhoto ? '' : 'none';
-  document.getElementById('aiTextPanel').style.display = isPhoto ? 'none' : '';
-}
-
-function clearAiText() {
-  document.getElementById('aiTextInput').value = '';
-  document.getElementById('aiTextResultWrap').style.display = 'none';
-  document.getElementById('aiTextResultList').innerHTML = '';
-  document.getElementById('aiTextError').style.display = 'none';
-  document.getElementById('aiTextRegisterWrap').style.display = 'none';
-  _aiTextParsedItems = [];
-}
-
-let _aiTextParsedItems = [];
-
-// ── 규칙 기반 텍스트 파서 (API 불필요) ──
-const TYPE_MAP = {
+const TYPE_MAP_BULK = {
   '연차':'연차','연':'연차','휴가':'연차',
   '반차':'반차','반':'반차','오전반차':'반차','오후반차':'반차',
   '교육':'교육','출장':'출장','외근':'출장',
@@ -2485,375 +2441,216 @@ const TYPE_MAP = {
   '작업':'작업','행사':'행사','기타':'기타',
   '워크숍':'행사','세미나':'교육','훈련':'교육'
 };
-const VAC_SET = new Set(['연차','반차','교육','출장','기타']);
+const VAC_SET_BULK = new Set(['연차','반차','교육','출장','기타']);
 
-function parseTextToItems(raw) {
+let _bulkParsedItems = [];
+let _bulkCursorPos = null;
+
+function openBulkModal() {
+  document.getElementById('bulkModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  // 입력창 초기화
+  document.getElementById('bulkInput').value = '';
+  document.getElementById('bulkResultWrap').style.display = 'none';
+  document.getElementById('bulkResultList').innerHTML = '';
+  document.getElementById('bulkError').style.display = 'none';
+  document.getElementById('bulkRegisterBtn').disabled = true;
+  _bulkParsedItems = [];
+  setTimeout(() => document.getElementById('bulkInput').focus(), 200);
+}
+
+function closeBulkModal() {
+  document.getElementById('bulkModal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function closeBulkIfOutside(e) {
+  if (e.target === document.getElementById('bulkModal')) closeBulkModal();
+}
+
+// 칩 클릭 → 커서 위치에 종류 삽입
+function insertChip(text) {
+  const ta = document.getElementById('bulkInput');
+  ta.focus();
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  const val = ta.value;
+  // 커서 앞에 공백 확인 후 삽입
+  const before = val.substring(0, start);
+  const after = val.substring(end);
+  const spaceBefore = before.length > 0 && !before.endsWith(' ') && !before.endsWith('\n') ? ' ' : '';
+  const spaceAfter = after.length > 0 && !after.startsWith(' ') && !after.startsWith('\n') ? ' ' : '';
+  ta.value = before + spaceBefore + text + spaceAfter + after;
+  const newPos = start + spaceBefore.length + text.length + spaceAfter.length;
+  ta.selectionStart = ta.selectionEnd = newPos;
+}
+
+// 텍스트 파서
+function parseBulkText(raw) {
   const today = new Date();
   const year  = today.getFullYear();
   const items = [];
-
   const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+
   for (const line of lines) {
     // 날짜 범위 패턴: 5/13~5/15  5.13~5.15  5월13일~5월15일
     const rangeMatch = line.match(
       /(\d{1,2})[\/\.\-월](\d{1,2})일?\s*[~\-~]\s*(\d{1,2})[\/\.\-월](\d{1,2})일?/
     );
     if (rangeMatch) {
-      const [, m1,d1,m2,d2] = rangeMatch.map(Number);
+      const [, m1, d1, m2, d2] = rangeMatch.map(Number);
       const start = new Date(year, m1-1, d1);
       const end   = new Date(year, m2-1, d2);
       const rest  = line.replace(rangeMatch[0], ' ').trim();
-      const { name, type } = extractNameType(rest);
+      const { name, type } = bulkExtractNameType(rest);
       for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate()+1)) {
-        items.push(makeItem(name, type, new Date(dt)));
+        items.push(bulkMakeItem(name, type, new Date(dt)));
       }
       continue;
     }
 
-    // 단일 날짜 패턴: 5/12  5.12  5월12일  05-12
+    // 단일 날짜 패턴
     const dateMatch = line.match(/(\d{1,2})[\/\.\-월](\d{1,2})일?/);
     if (dateMatch) {
       const [, m, d] = dateMatch.map(Number);
       const dt = new Date(year, m-1, d);
       const rest = line.replace(dateMatch[0], ' ').trim();
-      const { name, type } = extractNameType(rest);
-      items.push(makeItem(name, type, dt));
+      const { name, type } = bulkExtractNameType(rest);
+      items.push(bulkMakeItem(name, type, dt));
       continue;
     }
 
-    // 날짜 없음 → 파싱 실패 항목으로 표시
+    // 날짜 없음
     items.push({ name: line, type:'기타', date: null, category:'schedule', _parseError: true });
   }
   return items;
 }
 
-function extractNameType(text) {
-  // 종류 키워드 먼저 찾기
+function bulkExtractNameType(text) {
   let foundType = null;
   let remaining = text;
-  for (const [kw, mapped] of Object.entries(TYPE_MAP)) {
-    const re = new RegExp('(^|\\s)' + kw + '(\\s|$)', 'i');
+  // 긴 키워드 먼저 매칭
+  const sortedKeys = Object.keys(TYPE_MAP_BULK).sort((a,b) => b.length - a.length);
+  for (const kw of sortedKeys) {
+    const re = new RegExp('(^|[\\s,])' + kw + '([\\s,]|$)', 'i');
     if (re.test(remaining)) {
-      foundType = mapped;
+      foundType = TYPE_MAP_BULK[kw];
       remaining = remaining.replace(re, ' ').trim();
       break;
     }
   }
-  // 남은 텍스트에서 숫자·특수문자 제거 → 이름
+  // 숫자·특수문자 제거 → 이름
   const name = remaining.replace(/[0-9\/\.\-~]/g, '').replace(/\s+/g,' ').trim() || '미정';
   return { name, type: foundType || '기타' };
 }
 
-function makeItem(name, type, dt) {
+function bulkMakeItem(name, type, dt) {
   const dateStr = dt.getFullYear() + '-'
     + String(dt.getMonth()+1).padStart(2,'0') + '-'
     + String(dt.getDate()).padStart(2,'0');
   return {
     name, type, date: dateStr,
-    category: VAC_SET.has(type) ? 'vacation' : 'schedule',
-    memo: ''
+    category: VAC_SET_BULK.has(type) ? 'vacation' : 'schedule'
   };
 }
 
-function runAiTextParse() {
-  const raw = (document.getElementById('aiTextInput').value || '').trim();
-  const errorEl    = document.getElementById('aiTextError');
-  const resultWrap = document.getElementById('aiTextResultWrap');
-  const regWrap    = document.getElementById('aiTextRegisterWrap');
-  errorEl.style.display = 'none';
-  resultWrap.style.display = 'none';
-  regWrap.style.display = 'none';
-
-  if (!raw) { alert('일정 내용을 입력해주세요.'); return; }
-
-  _aiTextParsedItems = parseTextToItems(raw);
-  if (_aiTextParsedItems.length === 0) {
-    errorEl.textContent = '❌ 인식된 일정이 없습니다. 형식을 확인해주세요.';
-    errorEl.style.display = '';
-    return;
-  }
-  showAiTextResults(_aiTextParsedItems);
-}
-
-function showAiTextResults(items) {
-  const resultWrap = document.getElementById('aiTextResultWrap');
-  const list = document.getElementById('aiTextResultList');
-  const regWrap = document.getElementById('aiTextRegisterWrap');
-  const regBtn  = document.getElementById('aiTextRegisterBtn');
-  list.innerHTML = '';
-
-  const valid = items.filter(i => !i._parseError);
-
-  items.forEach((item, idx) => {
-    const color = TYPE_COLORS[item.type] || '#888';
-    const catLabel = item.category === 'vacation' ? '🏖️ 연차/휴가' : '📅 일정';
-    const card = document.createElement('div');
-    const isErr = !!item._parseError;
-    card.style.cssText = `background:var(--bg3);border:1px solid ${isErr ? 'rgba(232,84,58,0.4)' : 'var(--border)'};border-radius:11px;padding:10px 13px;position:relative;`;
-    card.innerHTML = isErr
-      ? `<div style="font-size:0.82rem;color:#ff8a76;">⚠️ 날짜 인식 실패: <em>${escHtml(item.name)}</em></div>
-         <div style="font-size:0.72rem;color:var(--text3);margin-top:2px;">날짜(5/12, 5월12일 등)를 포함해 다시 입력하세요</div>`
-      : `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;">
-           <div style="font-size:0.9rem;font-weight:800;color:var(--text);">${escHtml(item.name)}</div>
-           <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:8px;background:${color}22;color:${color};white-space:nowrap;">${escHtml(item.type)}</span>
-         </div>
-         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-           <span style="font-size:0.78rem;color:var(--text3);">📅 ${escHtml(item.date)}</span>
-           <span style="font-size:0.7rem;color:var(--text3);background:var(--bg4);padding:1px 7px;border-radius:6px;">${catLabel}</span>
-         </div>
-         <button onclick="removeAiTextItem(${idx})" style="position:absolute;top:9px;right:10px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px;" title="제외">✕</button>`;
-    list.appendChild(card);
-  });
-
-  resultWrap.style.display = '';
-  if (valid.length > 0) {
-    regBtn.textContent = `📥 전체 등록 (${valid.length}건)`;
-    regWrap.style.display = '';
-  }
-}
-
-function removeAiTextItem(idx) {
-  _aiTextParsedItems.splice(idx, 1);
-  showAiTextResults(_aiTextParsedItems);
-}
-
-async function registerAiTextResults() {
-  const valid = _aiTextParsedItems.filter(i => i.date && !i._parseError);
-  if (valid.length === 0) return;
-  const btn = document.getElementById('aiTextRegisterBtn');
-  btn.disabled = true; btn.textContent = '등록 중...';
-
-  const apiReady = await waitForVacationAPI(5000);
-  let success = 0, fail = 0;
-  for (const item of valid) {
-    const entry = { name: item.name, type: item.type || '기타', img: '', memo: item.memo || '' };
-    try {
-      if (apiReady && window._vacationAPI) await window._vacationAPI.saveVacation(item.date, entry);
-      else localSaveVacation(item.date, entry);
-      success++;
-    } catch(e) {
-      try { localSaveVacation(item.date, entry); success++; } catch(e2) { fail++; }
-    }
-  }
-  btn.disabled = false;
-  btn.textContent = `📥 전체 등록 (${valid.length}건)`;
-  alert(`✅ ${success}건 등록 완료${fail > 0 ? ` (${fail}건 실패)` : ''}!`);
-  closeAiScan();
-  if (typeof window.renderCalendar === 'function') window.renderCalendar();
-}
-// API 키 공통 getter
-function getAiApiKey() {
-  const inp = document.getElementById('aiApiKeyInput');
-  const key = (inp && inp.value.trim()) || localStorage.getItem('workhub_ai_key') || '';
-  if (!key || !key.startsWith('sk-')) {
-    if (inp) { inp.style.borderColor = 'var(--accent)'; inp.focus(); setTimeout(() => { inp.style.borderColor = 'var(--border)'; }, 2000); }
-    alert('❗ Anthropic API Key를 입력해주세요.\n(sk-ant-... 형태)');
-    return null;
-  }
-  localStorage.setItem('workhub_ai_key', key);
-  return key;
-}
-function toggleApiKeyVisibility() {
-  const inp = document.getElementById('aiApiKeyInput');
-  const btn = document.getElementById('aiApiKeyToggle');
-  if (!inp) return;
-  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
-  else { inp.type = 'password'; btn.textContent = '👁️'; }
-}
-
-function openAiScan() {
-  goAiStep1();
-  // 저장된 API 키 복원
-  const saved = localStorage.getItem('workhub_ai_key');
-  const inp = document.getElementById('aiApiKeyInput');
-  if (saved && inp) inp.value = saved;
-  document.getElementById('aiScanModal').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-function closeAiScan() {
-  document.getElementById('aiScanModal').style.display = 'none';
-  document.body.style.overflow = '';
-}
-function closeAiScanIfOutside(e) {
-  if (e.target === document.getElementById('aiScanModal')) closeAiScan();
-}
-function goAiStep1() {
-  _aiImageBase64 = '';
-  _aiParsedItems = [];
-  document.getElementById('aiStep1').style.display = '';
-  document.getElementById('aiStep2').style.display = 'none';
-  document.getElementById('aiStep3').style.display = 'none';
-  document.getElementById('aiPreviewWrap').style.display = 'none';
-  document.getElementById('aiAnalyzeBtn').style.display = 'none';
-  document.getElementById('aiDropZone').style.display = '';
-  document.getElementById('aiScanInput').value = '';
-}
-
-function handleAiDrop(e) {
-  e.preventDefault();
-  document.getElementById('aiDropZone').style.borderColor = 'var(--border)';
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) loadAiImage(file);
-}
-function handleAiScanFile(input) {
-  if (input.files && input.files[0]) loadAiImage(input.files[0]);
-}
-let _aiMediaType = 'image/jpeg';
-function loadAiImage(file) {
-  // 지원 media_type 결정
-  const mime = file.type || 'image/jpeg';
-  const supported = ['image/jpeg','image/png','image/gif','image/webp'];
-  _aiMediaType = supported.includes(mime) ? mime : 'image/jpeg';
-
-  const reader = new FileReader();
-  reader.onload = e => {
-    _aiImageBase64 = e.target.result.split(',')[1];
-    document.getElementById('aiPreviewImg').src = e.target.result;
-    document.getElementById('aiPreviewWrap').style.display = '';
-    document.getElementById('aiDropZone').style.display = 'none';
-    document.getElementById('aiAnalyzeBtn').style.display = '';
-  };
-  reader.readAsDataURL(file);
-}
-
-async function runAiAnalysis() {
-  if (!_aiImageBase64) return;
-
-  // API 키 확인
-  const apiKey = getAiApiKey();
-  if (!apiKey) {
-    document.getElementById('aiStep1').style.display = '';
-    document.getElementById('aiStep2').style.display = 'none';
-    document.getElementById('aiStep3').style.display = 'none';
-    return;
-  }
-
-  document.getElementById('aiStep1').style.display = 'none';
-  document.getElementById('aiStep2').style.display = '';
-
-  const today = new Date();
-  const todayStr = today.getFullYear() + '년 ' + (today.getMonth()+1) + '월 ' + today.getDate() + '일';
-
-  const prompt = `이 사진은 근무 일정표, 연차/휴가 신청서, 또는 달력 사진입니다.
-오늘 날짜 기준: ${todayStr}
-
-사진에서 일정·연차·휴가 정보를 모두 추출해서 아래 JSON 배열로만 응답하세요.
-다른 말은 절대 쓰지 말고 JSON만 출력하세요.
-
-[
-  {
-    "name": "이름 또는 일정 제목",
-    "type": "연차|반차|교육|출장|점검|회의|작업|행사|기타 중 하나 또는 사진에 맞는 값",
-    "date": "YYYY-MM-DD",
-    "memo": "메모나 비고 (없으면 빈 문자열)",
-    "category": "vacation 또는 schedule"
-  }
-]
-
-- category가 vacation이면 연차/휴가 계열, schedule이면 일정 계열입니다.
-- 날짜가 명확하지 않으면 year/month만 있는 경우 1일로 처리하세요.
-- 연도가 없으면 올해(${today.getFullYear()})로 가정하세요.
-- 여러 건이면 배열에 모두 넣으세요.`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: _aiMediaType, data: _aiImageBase64 } },
-            { type: 'text', text: prompt }
-          ]
-        }]
-      })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error((data.error && data.error.message) || `API 오류 (${res.status})`);
-    const raw = (data.content || []).map(b => b.text || '').join('');
-    const cleaned = raw.replace(/```json|```/g, '').trim();
-    _aiParsedItems = JSON.parse(cleaned);
-    showAiResults(_aiParsedItems);
-  } catch(err) {
-    document.getElementById('aiStep2').style.display = 'none';
-    document.getElementById('aiStep3').style.display = '';
-    document.getElementById('aiResultList').innerHTML = '';
-    const errEl = document.getElementById('aiResultError');
-    errEl.style.display = '';
-    errEl.textContent = '❌ 분석 실패: ' + (err.message || '사진을 읽을 수 없습니다. 더 선명한 사진으로 다시 시도해주세요.');
-  }
-}
-
-const TYPE_COLORS = {
+const TYPE_COLORS_BULK = {
   '연차':'#ff8a76','반차':'var(--blue)','교육':'var(--green)','출장':'var(--amber)',
   '점검':'var(--amber)','회의':'var(--blue)','작업':'var(--green)','행사':'var(--purple)','기타':'#888'
 };
 
-function showAiResults(items) {
-  document.getElementById('aiStep2').style.display = 'none';
-  document.getElementById('aiStep3').style.display = '';
-  document.getElementById('aiResultError').style.display = 'none';
-  const list = document.getElementById('aiResultList');
-  list.innerHTML = '';
+function runBulkParse() {
+  const raw = (document.getElementById('bulkInput').value || '').trim();
+  const errorEl = document.getElementById('bulkError');
+  errorEl.style.display = 'none';
 
-  if (!items || items.length === 0) {
-    list.innerHTML = '<div style="text-align:center;color:var(--text3);padding:24px 0;font-size:0.88rem;">인식된 일정이 없습니다.<br>더 선명한 사진으로 다시 시도해주세요.</div>';
-    document.getElementById('aiRegisterBtn').style.display = 'none';
+  if (!raw) {
+    errorEl.textContent = '⚠️ 입력 내용이 없습니다. 일정을 입력해주세요.';
+    errorEl.style.display = '';
     return;
   }
 
-  document.getElementById('aiRegisterBtn').style.display = '';
-  items.forEach((item, idx) => {
-    const color = TYPE_COLORS[item.type] || '#888';
-    const catLabel = item.category === 'vacation' ? '🏖️ 연차/휴가' : '📅 일정';
-    const card = document.createElement('div');
-    card.style.cssText = 'background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;position:relative;';
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">
-        <div style="font-size:0.92rem;font-weight:800;color:var(--text);">${escHtml(item.name || '—')}</div>
-        <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:8px;background:${color}22;color:${color};white-space:nowrap;">${escHtml(item.type || '기타')}</span>
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:${item.memo?'6px':'0'};">
-        <span style="font-size:0.78rem;color:var(--text3);">📅 ${escHtml(item.date || '날짜 미상')}</span>
-        <span style="font-size:0.72rem;color:var(--text3);background:var(--bg4);padding:1px 7px;border-radius:6px;">${catLabel}</span>
-      </div>
-      ${item.memo ? `<div style="font-size:0.75rem;color:var(--text3);">💬 ${escHtml(item.memo)}</div>` : ''}
-      <button onclick="removeAiItem(${idx})" style="position:absolute;top:10px;right:40px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 6px;" title="이 항목 제외">✕</button>
-    `;
-    list.appendChild(card);
+  _bulkParsedItems = parseBulkText(raw);
+
+  if (_bulkParsedItems.length === 0) {
+    errorEl.textContent = '❌ 인식된 일정이 없습니다. 형식을 확인해주세요.';
+    errorEl.style.display = '';
+    return;
+  }
+
+  renderBulkResults();
+}
+
+function renderBulkResults() {
+  const wrap = document.getElementById('bulkResultWrap');
+  const list = document.getElementById('bulkResultList');
+  const regBtn = document.getElementById('bulkRegisterBtn');
+  const countEl = document.getElementById('bulkResultCount');
+
+  list.innerHTML = '';
+  const valid = _bulkParsedItems.filter(i => !i._parseError && i.date);
+
+  _bulkParsedItems.forEach((item, idx) => {
+    const isErr = !!item._parseError;
+    const color = TYPE_COLORS_BULK[item.type] || '#888';
+    const catLabel = item.category === 'vacation' ? '🏖️ 연차' : '📅 일정';
+
+    const row = document.createElement('div');
+    row.className = 'bulk-result-item' + (isErr ? ' err-item' : '');
+
+    if (isErr) {
+      row.innerHTML = `
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.8rem;color:#ff8a76;font-weight:700;">⚠️ 날짜 인식 실패</div>
+          <div style="font-size:0.74rem;color:var(--text3);margin-top:2px;">${escHtml(item.name)}</div>
+        </div>
+        <button class="bulk-remove-btn" onclick="removeBulkItem(${idx})" title="제외">✕</button>`;
+    } else {
+      row.innerHTML = `
+        <div class="bulk-result-item-date">${escHtml(item.date ? item.date.slice(5) : '—')}</div>
+        <div class="bulk-result-item-name">${escHtml(item.name)}</div>
+        <span class="bulk-result-item-type" style="background:${color}22;color:${color};">${escHtml(item.type)}</span>
+        <span style="font-size:0.65rem;color:var(--text3);flex-shrink:0;">${catLabel}</span>
+        <button class="bulk-remove-btn" onclick="removeBulkItem(${idx})" title="제외">✕</button>`;
+    }
+    list.appendChild(row);
   });
+
+  if (countEl) countEl.textContent = `총 ${_bulkParsedItems.length}줄 · 등록 가능 ${valid.length}건`;
+  wrap.style.display = '';
+
+  if (valid.length > 0) {
+    regBtn.disabled = false;
+    regBtn.textContent = `📥 전체 등록 (${valid.length}건)`;
+  } else {
+    regBtn.disabled = true;
+    regBtn.textContent = '📥 전체 등록';
+  }
 }
 
-function removeAiItem(idx) {
-  _aiParsedItems.splice(idx, 1);
-  showAiResults(_aiParsedItems);
+function removeBulkItem(idx) {
+  _bulkParsedItems.splice(idx, 1);
+  if (_bulkParsedItems.length === 0) {
+    document.getElementById('bulkResultWrap').style.display = 'none';
+    document.getElementById('bulkRegisterBtn').disabled = true;
+    return;
+  }
+  renderBulkResults();
 }
 
-async function registerAiResults() {
-  if (!_aiParsedItems || _aiParsedItems.length === 0) return;
-  const btn = document.getElementById('aiRegisterBtn');
+async function registerBulkItems() {
+  const valid = _bulkParsedItems.filter(i => i.date && !i._parseError);
+  if (valid.length === 0) return;
+
+  const btn = document.getElementById('bulkRegisterBtn');
   btn.disabled = true;
   btn.textContent = '등록 중...';
 
   const apiReady = await waitForVacationAPI(5000);
   let success = 0, fail = 0;
 
-  for (const item of _aiParsedItems) {
-    if (!item.date || !item.name) continue;
-    const entry = {
-      name: item.name,
-      type: item.type || '기타',
-      img: '',
-      memo: item.memo || ''
-    };
+  for (const item of valid) {
+    const entry = { name: item.name, type: item.type || '기타', img: '', memo: '' };
     try {
       if (apiReady && window._vacationAPI) await window._vacationAPI.saveVacation(item.date, entry);
       else localSaveVacation(item.date, entry);
@@ -2865,12 +2662,11 @@ async function registerAiResults() {
   }
 
   btn.disabled = false;
-  btn.textContent = '📥 전체 등록';
-  alert(`✅ ${success}건 등록 완료${fail > 0 ? ` (${fail}건 실패)` : ''}!`);
-  closeAiScan();
+  btn.textContent = `📥 전체 등록 (${valid.length}건)`;
+  alert(`✅ ${success}건 등록 완료!${fail > 0 ? `\n(${fail}건 실패)` : ''}`);
+  closeBulkModal();
   if (typeof window.renderCalendar === 'function') window.renderCalendar();
 }
-
 
 let _clockTimer = null;
 function startFooterClock() {
