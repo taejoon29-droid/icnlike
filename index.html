@@ -1297,6 +1297,7 @@ try {
     });
     window._vacationData = firestoreData;
     if (typeof window.renderCalendar === 'function') window.renderCalendar();
+    if (document.body.classList.contains('pc-mode') && typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
   }, (err) => { console.warn('연차 onSnapshot 오류:', err); });
 
   const postsRef = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
@@ -2036,12 +2037,17 @@ async function submitVacation() {
     vacType = etcVal;
   }
   const entry = { name, type: vacType, img: _regVacImgData };
-  const apiReady = await waitForVacationAPI(5000);
+  closeRegisterModal();
   try {
-    if (apiReady && window._vacationAPI) await window._vacationAPI.saveVacation(dateVal, entry);
-    else localSaveVacation(dateVal, entry);
-    closeRegisterModal();
-  } catch(e) { localSaveVacation(dateVal, entry); closeRegisterModal(); }
+    if (window._vacationAPI) {
+      await window._vacationAPI.saveVacation(dateVal, entry);
+    } else {
+      localSaveVacation(dateVal, entry);
+    }
+  } catch(e) {
+    localSaveVacation(dateVal, entry);
+  }
+  if (document.body.classList.contains('pc-mode')) renderSidebarSchedule();
 }
 
 async function submitSchedule() {
@@ -2051,12 +2057,17 @@ async function submitSchedule() {
   if (!title) { alert('일정 제목을 입력해주세요.'); return; }
   if (!dateVal) { alert('날짜를 선택해주세요.'); return; }
   const entry = { name: title, type: _regSchedType, img: '', memo };
-  const apiReady = await waitForVacationAPI(5000);
+  closeRegisterModal();
   try {
-    if (apiReady && window._vacationAPI) await window._vacationAPI.saveVacation(dateVal, entry);
-    else localSaveVacation(dateVal, entry);
-    closeRegisterModal();
-  } catch(e) { localSaveVacation(dateVal, entry); closeRegisterModal(); }
+    if (window._vacationAPI) {
+      await window._vacationAPI.saveVacation(dateVal, entry);
+    } else {
+      localSaveVacation(dateVal, entry);
+    }
+  } catch(e) {
+    localSaveVacation(dateVal, entry);
+  }
+  if (document.body.classList.contains('pc-mode')) renderSidebarSchedule();
 }
 
 function onCellClick(key) { openRegisterModal(key); }
@@ -2103,6 +2114,7 @@ function localSaveVacation(dateKey, entry) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   window._vacationData = data;
   window.renderCalendar();
+  if (document.body.classList.contains('pc-mode')) renderSidebarSchedule();
 }
 
 async function deleteItem(key, idx) {
