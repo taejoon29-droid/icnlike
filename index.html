@@ -217,11 +217,26 @@ body.pc-mode .add-btn { bottom: 20px; }
 /* PC모드 상단 퀵링크 바 */
 .pc-top-quickbar {
   display: none;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   margin-bottom: 10px;
-  flex-wrap: wrap;
 }
 body.pc-mode .pc-top-quickbar { display: flex; }
+
+/* 첫째 줄: 브랜드 */
+.pc-quickbar-row1 {
+  display: flex;
+  align-items: center;
+}
+
+/* 둘째 줄: 버튼들 전부 */
+.pc-quickbar-row2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .pc-quick-link {
   background: var(--bg3);
   border: 1px solid var(--border);
@@ -235,6 +250,7 @@ body.pc-mode .pc-top-quickbar { display: flex; }
   display: flex;
   align-items: center;
   gap: 5px;
+  white-space: nowrap;
 }
 .pc-quick-link:hover { background: var(--bg4); color: var(--text); }
 
@@ -348,6 +364,8 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 /* 연차 타입 배지 */
 .badge-연차 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
 .badge-반차 { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.25); }
+.badge-전반차 { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.25); }
+.badge-후반차 { background: rgba(191,90,242,0.15); color: var(--purple); border: 1px solid rgba(191,90,242,0.25); }
 .badge-교육 { background: rgba(52,201,117,0.15); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
 .badge-출장 { background: rgba(255,179,64,0.15); color: var(--amber); border: 1px solid rgba(255,179,64,0.25); }
 .badge-기타 { background: rgba(191,90,242,0.15); color: var(--purple); border: 1px solid rgba(191,90,242,0.25); }
@@ -732,19 +750,20 @@ body.pc-mode .vacation-tag {
   position: fixed; bottom: 0; left: 0; right: 0;
   display: flex; flex-direction: row; align-items: center;
   z-index: 100; background: var(--bg2); border-top: 1px solid var(--border);
-  padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  padding: 6px 4px; padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  gap: 2px;
 }
 .quick-wrap a {
-  width: 50px; height: 44px; border-radius: 10px;
+  flex: 1; height: 56px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  color: var(--text2); text-decoration: none; font-size: 20px;
-  background: transparent; transition: 0.15s; margin-right: 6px;
-  flex-direction: column; gap: 2px;
+  color: var(--text2); text-decoration: none; font-size: 22px;
+  background: transparent; transition: 0.15s;
+  flex-direction: column; gap: 3px;
 }
 .quick-wrap a:active { background: var(--bg3); transform: scale(0.92); }
-.quick-wrap a span.ql { font-size: 0.55rem; color: var(--text3); font-weight: 500; }
+.quick-wrap a span.ql { font-size: 0.65rem; color: var(--text2); font-weight: 700; letter-spacing: -0.01em; }
 .add-btn {
-  position: fixed; bottom: 72px; right: 16px;
+  position: fixed; bottom: 80px; right: 16px;
   width: 52px; height: 52px; background: var(--accent);
   color: white; border-radius: 50%; border: none;
   font-size: 26px; cursor: pointer;
@@ -959,12 +978,18 @@ body.pc-mode .vacation-tag {
 
     <!-- PC모드 상단 퀵링크 -->
     <div class="pc-top-quickbar">
-      <span class="workhub-brand"><span class="wh-dot"></span>WORKHUB. <span class="workhub-sub">전원설비 스케줄 & 커뮤니티</span></span>
-      <a class="pc-quick-link" href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️ 지도</a>
-      <a class="pc-quick-link" href="https://weather.naver.com/" target="_blank">🌤️ 날씨</a>
-      <a class="pc-quick-link" href="https://news.naver.com/main/home.naver" target="_blank">📰 뉴스</a>
-      <a class="pc-quick-link" href="https://icn-cafeteria.web.app/" target="_blank">🍴 식당</a>
-      <a class="pc-quick-link" href="#" onclick="openBoard(); return false;" style="background:rgba(232,84,58,0.15);border-color:rgba(232,84,58,0.3);color:var(--accent2);">📋 게시판</a>
+      <div class="pc-quickbar-row1">
+        <span class="workhub-brand"><span class="wh-dot"></span>WORKHUB. <span class="workhub-sub">전원설비 스케줄 &amp; 커뮤니티</span></span>
+      </div>
+      <div class="pc-quickbar-row2">
+        <a class="pc-quick-link" href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️ 지도</a>
+        <a class="pc-quick-link" href="https://weather.naver.com/" target="_blank">🌤️ 날씨</a>
+        <a class="pc-quick-link" href="https://news.naver.com/main/home.naver" target="_blank">📰 뉴스</a>
+        <a class="pc-quick-link" href="https://icn-cafeteria.web.app/" target="_blank">🍴 식당</a>
+        <a class="pc-quick-link" href="#" onclick="openBoard(); return false;" style="background:rgba(232,84,58,0.15);border-color:rgba(232,84,58,0.3);color:var(--accent2);">📋 게시판</a>
+        <a class="pc-quick-link" href="#" onclick="openRegisterModal(); return false;" style="background:rgba(52,201,117,0.12);border-color:rgba(52,201,117,0.3);color:var(--green);">✏️ 일정등록</a>
+        <a class="pc-quick-link" href="#" onclick="openAiScan(); return false;" style="background:rgba(74,158,255,0.12);border-color:rgba(74,158,255,0.3);color:var(--blue);">🤖 AI등록</a>
+      </div>
     </div>
 
     <div class="header">
@@ -1246,6 +1271,20 @@ body.pc-mode .vacation-tag {
               <button onclick="selectVacType(this,'교육')" class="type-sel-btn">교육</button>
               <button onclick="selectVacType(this,'출장')" class="type-sel-btn">출장</button>
               <button onclick="selectVacType(this,'기타')" class="type-sel-btn">기타</button>
+            </div>
+            <!-- 반차 전반/후반 선택 -->
+            <div id="vacHalfWrap" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:0.72rem;color:var(--text3);font-weight:700;margin-bottom:7px;">⏰ 반차 구분</div>
+              <div style="display:flex;gap:6px;">
+                <button id="halfBtnAM" onclick="selectHalfDay('전반')"
+                  style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--blue);background:rgba(74,158,255,0.2);color:var(--blue);font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;">
+                  🌅 전반차 (오전)
+                </button>
+                <button id="halfBtnPM" onclick="selectHalfDay('후반')"
+                  style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg4);color:var(--text2);font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;">
+                  🌆 후반차 (오후)
+                </button>
+              </div>
             </div>
             <div id="vacEtcWrap" style="display:none;margin-top:8px;">
               <input id="vacEtcText" type="text" placeholder="예) 육아휴직, 출산휴가, 병가 등" maxlength="20"
@@ -1807,7 +1846,7 @@ window.renderCalendar = function renderCalendar() {
 // ════════════════════════════════
 // 우측 사이드바: 일정+연차 분리 렌더링
 // ════════════════════════════════
-const VAC_TYPES_SET = new Set(['연차','반차','교육','출장','기타']);
+const VAC_TYPES_SET = new Set(['연차','반차','전반차','후반차','교육','출장','기타']);
 const SCHED_TYPES_SET = new Set(['점검','회의','작업','행사','일정']);
 
 // 사이드바 날짜 오프셋 (0 = 오늘, ±N = N일 이동)
@@ -2220,6 +2259,9 @@ function openRegisterModal(prefillDateKey) {
     if (vacEtcWrap) vacEtcWrap.style.display = 'none';
     const vacEtcText = document.getElementById('vacEtcText');
     if (vacEtcText) vacEtcText.value = '';
+    const vacHalfWrap = document.getElementById('vacHalfWrap');
+    if (vacHalfWrap) vacHalfWrap.style.display = 'none';
+    _regHalfDay = '전반';
 
     const firstSchedBtn = document.querySelector('#schedTypeButtons .type-sel-btn');
     if (firstSchedBtn) selectSchedType(firstSchedBtn, '점검');
@@ -2252,18 +2294,44 @@ function switchRegTab(tab) {
   }
 }
 
+let _regHalfDay = '전반'; // 반차 기본값
+
 function selectVacType(btn, type) {
   _regVacType = type;
   document.querySelectorAll('#vacTypeButtons .type-sel-btn').forEach(b => b.classList.remove('active-type'));
   btn.classList.add('active-type');
+
   const etcWrap = document.getElementById('vacEtcWrap');
   const etcInput = document.getElementById('vacEtcText');
+  const halfWrap = document.getElementById('vacHalfWrap');
+
   if (type === '기타') {
     etcWrap.style.display = 'block';
+    halfWrap.style.display = 'none';
     setTimeout(() => etcInput && etcInput.focus(), 50);
-  } else {
+  } else if (type === '반차') {
     etcWrap.style.display = 'none';
     if (etcInput) etcInput.value = '';
+    halfWrap.style.display = 'block';
+    selectHalfDay(_regHalfDay); // 현재 선택 상태 유지
+  } else {
+    etcWrap.style.display = 'none';
+    halfWrap.style.display = 'none';
+    if (etcInput) etcInput.value = '';
+  }
+}
+
+function selectHalfDay(half) {
+  _regHalfDay = half;
+  const amBtn = document.getElementById('halfBtnAM');
+  const pmBtn = document.getElementById('halfBtnPM');
+  if (!amBtn || !pmBtn) return;
+  if (half === '전반') {
+    amBtn.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1px solid var(--blue);background:rgba(74,158,255,0.25);color:var(--blue);font-size:0.85rem;font-weight:800;cursor:pointer;font-family:inherit;transition:0.15s;';
+    pmBtn.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg4);color:var(--text2);font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;';
+  } else {
+    pmBtn.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1px solid var(--purple);background:rgba(191,90,242,0.25);color:var(--purple);font-size:0.85rem;font-weight:800;cursor:pointer;font-family:inherit;transition:0.15s;';
+    amBtn.style.cssText = 'flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg4);color:var(--text2);font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;';
   }
 }
 function selectSchedType(btn, type) {
@@ -2302,6 +2370,9 @@ async function submitVacation() {
     const etcVal = (document.getElementById('vacEtcText').value || '').trim();
     if (!etcVal) { alert('기타 종류를 직접 입력해주세요.\n예) 육아휴직, 출산휴가, 병가 등'); document.getElementById('vacEtcText').focus(); return; }
     vacType = etcVal;
+  } else if (vacType === '반차') {
+    // 전반차 / 후반차 구분 저장
+    vacType = _regHalfDay === '전반' ? '전반차' : '후반차';
   }
   const entry = { name, type: vacType, img: _regVacImgData };
   closeRegisterModal();
