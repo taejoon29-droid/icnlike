@@ -72,7 +72,7 @@ body.pc-mode {
 /* PC모드: 캘린더 + 일정 사이드바 2컬럼 */
 body.pc-mode .pc-layout-wrap {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: 1fr 220px;
   gap: 16px;
   align-items: start;
 }
@@ -128,6 +128,49 @@ body.pc-mode .day-cell {
 body.pc-mode .item-list {
   overflow: hidden;    /* 태그가 넘쳐도 셀 크기 유지 */
 }
+
+/* ── PC 세로모드 인라인 일정 패널 ── */
+#pcPortraitPanel {
+  display: none;
+  background: var(--bg2);
+  border: 1px solid var(--accent);
+  border-radius: 14px;
+  margin: 8px 0 4px;
+  overflow: hidden;
+  animation: fadeInDown 0.2s ease;
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#pcPortraitPanel.visible { display: block; }
+.ppp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg3); padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.ppp-title { font-size: 0.88rem; font-weight: 800; color: var(--text); }
+.ppp-close {
+  background: var(--bg4); border: none; color: var(--text2);
+  width: 24px; height: 24px; border-radius: 50%; font-size: 13px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.ppp-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.ppp-empty { color: var(--text3); font-size: 0.8rem; text-align: center; padding: 8px 0; font-style: italic; }
+.ppp-item {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg3); border-radius: 9px; padding: 8px 10px;
+  border: 1px solid transparent;
+}
+.ppp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.ppp-name { font-size: 0.82rem; font-weight: 700; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ppp-type { font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 8px; white-space: nowrap; }
+.ppp-add-btn {
+  width: 100%; background: rgba(232,84,58,0.12); border: 1px solid rgba(232,84,58,0.3);
+  color: var(--accent2); border-radius: 9px; padding: 8px; font-size: 0.82rem;
+  font-weight: 700; cursor: pointer; font-family: inherit; transition: 0.15s; margin-top: 2px;
+}
+.ppp-add-btn:hover { background: rgba(232,84,58,0.22); }
 
 /* PC모드 날짜 클릭 선택 하이라이트 */
 body.pc-mode .day-cell.pc-selected {
@@ -928,6 +971,15 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
     </div>
 
     <div class="calendar-grid" id="calendarGrid"></div>
+
+    <!-- PC 세로모드: 날짜 클릭 시 인라인 일정 패널 -->
+    <div id="pcPortraitPanel">
+      <div class="ppp-header">
+        <div class="ppp-title" id="pppTitle">📅 일정</div>
+        <button class="ppp-close" onclick="closePcPortraitPanel()">✕</button>
+      </div>
+      <div class="ppp-body" id="pppBody"></div>
+    </div>
   </div>
 
   <!-- ══ 오른쪽: 일정 요약 사이드바 (PC모드) ══ -->
@@ -1520,6 +1572,7 @@ function dismissRotateOverlay() {
 }
 window.addEventListener('resize', checkOrientation);
 window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 300));
+window.addEventListener('resize', () => { if (!isPcPortrait()) closePcPortraitPanel(); });
 async function tryLockLandscape() {
   try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); }
   catch(e) { checkOrientation(); }
@@ -1592,7 +1645,15 @@ window.renderCalendar = function renderCalendar() {
     else {
       cell.onclick = () => {
         if (document.body.classList.contains('pc-mode')) {
-          // PC모드: 클릭한 날짜를 사이드바에 반영
+          // PC모드 세로: 인라인 패널 표시
+          if (isPcPortrait()) {
+            // 선택 하이라이트
+            document.querySelectorAll('.day-cell.pc-selected').forEach(el => el.classList.remove('pc-selected'));
+            cell.classList.add('pc-selected');
+            openPcPortraitPanel(dateKey, dateObj);
+            return;
+          }
+          // PC모드 가로: 사이드바에 반영
           const todayBase = new Date();
           todayBase.setHours(0,0,0,0);
           const clicked = new Date(y, m, d);
@@ -1657,11 +1718,11 @@ window.renderCalendar = function renderCalendar() {
       const showSummary = vacCount2 > MAX_SHOW || schedCount2 > MAX_SHOW;
 
       if (showSummary) {
-        // 요약 태그: 연차 N명, 일정 N개
+        // 요약 태그: 연차 N명, 일정 N건
         if (vacCount2 > 0) {
           const tag = document.createElement('div');
           tag.className = 'vacation-tag';
-          tag.innerText = '🏖️ 연차 ' + vacCount2 + '명';
+          tag.innerText = '연차 ' + vacCount2 + '명';
           tag.title = vacItems2.filter(i=>i.name).map(i=>i.name+'('+(i.type||'')+')').join(', ');
           tag.onclick = e => { e.stopPropagation(); openDayDetail(dateKey, dateObj); };
           listContainer.appendChild(tag);
@@ -1672,7 +1733,7 @@ window.renderCalendar = function renderCalendar() {
           tag.style.background = 'rgba(74,158,255,0.18)';
           tag.style.color = 'var(--blue)';
           tag.style.borderColor = 'rgba(74,158,255,0.3)';
-          tag.innerText = '📅 일정 ' + schedCount2 + '개';
+          tag.innerText = '일정 ' + schedCount2 + '건';
           tag.title = schedItems2.filter(i=>i.name).map(i=>i.name+'('+(i.type||'')+')').join(', ');
           tag.onclick = e => { e.stopPropagation(); openDayDetail(dateKey, dateObj); };
           listContainer.appendChild(tag);
@@ -1689,8 +1750,11 @@ window.renderCalendar = function renderCalendar() {
               tag.style.color = 'var(--blue)';
               tag.style.borderColor = 'rgba(74,158,255,0.3)';
             }
+            // 이름 3글자 + 타입 표시
+            const shortName = item.name.slice(0, 3);
             const label = item.name + (item.type ? '(' + item.type + ')' : '');
-            tag.innerText = label;
+            const displayLabel = shortName + (item.type ? '(' + item.type + ')' : '');
+            tag.innerText = displayLabel;
             tag.title = label;
             tag.onclick = e => { e.stopPropagation(); deleteItem(dateKey, origIndex); };
             listContainer.appendChild(tag);
@@ -3292,6 +3356,69 @@ async function _checkPassword() {
 }
 
 
+
+// ════════════════════════════════
+// PC 세로모드 인라인 일정 패널
+// ════════════════════════════════
+function isPcPortrait() {
+  return document.body.classList.contains('pc-mode') && window.innerHeight > window.innerWidth;
+}
+
+function openPcPortraitPanel(dateKey, dateObj) {
+  const panel = document.getElementById('pcPortraitPanel');
+  const title = document.getElementById('pppTitle');
+  const body  = document.getElementById('pppBody');
+  if (!panel) return;
+
+  const m = dateObj.getMonth() + 1;
+  const d = dateObj.getDate();
+  const weekNames = ['일','월','화','수','목','금','토'];
+  const w = weekNames[dateObj.getDay()];
+  title.textContent = m + '월 ' + d + '일 (' + w + ') 일정';
+
+  const data = window._vacationData || {};
+  const items = data[dateKey] || [];
+  const vacItems  = items.filter(i => i.name && VAC_TYPES_SET.has(i.type));
+  const schedItems = items.filter(i => i.name && !VAC_TYPES_SET.has(i.type));
+  const allItems2 = [...schedItems, ...vacItems];
+
+  body.innerHTML = '';
+
+  if (allItems2.length === 0) {
+    body.innerHTML = '<div class="ppp-empty">등록된 일정이 없습니다</div>';
+  } else {
+    allItems2.forEach(item => {
+      const isVac = VAC_TYPES_SET.has(item.type);
+      const dotColor = isVac ? '#ff8a76' : 'var(--blue)';
+      const typeBg   = isVac ? 'rgba(232,84,58,0.15)' : 'rgba(74,158,255,0.15)';
+      const typeColor= isVac ? '#ff8a76' : 'var(--blue)';
+      const typeBorder= isVac ? 'rgba(232,84,58,0.3)' : 'rgba(74,158,255,0.3)';
+      const el = document.createElement('div');
+      el.className = 'ppp-item';
+      el.innerHTML = `
+        <span class="ppp-dot" style="background:${dotColor};"></span>
+        <span class="ppp-name">${escHtml(item.name)}</span>
+        ${item.type ? `<span class="ppp-type" style="background:${typeBg};color:${typeColor};border:1px solid ${typeBorder};">${escHtml(item.type)}</span>` : ''}
+      `;
+      body.appendChild(el);
+    });
+  }
+
+  // 등록 버튼
+  const addBtn = document.createElement('button');
+  addBtn.className = 'ppp-add-btn';
+  addBtn.textContent = '+ 일정 · 연차 등록';
+  addBtn.onclick = () => openRegisterModal(dateKey);
+  body.appendChild(addBtn);
+
+  panel.classList.add('visible');
+  setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+}
+
+function closePcPortraitPanel() {
+  const panel = document.getElementById('pcPortraitPanel');
+  if (panel) panel.classList.remove('visible');
+}
 
 // ════════════════════════════════
 // 사이드바 숨기기/표시하기 토글
