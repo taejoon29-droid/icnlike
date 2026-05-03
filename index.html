@@ -72,7 +72,7 @@ body.pc-mode {
 /* PC모드: 캘린더 + 일정 사이드바 2컬럼 */
 body.pc-mode .pc-layout-wrap {
   display: grid;
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: 1fr 300px;
   gap: 16px;
   align-items: start;
 }
@@ -128,6 +128,15 @@ body.pc-mode .day-cell {
 body.pc-mode .item-list {
   overflow: hidden;    /* 태그가 넘쳐도 셀 크기 유지 */
 }
+
+/* PC모드 날짜 클릭 선택 하이라이트 */
+body.pc-mode .day-cell.pc-selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 10px;
+  background: rgba(232,84,58,0.07);
+}
+body.pc-mode .day-cell { cursor: pointer; }
 
 /* ── 우측 사이드바: 일정 요약 헤더 ── */
 .pc-board-sidebar-header {
@@ -1465,8 +1474,33 @@ window.renderCalendar = function renderCalendar() {
 
     if (isAddMode) { cell.classList.add('add-mode'); cell.onclick = () => onCellClick(dateKey); }
     else {
-      // 모바일: 날짜 클릭 → 상세 팝업
-      cell.onclick = () => openDayDetail(dateKey, dateObj);
+      cell.onclick = () => {
+        if (document.body.classList.contains('pc-mode')) {
+          // PC모드: 클릭한 날짜를 사이드바에 반영
+          const todayBase = new Date();
+          todayBase.setHours(0,0,0,0);
+          const clicked = new Date(y, m, d);
+          clicked.setHours(0,0,0,0);
+          _sidebarDayOffset = Math.round((clicked - todayBase) / (1000*60*60*24));
+          renderSidebarSchedule();
+          // 선택된 셀 하이라이트
+          document.querySelectorAll('.day-cell.pc-selected').forEach(el => el.classList.remove('pc-selected'));
+          cell.classList.add('pc-selected');
+          // 사이드바가 접혀있으면 펼치기
+          const col = document.getElementById('pcBoardCol');
+          const content = document.getElementById('sidebarContent');
+          const btn = document.getElementById('sidebarToggleBtn');
+          if (col && col.classList.contains('sidebar-collapsed')) {
+            col.classList.remove('sidebar-collapsed');
+            _sidebarVisible = true;
+            if (content) content.style.display = '';
+            if (btn) btn.textContent = '숨기기 ▲';
+          }
+        } else {
+          // 모바일: 날짜 클릭 → 상세 팝업
+          openDayDetail(dateKey, dateObj);
+        }
+      };
     }
 
     const num = document.createElement('span');
@@ -1544,6 +1578,13 @@ window.renderCalendar = function renderCalendar() {
   if (document.body.classList.contains('pc-mode')) {
     renderSidebarSchedule();
     renderDutyCard();
+    // 오늘 셀 초기 선택 표시
+    const cells = document.querySelectorAll('.day-cell');
+    cells.forEach(cell => {
+      if (cell.classList.contains('is-today') && _sidebarDayOffset === 0) {
+        cell.classList.add('pc-selected');
+      }
+    });
   }
 };
 
