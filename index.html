@@ -2579,6 +2579,7 @@ async function registerAiResults() {
 }
 
 
+let _clockTimer = null;
 function startFooterClock() {
   if (_clockTimer) return;
   function tick() {
