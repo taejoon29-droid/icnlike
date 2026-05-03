@@ -1331,55 +1331,80 @@ body.pc-mode .vacation-tag {
     <!-- 헤더 -->
     <div style="background:var(--bg3);padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
       <div style="font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;">
-        🤖 AI 일정 자동 등록
+        🤖 AI 일괄 등록
       </div>
       <button onclick="closeAiScan()" style="background:var(--bg4);border:none;color:var(--text2);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
 
+    <!-- ══ 탭 선택 ══ -->
+    <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <button id="aiTabSched" onclick="switchAiTab('schedule')"
+        style="flex:1;padding:11px 6px;border:none;background:none;font-size:0.88rem;font-weight:700;color:var(--blue);border-bottom:2px solid var(--blue);cursor:pointer;transition:0.15s;font-family:inherit;">📅 일정 일괄등록</button>
+      <button id="aiTabVac" onclick="switchAiTab('vacation')"
+        style="flex:1;padding:11px 6px;border:none;background:none;font-size:0.88rem;font-weight:600;color:var(--text3);border-bottom:2px solid transparent;cursor:pointer;transition:0.15s;font-family:inherit;">🏖️ 연차 일괄등록</button>
+    </div>
+
     <div style="overflow-y:auto;flex:1;">
 
-      <!-- ══ API 키 (공통) ══ -->
-      <div style="padding:14px 20px 0;">
-        <div style="display:flex;gap:6px;align-items:center;">
-          <span style="font-size:0.72rem;color:var(--text3);font-weight:700;white-space:nowrap;">🔑 API Key</span>
-          <input id="aiApiKeyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false"
-            style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:0.78rem;color:var(--text);outline:none;font-family:monospace;min-width:0;">
-          <button onclick="toggleApiKeyVisibility()" id="aiApiKeyToggle"
-            style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 9px;cursor:pointer;color:var(--text2);font-size:0.8rem;font-family:inherit;flex-shrink:0;">👁️</button>
-        </div>
-        <div style="font-size:0.68rem;color:var(--text3);margin-top:4px;">
-          <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--blue);text-decoration:none;">console.anthropic.com</a>에서 발급 · 이 기기에만 저장
-        </div>
-      </div>
-
-      <!-- ══ 텍스트 입력 콘텐츠 ══ -->
-      <div id="aiTextPanel" style="padding:16px 20px 20px;">
+      <!-- ══ 일정 일괄등록 패널 ══ -->
+      <div id="aiSchedPanel" style="padding:16px 20px 20px;">
 
         <!-- 입력 형식 안내 -->
         <div style="background:var(--bg3);border-radius:12px;padding:11px 13px;margin-bottom:12px;font-size:0.76rem;color:var(--text3);line-height:1.8;">
-          <div style="font-weight:800;color:var(--text2);margin-bottom:4px;">✏️ 한 줄에 하나씩 입력하세요</div>
-          <div><span style="color:var(--accent2);">이름</span> <span style="color:var(--blue);">날짜</span> <span style="color:var(--green);">종류</span> &nbsp;|&nbsp; 날짜: <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5/12</code> <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5.12</code> <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5월12일</code></div>
-          <div>범위: <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5/13~5/15</code> &nbsp;종류: 연차·반차·출장·교육·점검·회의·작업·행사</div>
-          <div style="margin-top:4px;color:var(--text2);">예) <em>홍길동 5/12 연차</em> &nbsp; <em>김철수 5/13~5/15 출장</em> &nbsp; <em>5/20 팀 회의</em></div>
+          <div style="font-weight:800;color:var(--text2);margin-bottom:4px;">📅 일정 일괄등록 — 한 줄에 하나씩</div>
+          <div>날짜: <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5/12</code> <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5.12</code> <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5월12일</code> &nbsp; 범위: <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5/13~5/15</code></div>
+          <div>종류: 점검·회의·작업·행사·교육·출장</div>
+          <div style="margin-top:4px;color:var(--text2);">예) <em>5/20 팀 회의</em> &nbsp; <em>5/22 전기 점검</em> &nbsp; <em>5/28~5/30 워크숍</em></div>
         </div>
 
-        <textarea id="aiTextInput" placeholder="홍길동 5/12 연차&#10;김철수 5/13~5/15 출장&#10;박영희 5/20 반차&#10;5/22 팀 회의&#10;5/28 전기 점검" rows="7"
+        <textarea id="aiSchedInput" placeholder="5/20 팀 회의&#10;5/22 전기 점검&#10;5/28~5/30 워크숍&#10;6/3 소방 훈련" rows="7"
           style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;resize:vertical;line-height:1.8;box-sizing:border-box;"></textarea>
 
         <!-- 파싱 결과 -->
-        <div id="aiTextResultWrap" style="display:none;margin-top:12px;">
+        <div id="aiSchedResultWrap" style="display:none;margin-top:12px;">
           <div style="font-size:0.8rem;color:var(--text3);margin-bottom:8px;font-weight:600;">✅ 아래 내용을 확인하고 등록하세요</div>
-          <div id="aiTextResultList" style="display:flex;flex-direction:column;gap:7px;"></div>
+          <div id="aiSchedResultList" style="display:flex;flex-direction:column;gap:7px;"></div>
         </div>
 
-        <div id="aiTextError" style="display:none;background:rgba(232,84,58,0.1);border:1px solid rgba(232,84,58,0.3);border-radius:10px;padding:12px;color:#ff8a76;font-size:0.85rem;margin-top:10px;"></div>
+        <div id="aiSchedError" style="display:none;background:rgba(232,84,58,0.1);border:1px solid rgba(232,84,58,0.3);border-radius:10px;padding:12px;color:#ff8a76;font-size:0.85rem;margin-top:10px;"></div>
 
         <div style="display:flex;gap:8px;margin-top:12px;">
-          <button onclick="clearAiText()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:12px;font-size:0.88rem;cursor:pointer;font-family:inherit;font-weight:600;">🗑️ 초기화</button>
-          <button id="aiTextAnalyzeBtn" onclick="runAiTextParse()" style="flex:2;background:var(--blue);color:white;border:none;border-radius:10px;padding:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">📋 파싱 &amp; 미리보기</button>
+          <button onclick="clearAiSched()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:12px;font-size:0.88rem;cursor:pointer;font-family:inherit;font-weight:600;">🗑️ 초기화</button>
+          <button id="aiSchedAnalyzeBtn" onclick="runAiSchedParse()" style="flex:2;background:var(--blue);color:white;border:none;border-radius:10px;padding:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">📋 파싱 &amp; 미리보기</button>
         </div>
-        <div id="aiTextRegisterWrap" style="display:none;margin-top:8px;">
-          <button id="aiTextRegisterBtn" onclick="registerAiTextResults()" style="width:100%;background:var(--accent);color:white;border:none;border-radius:10px;padding:13px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;">📥 전체 등록</button>
+        <div id="aiSchedRegisterWrap" style="display:none;margin-top:8px;">
+          <button id="aiSchedRegisterBtn" onclick="registerAiSchedResults()" style="width:100%;background:var(--blue);color:white;border:none;border-radius:10px;padding:13px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;">📥 일정 전체 등록</button>
+        </div>
+      </div>
+
+      <!-- ══ 연차 일괄등록 패널 ══ -->
+      <div id="aiVacPanel" style="display:none;padding:16px 20px 20px;">
+
+        <!-- 입력 형식 안내 -->
+        <div style="background:var(--bg3);border-radius:12px;padding:11px 13px;margin-bottom:12px;font-size:0.76rem;color:var(--text3);line-height:1.8;">
+          <div style="font-weight:800;color:var(--text2);margin-bottom:4px;">🏖️ 연차 일괄등록 — 한 줄에 하나씩</div>
+          <div><span style="color:var(--accent2);">이름</span> <span style="color:var(--blue);">날짜</span> <span style="color:var(--green);">종류</span> &nbsp;|&nbsp; 날짜: <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5/12</code> <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5월12일</code> &nbsp; 범위: <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;">5/13~5/15</code></div>
+          <div>종류: 연차·반차·출장·교육 (생략 시 연차로 처리)</div>
+          <div style="margin-top:4px;color:var(--text2);">예) <em>홍길동 5/12 연차</em> &nbsp; <em>김철수 5/13~5/15 출장</em> &nbsp; <em>박영희 5/20 반차</em></div>
+        </div>
+
+        <textarea id="aiVacInput" placeholder="홍길동 5/12 연차&#10;김철수 5/13~5/15 출장&#10;박영희 5/20 반차&#10;이민준 5/28 교육" rows="7"
+          style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;resize:vertical;line-height:1.8;box-sizing:border-box;"></textarea>
+
+        <!-- 파싱 결과 -->
+        <div id="aiVacResultWrap" style="display:none;margin-top:12px;">
+          <div style="font-size:0.8rem;color:var(--text3);margin-bottom:8px;font-weight:600;">✅ 아래 내용을 확인하고 등록하세요</div>
+          <div id="aiVacResultList" style="display:flex;flex-direction:column;gap:7px;"></div>
+        </div>
+
+        <div id="aiVacError" style="display:none;background:rgba(232,84,58,0.1);border:1px solid rgba(232,84,58,0.3);border-radius:10px;padding:12px;color:#ff8a76;font-size:0.85rem;margin-top:10px;"></div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button onclick="clearAiVac()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:12px;font-size:0.88rem;cursor:pointer;font-family:inherit;font-weight:600;">🗑️ 초기화</button>
+          <button id="aiVacAnalyzeBtn" onclick="runAiVacParse()" style="flex:2;background:var(--green);color:white;border:none;border-radius:10px;padding:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">📋 파싱 &amp; 미리보기</button>
+        </div>
+        <div id="aiVacRegisterWrap" style="display:none;margin-top:8px;">
+          <button id="aiVacRegisterBtn" onclick="registerAiVacResults()" style="width:100%;background:var(--accent);color:white;border:none;border-radius:10px;padding:13px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:inherit;">📥 연차 전체 등록</button>
         </div>
       </div>
 
@@ -3273,21 +3298,194 @@ function togglePcMode() {
 let _aiImageBase64 = '';
 let _aiParsedItems = [];
 
+
+let _aiTextParsedItems = [];   // 하위 호환용 (미사용)
+let _aiSchedParsedItems = [];
+let _aiVacParsedItems = [];
+
+// ══ AI등록 탭 전환 ══
 function switchAiTab(tab) {
-  // 사진 탭 제거됨 - 텍스트만 사용
+  const schedPanel = document.getElementById('aiSchedPanel');
+  const vacPanel   = document.getElementById('aiVacPanel');
+  const tabSched   = document.getElementById('aiTabSched');
+  const tabVac     = document.getElementById('aiTabVac');
+  if (tab === 'schedule') {
+    schedPanel.style.display = '';
+    vacPanel.style.display   = 'none';
+    tabSched.style.color = 'var(--blue)';
+    tabSched.style.borderBottomColor = 'var(--blue)';
+    tabSched.style.fontWeight = '700';
+    tabVac.style.color = 'var(--text3)';
+    tabVac.style.borderBottomColor = 'transparent';
+    tabVac.style.fontWeight = '600';
+  } else {
+    schedPanel.style.display = 'none';
+    vacPanel.style.display   = '';
+    tabVac.style.color = 'var(--accent2)';
+    tabVac.style.borderBottomColor = 'var(--accent2)';
+    tabVac.style.fontWeight = '700';
+    tabSched.style.color = 'var(--text3)';
+    tabSched.style.borderBottomColor = 'transparent';
+    tabSched.style.fontWeight = '600';
+  }
 }
 
-
-function clearAiText() {
-  document.getElementById('aiTextInput').value = '';
-  document.getElementById('aiTextResultWrap').style.display = 'none';
-  document.getElementById('aiTextResultList').innerHTML = '';
-  document.getElementById('aiTextError').style.display = 'none';
-  document.getElementById('aiTextRegisterWrap').style.display = 'none';
-  _aiTextParsedItems = [];
+// ── 일정 일괄등록 ──
+function clearAiSched() {
+  document.getElementById('aiSchedInput').value = '';
+  document.getElementById('aiSchedResultWrap').style.display = 'none';
+  document.getElementById('aiSchedResultList').innerHTML = '';
+  document.getElementById('aiSchedRegisterWrap').style.display = 'none';
+  document.getElementById('aiSchedError').style.display = 'none';
+  _aiSchedParsedItems = [];
 }
 
-let _aiTextParsedItems = [];
+function runAiSchedParse() {
+  const raw = (document.getElementById('aiSchedInput').value || '').trim();
+  const errorEl    = document.getElementById('aiSchedError');
+  const resultWrap = document.getElementById('aiSchedResultWrap');
+  const regWrap    = document.getElementById('aiSchedRegisterWrap');
+  errorEl.style.display = 'none';
+  resultWrap.style.display = 'none';
+  regWrap.style.display = 'none';
+  if (!raw) { alert('일정 내용을 입력해주세요.'); return; }
+  // 일정 전용 파싱: category를 강제로 schedule로
+  _aiSchedParsedItems = parseTextToItems(raw).map(i => ({ ...i, category: 'schedule',
+    type: (i.type === '연차' || i.type === '반차' || i.type === '전반' || i.type === '후반') ? '일정' : i.type
+  }));
+  if (_aiSchedParsedItems.length === 0) {
+    errorEl.textContent = '❌ 인식된 일정이 없습니다. 형식을 확인해주세요.';
+    errorEl.style.display = '';
+    return;
+  }
+  showAiBulkResults(_aiSchedParsedItems, 'aiSchedResultList', 'aiSchedRegisterWrap', 'aiSchedRegisterBtn', 'removeAiSchedItem', '📥 일정 전체 등록');
+  resultWrap.style.display = '';
+}
+
+function removeAiSchedItem(idx) {
+  _aiSchedParsedItems.splice(idx, 1);
+  showAiBulkResults(_aiSchedParsedItems, 'aiSchedResultList', 'aiSchedRegisterWrap', 'aiSchedRegisterBtn', 'removeAiSchedItem', '📥 일정 전체 등록');
+  document.getElementById('aiSchedResultWrap').style.display = '';
+}
+
+async function registerAiSchedResults() {
+  const valid = _aiSchedParsedItems.filter(i => i.date && !i._parseError);
+  if (valid.length === 0) return;
+  const btn = document.getElementById('aiSchedRegisterBtn');
+  btn.disabled = true; btn.textContent = '등록 중...';
+  const apiReady = await waitForVacationAPI(5000);
+  let success = 0, fail = 0;
+  for (const item of valid) {
+    const entry = { name: item.name, type: item.type || '일정', img: '', memo: item.memo || '' };
+    try {
+      if (apiReady && window._vacationAPI) await window._vacationAPI.saveVacation(item.date, entry);
+      else localSaveVacation(item.date, entry);
+      success++;
+    } catch(e) {
+      try { localSaveVacation(item.date, entry); success++; } catch(e2) { fail++; }
+    }
+  }
+  btn.disabled = false;
+  btn.textContent = `📥 일정 전체 등록 (${valid.length}건)`;
+  alert(`✅ 일정 ${success}건 등록 완료${fail > 0 ? ` (${fail}건 실패)` : ''}!`);
+  closeAiScan();
+  if (typeof window.renderCalendar === 'function') window.renderCalendar();
+}
+
+// ── 연차 일괄등록 ──
+function clearAiVac() {
+  document.getElementById('aiVacInput').value = '';
+  document.getElementById('aiVacResultWrap').style.display = 'none';
+  document.getElementById('aiVacResultList').innerHTML = '';
+  document.getElementById('aiVacRegisterWrap').style.display = 'none';
+  document.getElementById('aiVacError').style.display = 'none';
+  _aiVacParsedItems = [];
+}
+
+function runAiVacParse() {
+  const raw = (document.getElementById('aiVacInput').value || '').trim();
+  const errorEl    = document.getElementById('aiVacError');
+  const resultWrap = document.getElementById('aiVacResultWrap');
+  const regWrap    = document.getElementById('aiVacRegisterWrap');
+  errorEl.style.display = 'none';
+  resultWrap.style.display = 'none';
+  regWrap.style.display = 'none';
+  if (!raw) { alert('연차 내용을 입력해주세요.'); return; }
+  // 연차 전용 파싱: category를 강제로 vacation으로, 타입 기본값 연차
+  _aiVacParsedItems = parseTextToItems(raw).map(i => ({ ...i, category: 'vacation',
+    type: (i.type === '일정' || i.type === '행사' || i.type === '점검' || i.type === '회의' || i.type === '작업') ? '연차' : i.type
+  }));
+  if (_aiVacParsedItems.length === 0) {
+    errorEl.textContent = '❌ 인식된 내용이 없습니다. 형식을 확인해주세요.';
+    errorEl.style.display = '';
+    return;
+  }
+  showAiBulkResults(_aiVacParsedItems, 'aiVacResultList', 'aiVacRegisterWrap', 'aiVacRegisterBtn', 'removeAiVacItem', '📥 연차 전체 등록');
+  resultWrap.style.display = '';
+}
+
+function removeAiVacItem(idx) {
+  _aiVacParsedItems.splice(idx, 1);
+  showAiBulkResults(_aiVacParsedItems, 'aiVacResultList', 'aiVacRegisterWrap', 'aiVacRegisterBtn', 'removeAiVacItem', '📥 연차 전체 등록');
+  document.getElementById('aiVacResultWrap').style.display = '';
+}
+
+async function registerAiVacResults() {
+  const valid = _aiVacParsedItems.filter(i => i.date && !i._parseError);
+  if (valid.length === 0) return;
+  const btn = document.getElementById('aiVacRegisterBtn');
+  btn.disabled = true; btn.textContent = '등록 중...';
+  const apiReady = await waitForVacationAPI(5000);
+  let success = 0, fail = 0;
+  for (const item of valid) {
+    const entry = { name: item.name, type: item.type || '연차', img: '', memo: item.memo || '' };
+    try {
+      if (apiReady && window._vacationAPI) await window._vacationAPI.saveVacation(item.date, entry);
+      else localSaveVacation(item.date, entry);
+      success++;
+    } catch(e) {
+      try { localSaveVacation(item.date, entry); success++; } catch(e2) { fail++; }
+    }
+  }
+  btn.disabled = false;
+  btn.textContent = `📥 연차 전체 등록 (${valid.length}건)`;
+  alert(`✅ 연차 ${success}건 등록 완료${fail > 0 ? ` (${fail}건 실패)` : ''}!`);
+  closeAiScan();
+  if (typeof window.renderCalendar === 'function') window.renderCalendar();
+}
+
+// ── 공통 결과 렌더러 ──
+function showAiBulkResults(items, listId, regWrapId, regBtnId, removeFnName, regBtnLabel) {
+  const list   = document.getElementById(listId);
+  const regWrap = document.getElementById(regWrapId);
+  const regBtn  = document.getElementById(regBtnId);
+  list.innerHTML = '';
+  const valid = items.filter(i => !i._parseError);
+  items.forEach((item, idx) => {
+    const color = TYPE_COLORS[item.type] || '#888';
+    const catLabel = item.category === 'vacation' ? '🏖️ 연차/휴가' : '📅 일정';
+    const card = document.createElement('div');
+    const isErr = !!item._parseError;
+    card.style.cssText = `background:var(--bg3);border:1px solid ${isErr ? 'rgba(232,84,58,0.4)' : 'var(--border)'};border-radius:11px;padding:10px 13px;position:relative;`;
+    card.innerHTML = isErr
+      ? `<div style="font-size:0.82rem;color:#ff8a76;">⚠️ 날짜 인식 실패: <em>${escHtml(item.name)}</em></div>
+         <div style="font-size:0.72rem;color:var(--text3);margin-top:2px;">날짜(5/12, 5월12일 등)를 포함해 다시 입력하세요</div>`
+      : `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;">
+           <div style="font-size:0.9rem;font-weight:800;color:var(--text);">${escHtml(item.name)}</div>
+           <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:8px;background:${color}22;color:${color};white-space:nowrap;">${escHtml(item.type)}</span>
+         </div>
+         <div style="display:flex;gap:8px;flex-wrap:wrap;">
+           <span style="font-size:0.78rem;color:var(--text3);">📅 ${escHtml(item.date)}</span>
+           <span style="font-size:0.7rem;color:var(--text3);background:var(--bg4);padding:1px 7px;border-radius:6px;">${catLabel}</span>
+         </div>
+         <button onclick="${removeFnName}(${idx})" style="position:absolute;top:9px;right:10px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px;" title="제외">✕</button>`;
+    list.appendChild(card);
+  });
+  if (valid.length > 0) {
+    regBtn.textContent = `${regBtnLabel} (${valid.length}건)`;
+    regWrap.style.display = '';
+  }
+}
 
 // ── 규칙 기반 텍스트 파서 (API 불필요) ──
 const TYPE_MAP = {
@@ -3387,92 +3585,7 @@ function makeItem(name, type, dt) {
   };
 }
 
-function runAiTextParse() {
-  const raw = (document.getElementById('aiTextInput').value || '').trim();
-  const errorEl    = document.getElementById('aiTextError');
-  const resultWrap = document.getElementById('aiTextResultWrap');
-  const regWrap    = document.getElementById('aiTextRegisterWrap');
-  errorEl.style.display = 'none';
-  resultWrap.style.display = 'none';
-  regWrap.style.display = 'none';
-
-  if (!raw) { alert('일정 내용을 입력해주세요.'); return; }
-
-  _aiTextParsedItems = parseTextToItems(raw);
-  if (_aiTextParsedItems.length === 0) {
-    errorEl.textContent = '❌ 인식된 일정이 없습니다. 형식을 확인해주세요.';
-    errorEl.style.display = '';
-    return;
-  }
-  showAiTextResults(_aiTextParsedItems);
-}
-
-function showAiTextResults(items) {
-  const resultWrap = document.getElementById('aiTextResultWrap');
-  const list = document.getElementById('aiTextResultList');
-  const regWrap = document.getElementById('aiTextRegisterWrap');
-  const regBtn  = document.getElementById('aiTextRegisterBtn');
-  list.innerHTML = '';
-
-  const valid = items.filter(i => !i._parseError);
-
-  items.forEach((item, idx) => {
-    const color = TYPE_COLORS[item.type] || '#888';
-    const catLabel = item.category === 'vacation' ? '🏖️ 연차/휴가' : '📅 일정';
-    const card = document.createElement('div');
-    const isErr = !!item._parseError;
-    card.style.cssText = `background:var(--bg3);border:1px solid ${isErr ? 'rgba(232,84,58,0.4)' : 'var(--border)'};border-radius:11px;padding:10px 13px;position:relative;`;
-    card.innerHTML = isErr
-      ? `<div style="font-size:0.82rem;color:#ff8a76;">⚠️ 날짜 인식 실패: <em>${escHtml(item.name)}</em></div>
-         <div style="font-size:0.72rem;color:var(--text3);margin-top:2px;">날짜(5/12, 5월12일 등)를 포함해 다시 입력하세요</div>`
-      : `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;">
-           <div style="font-size:0.9rem;font-weight:800;color:var(--text);">${escHtml(item.name)}</div>
-           <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:8px;background:${color}22;color:${color};white-space:nowrap;">${escHtml(item.type)}</span>
-         </div>
-         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-           <span style="font-size:0.78rem;color:var(--text3);">📅 ${escHtml(item.date)}</span>
-           <span style="font-size:0.7rem;color:var(--text3);background:var(--bg4);padding:1px 7px;border-radius:6px;">${catLabel}</span>
-         </div>
-         <button onclick="removeAiTextItem(${idx})" style="position:absolute;top:9px;right:10px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px;" title="제외">✕</button>`;
-    list.appendChild(card);
-  });
-
-  resultWrap.style.display = '';
-  if (valid.length > 0) {
-    regBtn.textContent = `📥 전체 등록 (${valid.length}건)`;
-    regWrap.style.display = '';
-  }
-}
-
-function removeAiTextItem(idx) {
-  _aiTextParsedItems.splice(idx, 1);
-  showAiTextResults(_aiTextParsedItems);
-}
-
-async function registerAiTextResults() {
-  const valid = _aiTextParsedItems.filter(i => i.date && !i._parseError);
-  if (valid.length === 0) return;
-  const btn = document.getElementById('aiTextRegisterBtn');
-  btn.disabled = true; btn.textContent = '등록 중...';
-
-  const apiReady = await waitForVacationAPI(5000);
-  let success = 0, fail = 0;
-  for (const item of valid) {
-    const entry = { name: item.name, type: item.type || '기타', img: '', memo: item.memo || '' };
-    try {
-      if (apiReady && window._vacationAPI) await window._vacationAPI.saveVacation(item.date, entry);
-      else localSaveVacation(item.date, entry);
-      success++;
-    } catch(e) {
-      try { localSaveVacation(item.date, entry); success++; } catch(e2) { fail++; }
-    }
-  }
-  btn.disabled = false;
-  btn.textContent = `📥 전체 등록 (${valid.length}건)`;
-  alert(`✅ ${success}건 등록 완료${fail > 0 ? ` (${fail}건 실패)` : ''}!`);
-  closeAiScan();
-  if (typeof window.renderCalendar === 'function') window.renderCalendar();
-}
+// (runAiTextParse / showAiTextResults / removeAiTextItem / registerAiTextResults → 탭 분리로 대체됨)
 // API 키 공통 getter
 function getAiApiKey() {
   const inp = document.getElementById('aiApiKeyInput');
@@ -3495,10 +3608,7 @@ function toggleApiKeyVisibility() {
 
 function openAiScan() {
   goAiStep1();
-  // 저장된 API 키 복원
-  const saved = localStorage.getItem('workhub_ai_key');
-  const inp = document.getElementById('aiApiKeyInput');
-  if (saved && inp) inp.value = saved;
+  switchAiTab('schedule');
   document.getElementById('aiScanModal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
