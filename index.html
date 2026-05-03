@@ -2427,7 +2427,13 @@ function handleAiDrop(e) {
 function handleAiScanFile(input) {
   if (input.files && input.files[0]) loadAiImage(input.files[0]);
 }
+let _aiMediaType = 'image/jpeg';
 function loadAiImage(file) {
+  // 지원 media_type 결정
+  const mime = file.type || 'image/jpeg';
+  const supported = ['image/jpeg','image/png','image/gif','image/webp'];
+  _aiMediaType = supported.includes(mime) ? mime : 'image/jpeg';
+
   const reader = new FileReader();
   reader.onload = e => {
     _aiImageBase64 = e.target.result.split(',')[1];
@@ -2471,20 +2477,24 @@ async function runAiAnalysis() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
         messages: [{
           role: 'user',
           content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: _aiImageBase64 } },
+            { type: 'image', source: { type: 'base64', media_type: _aiMediaType, data: _aiImageBase64 } },
             { type: 'text', text: prompt }
           ]
         }]
       })
     });
     const data = await res.json();
+    if (!res.ok) throw new Error((data.error && data.error.message) || `API 오류 (${res.status})`);
     const raw = (data.content || []).map(b => b.text || '').join('');
     const cleaned = raw.replace(/```json|```/g, '').trim();
     _aiParsedItems = JSON.parse(cleaned);
