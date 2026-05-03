@@ -163,7 +163,7 @@ body.pc-mode .item-list {
   border: 1px solid transparent;
 }
 .ppp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.ppp-name { font-size: 0.82rem; font-weight: 700; color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ppp-name { font-size: 0.82rem; font-weight: 700; color: var(--text); flex: 1; overflow: visible; text-overflow: unset; white-space: normal; word-break: break-all; }
 .ppp-type { font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 8px; white-space: nowrap; }
 .ppp-add-btn {
   width: 100%; background: rgba(232,84,58,0.12); border: 1px solid rgba(232,84,58,0.3);
@@ -315,20 +315,20 @@ body.pc-mode .pc-top-quickbar { display: flex; }
   justify-content: space-between;
   gap: 8px;
 }
-.sidebar-section-title.vac-title { color: #ff8a76; }
-.sidebar-section-title.sched-title { color: var(--blue); }
+.sidebar-section-title.vac-title { color: var(--green); }
+.sidebar-section-title.sched-title { color: #ff8a76; }
 
 .sidebar-count-badge {
   font-size: 0.65rem; font-weight: 700;
   padding: 2px 8px; border-radius: 10px;
 }
 .vac-title .sidebar-count-badge {
-  background: rgba(232,84,58,0.15); color: #ff8a76;
-  border: 1px solid rgba(232,84,58,0.25);
+  background: rgba(52,201,117,0.15); color: var(--green);
+  border: 1px solid rgba(52,201,117,0.3);
 }
 .sched-title .sidebar-count-badge {
-  background: rgba(74,158,255,0.15); color: var(--blue);
-  border: 1px solid rgba(74,158,255,0.25);
+  background: rgba(232,84,58,0.15); color: #ff8a76;
+  border: 1px solid rgba(232,84,58,0.25);
 }
 
 /* 일정 아이템 */
@@ -354,27 +354,27 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 .sidebar-item-date .sdate-m { font-size: 0.6rem; opacity: 0.7; display: block; }
 .sidebar-item-name {
   font-size: 0.82rem; font-weight: 700; color: var(--text); flex: 1;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  overflow: visible; text-overflow: unset; white-space: normal; word-break: break-all;
 }
 .sidebar-item-type {
   font-size: 0.65rem; font-weight: 700;
   padding: 2px 7px; border-radius: 8px;
   white-space: nowrap;
 }
-/* 연차 타입 배지 */
-.badge-연차 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
-.badge-반차 { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.25); }
-.badge-전반차 { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.25); }
-.badge-후반차 { background: rgba(191,90,242,0.15); color: var(--purple); border: 1px solid rgba(191,90,242,0.25); }
-.badge-교육 { background: rgba(52,201,117,0.15); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
-.badge-출장 { background: rgba(255,179,64,0.15); color: var(--amber); border: 1px solid rgba(255,179,64,0.25); }
-.badge-기타 { background: rgba(191,90,242,0.15); color: var(--purple); border: 1px solid rgba(191,90,242,0.25); }
-/* 일정 타입 배지 */
-.badge-점검 { background: rgba(255,179,64,0.15); color: var(--amber); border: 1px solid rgba(255,179,64,0.25); }
-.badge-회의 { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.25); }
-.badge-작업 { background: rgba(52,201,117,0.15); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
-.badge-행사 { background: rgba(191,90,242,0.15); color: var(--purple); border: 1px solid rgba(191,90,242,0.25); }
-.badge-일정 { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.25); }
+/* 연차 타입 배지 → 초록 계열 */
+.badge-연차 { background: rgba(52,201,117,0.15); color: var(--green); border: 1px solid rgba(52,201,117,0.3); }
+.badge-반차 { background: rgba(52,201,117,0.15); color: var(--green); border: 1px solid rgba(52,201,117,0.3); }
+.badge-전반차 { background: rgba(52,201,117,0.15); color: var(--green); border: 1px solid rgba(52,201,117,0.3); }
+.badge-후반차 { background: rgba(52,201,117,0.12); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
+.badge-교육 { background: rgba(52,201,117,0.12); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
+.badge-출장 { background: rgba(52,201,117,0.12); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
+.badge-기타 { background: rgba(52,201,117,0.10); color: var(--green); border: 1px solid rgba(52,201,117,0.2); }
+/* 일정 타입 배지 → 빨간 계열 */
+.badge-점검 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-회의 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-작업 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-행사 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-일정 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
 
 .sidebar-empty {
   text-align: center; color: var(--text3);
@@ -736,8 +736,8 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
 .item-list { display: flex; flex-direction: column; gap: 3px; margin-top: auto; min-width: 0; width: 100%; }
 .vacation-tag {
   font-size: 0.65rem; font-weight: 700; padding: 2px 5px;
-  border-radius: 5px; background: rgba(232,84,58,0.18); color: #ff8a76;
-  border: 1px solid rgba(232,84,58,0.3); cursor: pointer;
+  border-radius: 5px; background: rgba(52,201,117,0.18); color: var(--green);
+  border: 1px solid rgba(52,201,117,0.35); cursor: pointer;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   text-align: left; display: block; width: 100%; min-width: 0;
   box-sizing: border-box;
@@ -1784,9 +1784,9 @@ window.renderCalendar = function renderCalendar() {
         if (schedCount2 > 0) {
           const tag = document.createElement('div');
           tag.className = 'vacation-tag';
-          tag.style.background = 'rgba(74,158,255,0.18)';
-          tag.style.color = 'var(--blue)';
-          tag.style.borderColor = 'rgba(74,158,255,0.3)';
+          tag.style.background = 'rgba(232,84,58,0.18)';
+          tag.style.color = '#ff8a76';
+          tag.style.borderColor = 'rgba(232,84,58,0.3)';
           tag.innerText = '일정 ' + schedCount2 + '건';
           tag.title = schedItems2.filter(i=>i.name).map(i=>i.name+'('+(i.type||'')+')').join(', ');
           tag.onclick = e => { e.stopPropagation(); openDayDetail(dateKey, dateObj); };
@@ -1798,11 +1798,11 @@ window.renderCalendar = function renderCalendar() {
           if (item.name) {
             const tag = document.createElement('div');
             tag.className = 'vacation-tag';
-            // 일정은 파란 계열, 연차는 빨간 계열
+            // 일정은 빨간 계열, 연차는 초록 계열(기본)
             if (!VAC_TYPES_SET.has(item.type)) {
-              tag.style.background = 'rgba(74,158,255,0.18)';
-              tag.style.color = 'var(--blue)';
-              tag.style.borderColor = 'rgba(74,158,255,0.3)';
+              tag.style.background = 'rgba(232,84,58,0.18)';
+              tag.style.color = '#ff8a76';
+              tag.style.borderColor = 'rgba(232,84,58,0.3)';
             }
             // 이름만 표시 (타입 없음, 전체 이름)
             const label = item.name + (item.type ? '(' + item.type + ')' : '');
@@ -1937,6 +1937,7 @@ function renderSidebarSchedule() {
       const badgeClass = 'badge-' + (e.type || '기타');
       const item = document.createElement('div');
       item.className = 'sidebar-item';
+      item.style.borderLeft = '3px solid var(--green)';
       item.innerHTML = `
         <div class="sidebar-item-date">
           <span class="sdate-m">${baseM}월</span>
@@ -1959,6 +1960,7 @@ function renderSidebarSchedule() {
       const item = document.createElement('div');
       item.className = 'sidebar-item';
       item.style.alignItems = 'flex-start';
+      item.style.borderLeft = '3px solid #ff8a76';
       item.innerHTML = `
         <div class="sidebar-item-date" style="margin-top:2px;">
           <span class="sdate-m">${baseM}월</span>
@@ -2113,7 +2115,7 @@ function renderDashBoardInline() {
     const fileCount = post.attachments?.length || 0;
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:3px;">
-        <div style="font-size:0.85rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${escHtml(post.title)}</div>
+        <div style="font-size:0.85rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:normal;word-break:break-all;flex:1;">${escHtml(post.title)}</div>
         <span style="font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap;background:${color}22;color:${color};flex-shrink:0;">${escHtml(post.category)}</span>
       </div>
       <div style="font-size:0.72rem;color:var(--text3);">${escHtml(post.author)} · ${dateStr}${fileCount > 0 ? ' · 📎'+fileCount : ''}</div>`;
