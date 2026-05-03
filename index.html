@@ -408,6 +408,43 @@ body.pc-mode .dash-footer { display: flex; }
   letter-spacing: 0.1em; display: flex; align-items: center; gap: 10px;
 }
 .footer-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
+
+/* 🔐 삭제 비밀번호 키패드 */
+.pw-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--border);
+  display: inline-block;
+  transition: 0.15s;
+}
+.pw-dot.filled {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.pw-dot.error {
+  background: #ff4444;
+  border-color: #ff4444;
+  animation: pwShake 0.35s ease;
+}
+.pw-dot.pw-dot-ok {
+  background: var(--green);
+  border-color: var(--green);
+}
+@keyframes pwShake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+.pw-key {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 8px;
+  font-size: 1.15rem; font-weight: 700; color: var(--text);
+  cursor: pointer; font-family: inherit; transition: 0.12s;
+}
+.pw-key:active { background: var(--bg4); transform: scale(0.93); }
+.pw-key-del { color: var(--text2); font-size: 1.1rem; }
+.pw-key-clear { font-size: 0.72rem; color: var(--text3); }
 </style>
 <style>
 :root {
@@ -817,6 +854,42 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
 </div>
 
 <!-- PC 모드 전환 버튼 -->
+<!-- 🔐 삭제 비밀번호 확인 모달 -->
+<div id="deletePwModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:9000;justify-content:center;align-items:center;" onclick="closeDeletePwModal(event)">
+  <div style="background:var(--bg2);border-radius:20px;width:100%;max-width:320px;border:1px solid var(--border);overflow:hidden;margin:20px;">
+    <div style="background:var(--bg3);padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;">🔐 삭제 확인</div>
+      <button onclick="closeDeletePwModalDirect()" style="background:var(--bg4);border:none;color:var(--text2);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div style="padding:22px 20px;">
+      <div style="font-size:0.85rem;color:var(--text2);margin-bottom:16px;text-align:center;line-height:1.6;">삭제하려면 비밀번호를 입력하세요</div>
+      <!-- 숫자 키패드 표시 -->
+      <div id="deletePwDots" style="display:flex;justify-content:center;gap:12px;margin-bottom:20px;">
+        <span class="pw-dot" id="pwDot0"></span>
+        <span class="pw-dot" id="pwDot1"></span>
+        <span class="pw-dot" id="pwDot2"></span>
+        <span class="pw-dot" id="pwDot3"></span>
+      </div>
+      <div id="deletePwError" style="display:none;text-align:center;color:#ff8a76;font-size:0.8rem;font-weight:600;margin-bottom:12px;">❌ 비밀번호가 틀렸습니다</div>
+      <!-- 키패드 -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <button class="pw-key" onclick="pwInput('1')">1</button>
+        <button class="pw-key" onclick="pwInput('2')">2</button>
+        <button class="pw-key" onclick="pwInput('3')">3</button>
+        <button class="pw-key" onclick="pwInput('4')">4</button>
+        <button class="pw-key" onclick="pwInput('5')">5</button>
+        <button class="pw-key" onclick="pwInput('6')">6</button>
+        <button class="pw-key" onclick="pwInput('7')">7</button>
+        <button class="pw-key" onclick="pwInput('8')">8</button>
+        <button class="pw-key" onclick="pwInput('9')">9</button>
+        <button class="pw-key pw-key-clear" onclick="pwClear()" style="font-size:0.75rem;">전체삭제</button>
+        <button class="pw-key" onclick="pwInput('0')">0</button>
+        <button class="pw-key pw-key-del" onclick="pwDelete()">⌫</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 날짜 상세 팝업 (모바일) -->
 <div id="dayDetailOverlay" onclick="closeDayDetail(event)">
   <div id="dayDetailPanel">
@@ -2033,7 +2106,11 @@ function localSaveVacation(dateKey, entry) {
 }
 
 async function deleteItem(key, idx) {
-  if (!confirm('정말 삭제할까요?')) return;
+  // 비밀번호 확인 후 삭제
+  showDeletePwModal(key, idx);
+}
+
+async function _doDeleteItem(key, idx) {
   await waitForVacationAPI(3000);
   if (window._vacationAPI) {
     try { await window._vacationAPI.removeVacation(key, idx); }
@@ -2904,7 +2981,107 @@ async function registerAiResults() {
 }
 
 
-let _clockTimer = null;
+// ════════════════════════════════
+// 🔐 삭제 비밀번호 모달
+// ════════════════════════════════
+const DELETE_PASSWORD = '7060';
+let _pwBuffer = '';
+let _pwTargetKey = null;
+let _pwTargetIdx = null;
+
+function showDeletePwModal(key, idx) {
+  _pwTargetKey = key;
+  _pwTargetIdx = idx;
+  _pwBuffer = '';
+  _updatePwDots();
+  document.getElementById('deletePwError').style.display = 'none';
+  // 이미 열려있으면 대상만 교체 (연속 삭제 지원)
+  document.getElementById('deletePwModal').style.display = 'flex';
+}
+
+function closeDeletePwModal(e) {
+  if (e.target === document.getElementById('deletePwModal')) closeDeletePwModalDirect();
+}
+function closeDeletePwModalDirect() {
+  document.getElementById('deletePwModal').style.display = 'none';
+  _pwBuffer = '';
+  _pwTargetKey = null;
+  _pwTargetIdx = null;
+}
+
+function pwInput(digit) {
+  if (_pwBuffer.length >= 4) return;
+  _pwBuffer += digit;
+  _updatePwDots();
+  if (_pwBuffer.length === 4) {
+    setTimeout(_checkPassword, 120); // 마지막 점 채워진 뒤 약간 딜레이
+  }
+}
+function pwDelete() {
+  if (_pwBuffer.length === 0) return;
+  _pwBuffer = _pwBuffer.slice(0, -1);
+  _updatePwDots();
+}
+function pwClear() {
+  _pwBuffer = '';
+  _updatePwDots();
+  document.getElementById('deletePwError').style.display = 'none';
+}
+
+function _updatePwDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('pwDot' + i);
+    if (!dot) continue;
+    dot.classList.remove('filled', 'error');
+    if (i < _pwBuffer.length) dot.classList.add('filled');
+  }
+}
+
+async function _checkPassword() {
+  if (_pwBuffer === DELETE_PASSWORD) {
+    // 정답 - 모달을 닫지 않고 삭제 후 연속 입력 대기
+    const key = _pwTargetKey;
+    const idx = _pwTargetIdx;
+    _pwBuffer = '';
+    _pwTargetKey = null;
+    _pwTargetIdx = null;
+    _updatePwDots();
+    document.getElementById('deletePwError').style.display = 'none';
+
+    // 점들을 초록색으로 잠깐 표시
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('pwDot' + i);
+      if (dot) { dot.classList.remove('filled'); dot.classList.add('pw-dot-ok'); }
+    }
+    await _doDeleteItem(key, idx);
+    setTimeout(() => {
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById('pwDot' + i);
+        if (dot) dot.classList.remove('pw-dot-ok');
+      }
+      // 더 삭제할 항목이 없으면 모달 닫기
+      if (_pwTargetKey === null) {
+        document.getElementById('deletePwModal').style.display = 'none';
+      }
+    }, 350);
+  } else {
+    // 오답 - 흔들기 효과
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('pwDot' + i);
+      if (dot) { dot.classList.remove('filled'); dot.classList.add('error'); }
+    }
+    document.getElementById('deletePwError').style.display = 'block';
+    setTimeout(() => {
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById('pwDot' + i);
+        if (dot) dot.classList.remove('error');
+      }
+      _pwBuffer = '';
+    }, 600);
+  }
+}
+
+
 
 // ════════════════════════════════
 // 사이드바 숨기기/표시하기 토글
