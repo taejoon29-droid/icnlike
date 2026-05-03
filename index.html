@@ -1095,7 +1095,7 @@ body.pc-mode .vacation-tag {
     </div>
 
     <!-- 게시판 인라인 카드 (PC모드 대시보드) -->
-    <div class="dash-card" style="display:flex;flex-direction:column;min-height:340px;max-height:480px;">
+    <div class="dash-card" id="dashBoardCard" style="display:flex;flex-direction:column;min-height:340px;max-height:480px;">
       <div class="dash-card-header" style="flex-shrink:0;">
         <div class="dash-card-title">
           <div class="dash-icon" style="background:rgba(232,84,58,0.15);">📋</div>
@@ -2531,6 +2531,34 @@ const CAT_COLORS = { '공지':'#e74c3c', '업무':'#3498db', '질문':'#e67e22',
 let boardFiles = [], currentCatFilter = '전체';
 
 function openBoard() {
+  if (document.body.classList.contains('pc-mode')) {
+    // PC모드: 대시보드 게시판 카드로 스크롤
+    const card = document.getElementById('dashBoardCard');
+    const dashboard = document.getElementById('pcDashboard');
+    if (card && dashboard) {
+      // 대시보드가 숨겨져 있으면 먼저 열기
+      const dashContent = document.getElementById('dashContent');
+      if (dashContent && dashContent.style.display === 'none') {
+        toggleDashboard();
+      }
+      // 목록 뷰로 초기화
+      dashSwitchView('list');
+      // 스크롤 이동
+      setTimeout(() => {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // 하이라이트 효과
+        card.style.transition = 'box-shadow 0.3s, border-color 0.3s';
+        card.style.boxShadow = '0 0 0 2px var(--accent)';
+        card.style.borderColor = 'var(--accent)';
+        setTimeout(() => {
+          card.style.boxShadow = '';
+          card.style.borderColor = '';
+        }, 1400);
+      }, 80);
+    }
+    return;
+  }
+  // 모바일: 모달 열기
   document.getElementById('boardModal').style.display = 'flex';
   loadBoardPosts();
 }
