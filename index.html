@@ -424,12 +424,20 @@ body.pc-mode .pc-dashboard { display: flex; }
   .dash-row-2 { grid-template-columns: 1fr !important; }
 }
 
+/* 대시보드 카드 내용 줄바꿈 허용 */
+.dash-card-body {
+  padding: 14px 16px;
+  word-break: break-all;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
 /* 카드 공통 */
 .dash-card {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 16px;
-  overflow: hidden;
+  overflow: visible;
   transition: border-color 0.2s;
 }
 .dash-card:hover { border-color: var(--bg4); }
@@ -448,7 +456,6 @@ body.pc-mode .pc-dashboard { display: flex; }
   width: 22px; height: 22px; border-radius: 6px;
   display: flex; align-items: center; justify-content: center; font-size: 0.75rem;
 }
-.dash-card-body { padding: 14px 16px; }
 
 /* ── 푸터 ── */
 .dash-footer {
@@ -1019,8 +1026,9 @@ body.pc-mode .vacation-tag {
     <div class="pc-board-sidebar-header" style="justify-content:space-between;">
       <span>📋 일정 · 연차 조회</span>
       <button id="sidebarToggleBtn" onclick="toggleSidebar()"
-        style="background:var(--bg4);border:none;color:var(--text2);border-radius:12px;padding:3px 11px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;white-space:nowrap;">
-        숨기기 ▲
+        title="숨기기 / 표시하기"
+        style="background:var(--bg4);border:none;color:var(--text2);border-radius:50%;width:26px;height:26px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:transform 0.25s,background 0.15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        ▲
       </button>
     </div>
 
@@ -1072,7 +1080,7 @@ body.pc-mode .vacation-tag {
   <!-- 대시보드 토글 헤더 -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
     <span style="font-size:0.78rem;font-weight:800;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;">📊 대시보드</span>
-    <button id="dashToggleBtn" onclick="toggleDashboard()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:14px;padding:4px 13px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'">숨기기 ▲</button>
+    <button id="dashToggleBtn" onclick="toggleDashboard()" title="숨기기 / 표시하기" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:50%;width:28px;height:28px;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:transform 0.25s,background 0.15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;" onmouseover="this.style.background='var(--bg4)'" onmouseout="this.style.background='var(--bg3)'">▲</button>
   </div>
   <div id="dashContent">
   <div class="dash-row dash-row-2">
@@ -1095,7 +1103,7 @@ body.pc-mode .vacation-tag {
     </div>
 
     <!-- 게시판 인라인 카드 (PC모드 대시보드) -->
-    <div class="dash-card" id="dashBoardCard" style="display:flex;flex-direction:column;min-height:340px;max-height:480px;">
+    <div class="dash-card" id="dashBoardCard" style="display:flex;flex-direction:column;min-height:340px;max-height:480px;overflow:hidden;border-radius:16px;">
       <div class="dash-card-header" style="flex-shrink:0;">
         <div class="dash-card-title">
           <div class="dash-icon" style="background:rgba(232,84,58,0.15);">📋</div>
@@ -1717,7 +1725,7 @@ window.renderCalendar = function renderCalendar() {
             col.classList.remove('sidebar-collapsed');
             _sidebarVisible = true;
             if (content) content.style.display = '';
-            if (btn) btn.textContent = '숨기기 ▲';
+            if (btn) btn.textContent = '▲';
           }
         } else {
           // 모바일: 날짜 클릭 → 상세 팝업
@@ -3562,11 +3570,13 @@ function toggleSidebar() {
   _sidebarVisible = !_sidebarVisible;
   if (_sidebarVisible) {
     col.classList.remove('sidebar-collapsed');
-    btn.textContent = '숨기기 ▲';
+    btn.textContent = '▲';
+    btn.style.transform = 'rotate(0deg)';
     content.style.display = '';
   } else {
     col.classList.add('sidebar-collapsed');
     btn.textContent = '▼';
+    btn.style.transform = 'rotate(180deg)';
     content.style.display = 'none';
   }
 }
@@ -3581,7 +3591,8 @@ function toggleDashboard() {
   if (!content || !btn) return;
   _dashVisible = !_dashVisible;
   content.style.display = _dashVisible ? '' : 'none';
-  btn.textContent = _dashVisible ? '숨기기 ▲' : '표시하기 ▼';
+  btn.textContent = _dashVisible ? '▲' : '▼';
+  btn.style.transform = _dashVisible ? 'rotate(0deg)' : 'rotate(180deg)';
 }
 let _clockTimer = null;
 function startFooterClock() {
