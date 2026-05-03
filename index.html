@@ -72,7 +72,7 @@ body.pc-mode {
 /* PC모드: 캘린더 + 일정 사이드바 2컬럼 */
 body.pc-mode .pc-layout-wrap {
   display: grid;
-  grid-template-columns: 1fr 220px;
+  grid-template-columns: 1fr 240px;
   gap: 16px;
   align-items: start;
 }
@@ -122,11 +122,11 @@ body.pc-mode .pc-board-col.sidebar-collapsed #sidebarContent {
 body.pc-mode .duty-container { display: block !important; }
 body.pc-mode .day-cell {
   min-height: 110px;
-  max-height: 150px;   /* 내용이 많아도 셀 높이 제한 */
-  overflow: hidden;
+  max-height: none;   /* 내용이 길면 셀이 늘어남 */
+  overflow: visible;
 }
 body.pc-mode .item-list {
-  overflow: hidden;    /* 태그가 넘쳐도 셀 크기 유지 */
+  overflow: visible;
 }
 
 /* ── PC 세로모드 인라인 일정 패널 ── */
@@ -527,7 +527,7 @@ body {
   gap: 4px; max-width: 1200px; margin: auto;
 }
 body.pc-mode .calendar-grid {
-  grid-auto-rows: 150px; /* PC모드에서 모든 행 동일 높이 */
+  grid-auto-rows: auto; /* 내용에 맞게 행 높이 자동 조절 */
 }
 .day-label {
   text-align: center; font-weight: 600; padding: 8px 0;
@@ -716,6 +716,13 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   text-align: left; display: block; width: 100%; min-width: 0;
   box-sizing: border-box;
+}
+/* PC 가로모드: 태그 줄바꿈 허용, ... 제거 */
+body.pc-mode .vacation-tag {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  word-break: keep-all;
 }
 .img-thumb {
   width: 100%; height: 36px; object-fit: cover;
@@ -1750,11 +1757,9 @@ window.renderCalendar = function renderCalendar() {
               tag.style.color = 'var(--blue)';
               tag.style.borderColor = 'rgba(74,158,255,0.3)';
             }
-            // 이름 3글자 + 타입 표시
-            const shortName = item.name.slice(0, 3);
+            // 이름만 표시 (타입 없음, 전체 이름)
             const label = item.name + (item.type ? '(' + item.type + ')' : '');
-            const displayLabel = shortName + (item.type ? '(' + item.type + ')' : '');
-            tag.innerText = displayLabel;
+            tag.innerText = item.name;
             tag.title = label;
             tag.onclick = e => { e.stopPropagation(); deleteItem(dateKey, origIndex); };
             listContainer.appendChild(tag);
