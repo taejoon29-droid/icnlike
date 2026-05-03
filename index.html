@@ -371,6 +371,7 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 .badge-교육 { background: rgba(52,201,117,0.12); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
 .badge-출장 { background: rgba(52,201,117,0.12); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
 .badge-기타 { background: rgba(52,201,117,0.10); color: var(--green); border: 1px solid rgba(52,201,117,0.2); }
+.badge-직접입력 { background: rgba(255,179,64,0.12); color: var(--amber); border: 1px solid rgba(255,179,64,0.25); }
 /* 일정 타입 배지 → 빨간 계열 */
 .badge-점검 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
 .badge-회의 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
@@ -1064,14 +1065,18 @@ body.pc-mode .vacation-tag {
         <label>👤 이름</label>
         <input id="iamEditName" type="text" maxlength="20" placeholder="이름">
         <label style="margin-top:6px;">📂 종류</label>
-        <select id="iamEditVacType">
+        <select id="iamEditVacType" onchange="toggleIamEditCustomType(this.value)">
           <option value="연차">연차</option>
           <option value="전반">전반 (오전)</option>
           <option value="후반">후반 (오후)</option>
           <option value="교육">교육</option>
           <option value="출장">출장</option>
-          <option value="기타">기타</option>
+          <option value="직접입력">✏️ 직접입력</option>
         </select>
+        <div id="iamEditCustomTypeWrap" style="display:none;margin-top:6px;">
+          <input id="iamEditCustomTypeText" type="text" placeholder="직접 입력 (예: 병가, 공가 등)" maxlength="20"
+            style="width:100%;background:var(--bg3);border:1px solid var(--amber);border-radius:10px;padding:9px 12px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;box-sizing:border-box;">
+        </div>
         <label style="margin-top:6px;">📅 날짜</label>
         <input id="iamEditVacDate" type="date">
       </div>
@@ -1438,7 +1443,7 @@ body.pc-mode .vacation-tag {
               <button onclick="selectVacType(this,'반차')" class="type-sel-btn">반차</button>
               <button onclick="selectVacType(this,'교육')" class="type-sel-btn">교육</button>
               <button onclick="selectVacType(this,'출장')" class="type-sel-btn">출장</button>
-              <button onclick="selectVacType(this,'기타')" class="type-sel-btn">기타</button>
+              <button onclick="selectVacType(this,'직접입력')" class="type-sel-btn">✏️ 직접입력</button>
             </div>
             <!-- 반차 전반/후반 선택 -->
             <div id="vacHalfWrap" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
@@ -1455,8 +1460,8 @@ body.pc-mode .vacation-tag {
               </div>
             </div>
             <div id="vacEtcWrap" style="display:none;margin-top:8px;">
-              <input id="vacEtcText" type="text" placeholder="예) 육아휴직, 출산휴가, 병가 등" maxlength="20"
-                style="width:100%;background:var(--bg3);border:1px solid var(--accent);border-radius:10px;padding:9px 12px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;">
+              <input id="vacEtcText" type="text" placeholder="직접 입력 (예: 병가, 육아휴직, 공가 등)" maxlength="20"
+                style="width:100%;background:var(--bg3);border:1px solid var(--amber);border-radius:10px;padding:9px 12px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;">
             </div>
           </div>
           <div>
@@ -2033,7 +2038,7 @@ window.renderCalendar = function renderCalendar() {
 // ════════════════════════════════
 // 우측 사이드바: 일정+연차 분리 렌더링
 // ════════════════════════════════
-const VAC_TYPES_SET = new Set(['연차','반차','전반','후반','전반차','후반차','교육','출장','기타']);
+const VAC_TYPES_SET = new Set(['연차','반차','전반','후반','전반차','후반차','교육','출장']);
 const SCHED_TYPES_SET = new Set(['점검','회의','작업','행사','일정']);
 
 // 사이드바 날짜 오프셋 (0 = 오늘, ±N = N일 이동)
@@ -2493,7 +2498,7 @@ function selectVacType(btn, type) {
   const etcInput = document.getElementById('vacEtcText');
   const halfWrap = document.getElementById('vacHalfWrap');
 
-  if (type === '기타') {
+  if (type === '직접입력') {
     etcWrap.style.display = 'block';
     halfWrap.style.display = 'none';
     setTimeout(() => etcInput && etcInput.focus(), 50);
@@ -2554,9 +2559,9 @@ async function submitVacation() {
   if (!name) { alert('이름을 입력해주세요.'); return; }
   if (!dateVal) { alert('날짜를 선택해주세요.'); return; }
   let vacType = _regVacType;
-  if (vacType === '기타') {
+  if (vacType === '직접입력') {
     const etcVal = (document.getElementById('vacEtcText').value || '').trim();
-    if (!etcVal) { alert('기타 종류를 직접 입력해주세요.\n예) 육아휴직, 출산휴가, 병가 등'); document.getElementById('vacEtcText').focus(); return; }
+    if (!etcVal) { alert('종류를 직접 입력해주세요.\n예) 병가, 육아휴직, 공가 등'); document.getElementById('vacEtcText').focus(); return; }
     vacType = etcVal;
   } else if (vacType === '반차') {
     // 전반 / 후반 구분 저장
@@ -3152,10 +3157,19 @@ function openItemEdit() {
     document.getElementById('iamEditSchedFields').style.display = 'none';
     document.getElementById('iamEditName').value = item.name || '';
     const typeSelect = document.getElementById('iamEditVacType');
-    const knownVacTypes = ['연차','전반','후반','전반차','후반차','교육','출장','기타'];
+    const knownVacTypes = ['연차','전반','후반','전반차','후반차','교육','출장','직접입력'];
     // 구버전 데이터(전반차/후반차) → 신버전(전반/후반) 자동 변환
     const normalizedType = item.type === '전반차' ? '전반' : item.type === '후반차' ? '후반' : item.type;
-    typeSelect.value = knownVacTypes.includes(normalizedType) ? normalizedType : '기타';
+    if (knownVacTypes.includes(normalizedType)) {
+      typeSelect.value = normalizedType;
+      document.getElementById('iamEditCustomTypeWrap').style.display = 'none';
+      document.getElementById('iamEditCustomTypeText').value = '';
+    } else {
+      // 알 수 없는 타입(기타 포함, 직접입력했던 값) → 직접입력으로 표시
+      typeSelect.value = '직접입력';
+      document.getElementById('iamEditCustomTypeWrap').style.display = 'block';
+      document.getElementById('iamEditCustomTypeText').value = normalizedType;
+    }
     document.getElementById('iamEditVacDate').value = _iamKey;
   } else {
     document.getElementById('iamEditVacFields').style.display = 'none';
@@ -3165,6 +3179,19 @@ function openItemEdit() {
     schedSelect.value = item.type || '기타';
     document.getElementById('iamEditSchedDate').value = _iamKey;
     document.getElementById('iamEditMemo').value = item.memo || '';
+  }
+}
+
+function toggleIamEditCustomType(val) {
+  const wrap = document.getElementById('iamEditCustomTypeWrap');
+  if (!wrap) return;
+  if (val === '직접입력') {
+    wrap.style.display = 'block';
+    setTimeout(() => { const inp = document.getElementById('iamEditCustomTypeText'); if (inp) inp.focus(); }, 50);
+  } else {
+    wrap.style.display = 'none';
+    const inp = document.getElementById('iamEditCustomTypeText');
+    if (inp) inp.value = '';
   }
 }
 
@@ -3183,7 +3210,12 @@ async function saveItemEdit() {
 
   if (_iamIsVac) {
     const newName = document.getElementById('iamEditName').value.trim();
-    const newType = document.getElementById('iamEditVacType').value;
+    let newType = document.getElementById('iamEditVacType').value;
+    if (newType === '직접입력') {
+      const customVal = (document.getElementById('iamEditCustomTypeText').value || '').trim();
+      if (!customVal) { alert('직접입력 종류를 입력해주세요.'); document.getElementById('iamEditCustomTypeText').focus(); return; }
+      newType = customVal;
+    }
     newDateKey = document.getElementById('iamEditVacDate').value;
     if (!newName) { alert('이름을 입력해주세요.'); return; }
     if (!newDateKey) { alert('날짜를 선택해주세요.'); return; }
