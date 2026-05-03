@@ -366,6 +366,8 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 .badge-반차 { background: rgba(52,201,117,0.15); color: var(--green); border: 1px solid rgba(52,201,117,0.3); }
 .badge-전반차 { background: rgba(52,201,117,0.15); color: var(--green); border: 1px solid rgba(52,201,117,0.3); }
 .badge-후반차 { background: rgba(52,201,117,0.12); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
+.badge-전반 { background: rgba(52,201,117,0.15); color: var(--green); border: 1px solid rgba(52,201,117,0.3); }
+.badge-후반 { background: rgba(52,201,117,0.12); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
 .badge-교육 { background: rgba(52,201,117,0.12); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
 .badge-출장 { background: rgba(52,201,117,0.12); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
 .badge-기타 { background: rgba(52,201,117,0.10); color: var(--green); border: 1px solid rgba(52,201,117,0.2); }
@@ -1064,8 +1066,8 @@ body.pc-mode .vacation-tag {
         <label style="margin-top:6px;">📂 종류</label>
         <select id="iamEditVacType">
           <option value="연차">연차</option>
-          <option value="전반차">전반차 (오전)</option>
-          <option value="후반차">후반차 (오후)</option>
+          <option value="전반">전반 (오전)</option>
+          <option value="후반">후반 (오후)</option>
           <option value="교육">교육</option>
           <option value="출장">출장</option>
           <option value="기타">기타</option>
@@ -1419,11 +1421,11 @@ body.pc-mode .vacation-tag {
               <div style="display:flex;gap:6px;">
                 <button id="halfBtnAM" onclick="selectHalfDay('전반')"
                   style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--blue);background:rgba(74,158,255,0.2);color:var(--blue);font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;">
-                  🌅 전반차 (오전)
+                  🌅 전반 (오전)
                 </button>
                 <button id="halfBtnPM" onclick="selectHalfDay('후반')"
                   style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg4);color:var(--text2);font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;">
-                  🌆 후반차 (오후)
+                  🌆 후반 (오후)
                 </button>
               </div>
             </div>
@@ -2006,7 +2008,7 @@ window.renderCalendar = function renderCalendar() {
 // ════════════════════════════════
 // 우측 사이드바: 일정+연차 분리 렌더링
 // ════════════════════════════════
-const VAC_TYPES_SET = new Set(['연차','반차','전반차','후반차','교육','출장','기타']);
+const VAC_TYPES_SET = new Set(['연차','반차','전반','후반','전반차','후반차','교육','출장','기타']);
 const SCHED_TYPES_SET = new Set(['점검','회의','작업','행사','일정']);
 
 // 사이드바 날짜 오프셋 (0 = 오늘, ±N = N일 이동)
@@ -2532,8 +2534,8 @@ async function submitVacation() {
     if (!etcVal) { alert('기타 종류를 직접 입력해주세요.\n예) 육아휴직, 출산휴가, 병가 등'); document.getElementById('vacEtcText').focus(); return; }
     vacType = etcVal;
   } else if (vacType === '반차') {
-    // 전반차 / 후반차 구분 저장
-    vacType = _regHalfDay === '전반' ? '전반차' : '후반차';
+    // 전반 / 후반 구분 저장
+    vacType = _regHalfDay === '전반' ? '전반' : '후반';
   }
   const entry = { name, type: vacType, img: _regVacImgData };
   closeRegisterModal();
@@ -3125,8 +3127,10 @@ function openItemEdit() {
     document.getElementById('iamEditSchedFields').style.display = 'none';
     document.getElementById('iamEditName').value = item.name || '';
     const typeSelect = document.getElementById('iamEditVacType');
-    const knownVacTypes = ['연차','전반차','후반차','교육','출장','기타'];
-    typeSelect.value = knownVacTypes.includes(item.type) ? item.type : '기타';
+    const knownVacTypes = ['연차','전반','후반','전반차','후반차','교육','출장','기타'];
+    // 구버전 데이터(전반차/후반차) → 신버전(전반/후반) 자동 변환
+    const normalizedType = item.type === '전반차' ? '전반' : item.type === '후반차' ? '후반' : item.type;
+    typeSelect.value = knownVacTypes.includes(normalizedType) ? normalizedType : '기타';
     document.getElementById('iamEditVacDate').value = _iamKey;
   } else {
     document.getElementById('iamEditVacFields').style.display = 'none';
@@ -3288,14 +3292,14 @@ let _aiTextParsedItems = [];
 // ── 규칙 기반 텍스트 파서 (API 불필요) ──
 const TYPE_MAP = {
   '연차':'연차','연':'연차','휴가':'연차',
-  '반차':'반차','반':'반차','오전반차':'전반차','오후반차':'후반차','전반차':'전반차','후반차':'후반차','전반':'전반차','후반':'후반차',
+  '반차':'반차','반':'반차','오전반차':'전반','오후반차':'후반','전반차':'전반','후반차':'후반','전반':'전반','후반':'후반',
   '교육':'교육','출장':'출장','외근':'출장',
   '점검':'점검','회의':'회의','미팅':'회의',
   '작업':'작업','행사':'행사',
   '워크숍':'행사','세미나':'교육','훈련':'교육'
 };
 // 연차/휴가 계열 타입
-const VAC_SET = new Set(['연차','반차','전반차','후반차','교육','출장']);
+const VAC_SET = new Set(['연차','반차','전반','후반','교육','출장']);
 
 function parseTextToItems(raw) {
   const today = new Date();
@@ -3328,8 +3332,8 @@ function parseTextToItems(raw) {
       const [, m, d] = dateMatch.map(Number);
       const dt = new Date(year, m-1, d);
       const rest = line.replace(dateMatch[0], ' ').trim();
-      // 날짜가 줄 앞쪽(전체 길이의 절반 이전)에 위치하면 dateWasFirst
-      const dateWasFirst = line.indexOf(dateMatch[0]) <= 3;
+      // 날짜 위치가 줄 앞 절반 이내이면 "날짜 먼저(일정)", 그 이후이면 "이름 먼저(연차)"
+      const dateWasFirst = line.indexOf(dateMatch[0]) < line.length / 2;
       const { name, type } = extractNameType(rest, dateWasFirst);
       items.push(makeItem(name, type, dt));
       continue;
@@ -3361,20 +3365,15 @@ function extractNameType(text, dateWasFirst) {
     return { name: name || '미정', type: foundType };
   }
 
-  // 타입 키워드 없음 → 날짜가 먼저 나왔거나(일정 형태), 이름이 없으면 → 일정
-  // 날짜가 먼저 나온 경우: "5/12 팀 회의" 같은 패턴
+  // 타입 키워드 없음 →
+  // 날짜가 앞에 오면 (04/25 팀 회의): 일정
   if (dateWasFirst) {
-    // 내용이 있으면 해당 내용을 이름(일정 제목)으로, 없으면 '일정'
     return { name: name || '일정', type: '일정' };
   }
 
-  // 날짜가 뒤에 있는 경우(이름+날짜): 이름이 한글 2~5글자면 사람 이름 → 연차
-  if (/^[가-힣]{2,5}$/.test(name)) {
-    return { name, type: '연차' };
-  }
-
-  // 그 외: 일정으로 분류
-  return { name: name || '일정', type: '일정' };
+  // 이름이 앞에 오면 (박태준 04/25 건강검진): 연차
+  // 남은 텍스트가 있으면 그 내용을 이름, 없으면 원래 name을 이름으로
+  return { name: name || '미정', type: '연차' };
 }
 
 function makeItem(name, type, dt) {
@@ -3620,6 +3619,7 @@ async function runAiAnalysis() {
 
 const TYPE_COLORS = {
   '연차':'#ff8a76','반차':'var(--blue)','전반차':'var(--blue)','후반차':'var(--purple)',
+  '전반':'var(--blue)','후반':'var(--purple)',
   '교육':'var(--green)','출장':'var(--amber)',
   '점검':'var(--amber)','회의':'var(--blue)','작업':'var(--green)','행사':'var(--purple)',
   '일정':'var(--blue)','기타':'#888'
