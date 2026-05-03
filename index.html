@@ -400,7 +400,6 @@ body.pc-mode .dash-footer { display: flex; }
 }
 .bulk-body { overflow-y: auto; flex: 1; padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 14px; }
 
-/* 형식 안내 박스 */
 .bulk-guide {
   background: var(--bg3);
   border-radius: 12px;
@@ -416,7 +415,6 @@ body.pc-mode .dash-footer { display: flex; }
   font-family: monospace; color: var(--text2); font-size: 0.74rem;
 }
 
-/* 빠른 입력 칩 */
 .bulk-chips {
   display: flex; gap: 6px; flex-wrap: wrap;
 }
@@ -428,7 +426,6 @@ body.pc-mode .dash-footer { display: flex; }
 .bulk-chip:hover { background: var(--bg4); color: var(--text); }
 .bulk-chip:active { transform: scale(0.94); }
 
-/* 텍스트 입력창 */
 #bulkInput {
   width: 100%;
   background: var(--bg3);
@@ -448,7 +445,6 @@ body.pc-mode .dash-footer { display: flex; }
 #bulkInput:focus { border-color: var(--accent); }
 #bulkInput::placeholder { color: var(--text3); }
 
-/* 결과 미리보기 */
 #bulkResultWrap { display: none; }
 .bulk-result-title {
   font-size: 0.76rem; font-weight: 800; color: var(--text2);
@@ -478,7 +474,6 @@ body.pc-mode .dash-footer { display: flex; }
 }
 .bulk-remove-btn:hover { color: var(--accent2); }
 
-/* 하단 버튼 영역 */
 .bulk-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .bulk-btn-parse {
   flex: 1;
@@ -551,12 +546,15 @@ body {
   display: flex; flex-direction: column; transition: 0.1s;
 }
 .day-cell:hover { border-color: var(--bg4); background: var(--bg3); }
+
+/* ── 모바일 이벤트 점 ── */
 .event-dot-wrap {
   display: none;
+  justify-content: center;
   gap: 3px;
-  flex-wrap: wrap;
   margin-top: auto;
-  padding-top: 3px;
+  padding-top: 4px;
+  min-height: 10px;
 }
 @media (max-width: 600px) {
   .duty-container { display: none; }
@@ -566,12 +564,19 @@ body {
   .holiday-name { font-size: 0.54rem; }
   .event-dot-wrap { display: flex; }
 }
-.event-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent); flex-shrink: 0;
+
+/* 공휴일 점: 빨간색 그대로 */
+.event-dot-holiday {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #ff6b6b;
+  flex-shrink: 0;
 }
-.event-dot.dot-sched { background: var(--blue); }
-.event-dot.dot-holiday { background: #ff6b6b; }
+/* 이벤트(연차·일정) 점: 빨간 점 하나로 통일 */
+.event-dot-item {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #ff6b6b;
+  flex-shrink: 0;
+}
 
 #dayDetailOverlay {
   display: none;
@@ -1015,7 +1020,6 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
   </div>
 </div>
 
-<!-- 하단 퀵 네비게이션 (AI등록 → 일괄등록으로 교체) -->
 <div class="quick-wrap">
   <a href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️<span class="ql">지도</span></a>
   <a href="https://weather.naver.com/" target="_blank">🌤️<span class="ql">날씨</span></a>
@@ -1029,9 +1033,6 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
 <input type="file" id="imageInput" style="display:none" accept="image/*" onchange="handleFileUpload(this)">
 <input type="file" id="boardFileInput" style="display:none" multiple onchange="handleBoardFiles(this)">
 
-<!-- ══════════════════════════════════════
-     📝 일괄 등록 모달 (AI 없이 텍스트 파싱)
-══════════════════════════════════════ -->
 <div id="bulkModal" onclick="closeBulkIfOutside(event)">
   <div id="bulkPanel">
     <div class="bulk-handle"></div>
@@ -1041,8 +1042,6 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
     </div>
 
     <div class="bulk-body">
-
-      <!-- 입력 형식 안내 -->
       <div class="bulk-guide">
         <div class="bulk-guide-title">✏️ 한 줄에 하나씩 입력 · 아래 형식 참고</div>
         <div><span style="color:var(--accent2);">이름</span> <span style="color:var(--blue);">날짜</span> <span style="color:var(--green);">종류</span>
@@ -1054,7 +1053,6 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
         </div>
       </div>
 
-      <!-- 빠른 입력 칩 -->
       <div>
         <div style="font-size:0.72rem;color:var(--text3);font-weight:700;margin-bottom:7px;">⚡ 빠른 종류 선택 (클릭하면 커서 위치에 삽입)</div>
         <div class="bulk-chips" id="bulkChips">
@@ -1069,14 +1067,11 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
         </div>
       </div>
 
-      <!-- 입력창 -->
       <textarea id="bulkInput"
         placeholder="홍길동 5/12 연차&#10;김철수 5/13~5/15 출장&#10;박영희 5/20 반차&#10;5/22 팀 회의&#10;5/28 전기 점검"></textarea>
 
-      <!-- 오류 메시지 -->
       <div id="bulkError"></div>
 
-      <!-- 미리보기 결과 -->
       <div id="bulkResultWrap">
         <div class="bulk-result-title">
           <span>✅ 등록 미리보기</span>
@@ -1084,10 +1079,8 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
         </div>
         <div class="bulk-result-list" id="bulkResultList"></div>
       </div>
+    </div>
 
-    </div><!-- /bulk-body -->
-
-    <!-- 하단 버튼 -->
     <div class="bulk-actions" style="padding:0 20px 20px;flex-shrink:0;">
       <button class="bulk-btn-parse" onclick="runBulkParse()">🔍 미리보기</button>
       <button class="bulk-btn-register" id="bulkRegisterBtn" onclick="registerBulkItems()" disabled>📥 전체 등록</button>
@@ -1428,9 +1421,6 @@ window.dispatchEvent(new Event('boardAPIReady'));
 </script>
 
 <script>
-// ═══════════════════════════════════════════
-// 메인 로직
-// ═══════════════════════════════════════════
 window._vacationData = window._vacationData || {};
 window._allPosts = window._allPosts || [];
 
@@ -1493,6 +1483,9 @@ function getDutyValue(targetDate, offset) {
   const idx = (((t1StartIdx + diff + offset) % 6) + 6) % 6;
   return cycle[idx];
 }
+
+const VAC_TYPES_SET = new Set(['연차','반차','교육','출장','기타']);
+const SCHED_TYPES_SET = new Set(['점검','회의','작업','행사','일정']);
 
 // ════════════════════════════════
 // 캘린더 렌더링
@@ -1581,25 +1574,29 @@ window.renderCalendar = function renderCalendar() {
     }
     cell.appendChild(listContainer);
 
+    // ── 모바일 점 표시 ──
+    // 공휴일: 빨간 점 그대로 표시
+    // 이벤트(연차·일정): 있으면 빨간 점 하나만
     const dotWrap = document.createElement('div');
     dotWrap.className = 'event-dot-wrap';
-    if (holidayName) {
-      const d = document.createElement('span');
-      d.className = 'event-dot dot-holiday'; dotWrap.appendChild(d);
-    }
-    const items = data[dateKey] || [];
-    const vacItems = items.filter(i => i.name && VAC_TYPES_SET.has(i.type));
-    const schedItems = items.filter(i => i.name && !VAC_TYPES_SET.has(i.type));
-    schedItems.slice(0, 3).forEach(() => {
-      const d = document.createElement('span');
-      d.className = 'event-dot dot-sched'; dotWrap.appendChild(d);
-    });
-    vacItems.slice(0, 3).forEach(() => {
-      const d = document.createElement('span');
-      d.className = 'event-dot'; dotWrap.appendChild(d);
-    });
-    cell.appendChild(dotWrap);
 
+    const hasItems = (data[dateKey] || []).some(i => i.name);
+
+    if (holidayName) {
+      // 공휴일 점
+      const holidayDot = document.createElement('span');
+      holidayDot.className = 'event-dot-holiday';
+      dotWrap.appendChild(holidayDot);
+    }
+
+    if (hasItems) {
+      // 이벤트 점 (공휴일 유무 무관하게 이벤트 있으면 추가)
+      const itemDot = document.createElement('span');
+      itemDot.className = 'event-dot-item';
+      dotWrap.appendChild(itemDot);
+    }
+
+    cell.appendChild(dotWrap);
     grid.appendChild(cell);
   }
 
@@ -1608,9 +1605,6 @@ window.renderCalendar = function renderCalendar() {
     renderDutyCard();
   }
 };
-
-const VAC_TYPES_SET = new Set(['연차','반차','교육','출장','기타']);
-const SCHED_TYPES_SET = new Set(['점검','회의','작업','행사','일정']);
 
 function sidebarMoveMonth(n) {
   sidebarMonth = new Date(sidebarMonth.getFullYear(), sidebarMonth.getMonth() + n, 1);
@@ -2444,12 +2438,10 @@ const TYPE_MAP_BULK = {
 const VAC_SET_BULK = new Set(['연차','반차','교육','출장','기타']);
 
 let _bulkParsedItems = [];
-let _bulkCursorPos = null;
 
 function openBulkModal() {
   document.getElementById('bulkModal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
-  // 입력창 초기화
   document.getElementById('bulkInput').value = '';
   document.getElementById('bulkResultWrap').style.display = 'none';
   document.getElementById('bulkResultList').innerHTML = '';
@@ -2468,14 +2460,12 @@ function closeBulkIfOutside(e) {
   if (e.target === document.getElementById('bulkModal')) closeBulkModal();
 }
 
-// 칩 클릭 → 커서 위치에 종류 삽입
 function insertChip(text) {
   const ta = document.getElementById('bulkInput');
   ta.focus();
   const start = ta.selectionStart;
   const end = ta.selectionEnd;
   const val = ta.value;
-  // 커서 앞에 공백 확인 후 삽입
   const before = val.substring(0, start);
   const after = val.substring(end);
   const spaceBefore = before.length > 0 && !before.endsWith(' ') && !before.endsWith('\n') ? ' ' : '';
@@ -2485,7 +2475,6 @@ function insertChip(text) {
   ta.selectionStart = ta.selectionEnd = newPos;
 }
 
-// 텍스트 파서
 function parseBulkText(raw) {
   const today = new Date();
   const year  = today.getFullYear();
@@ -2493,7 +2482,6 @@ function parseBulkText(raw) {
   const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
 
   for (const line of lines) {
-    // 날짜 범위 패턴: 5/13~5/15  5.13~5.15  5월13일~5월15일
     const rangeMatch = line.match(
       /(\d{1,2})[\/\.\-월](\d{1,2})일?\s*[~\-~]\s*(\d{1,2})[\/\.\-월](\d{1,2})일?/
     );
@@ -2509,7 +2497,6 @@ function parseBulkText(raw) {
       continue;
     }
 
-    // 단일 날짜 패턴
     const dateMatch = line.match(/(\d{1,2})[\/\.\-월](\d{1,2})일?/);
     if (dateMatch) {
       const [, m, d] = dateMatch.map(Number);
@@ -2520,7 +2507,6 @@ function parseBulkText(raw) {
       continue;
     }
 
-    // 날짜 없음
     items.push({ name: line, type:'기타', date: null, category:'schedule', _parseError: true });
   }
   return items;
@@ -2529,7 +2515,6 @@ function parseBulkText(raw) {
 function bulkExtractNameType(text) {
   let foundType = null;
   let remaining = text;
-  // 긴 키워드 먼저 매칭
   const sortedKeys = Object.keys(TYPE_MAP_BULK).sort((a,b) => b.length - a.length);
   for (const kw of sortedKeys) {
     const re = new RegExp('(^|[\\s,])' + kw + '([\\s,]|$)', 'i');
@@ -2539,7 +2524,6 @@ function bulkExtractNameType(text) {
       break;
     }
   }
-  // 숫자·특수문자 제거 → 이름
   const name = remaining.replace(/[0-9\/\.\-~]/g, '').replace(/\s+/g,' ').trim() || '미정';
   return { name, type: foundType || '기타' };
 }
