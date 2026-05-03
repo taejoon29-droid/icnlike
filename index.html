@@ -2973,13 +2973,14 @@ let _aiTextParsedItems = [];
 // ── 규칙 기반 텍스트 파서 (API 불필요) ──
 const TYPE_MAP = {
   '연차':'연차','연':'연차','휴가':'연차',
-  '반차':'반차','반':'반차','오전반차':'반차','오후반차':'반차',
+  '반차':'반차','반':'반차','오전반차':'전반차','오후반차':'후반차','전반차':'전반차','후반차':'후반차','전반':'전반차','후반':'후반차',
   '교육':'교육','출장':'출장','외근':'출장',
   '점검':'점검','회의':'회의','미팅':'회의',
-  '작업':'작업','행사':'행사','기타':'기타',
+  '작업':'작업','행사':'행사',
   '워크숍':'행사','세미나':'교육','훈련':'교육'
 };
-const VAC_SET = new Set(['연차','반차','교육','출장','기타']);
+// 연차/휴가 계열 타입
+const VAC_SET = new Set(['연차','반차','전반차','후반차','교육','출장']);
 
 function parseTextToItems(raw) {
   const today = new Date();
@@ -2997,7 +2998,9 @@ function parseTextToItems(raw) {
       const start = new Date(year, m1-1, d1);
       const end   = new Date(year, m2-1, d2);
       const rest  = line.replace(rangeMatch[0], ' ').trim();
-      const { name, type } = extractNameType(rest);
+      // 날짜가 줄 앞부분에 나왔는지 판단
+      const dateWasFirst = line.indexOf(rangeMatch[0]) < line.length / 2;
+      const { name, type } = extractNameType(rest, dateWasFirst);
       for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate()+1)) {
         items.push(makeItem(name, type, new Date(dt)));
       }
@@ -3010,7 +3013,9 @@ function parseTextToItems(raw) {
       const [, m, d] = dateMatch.map(Number);
       const dt = new Date(year, m-1, d);
       const rest = line.replace(dateMatch[0], ' ').trim();
-      const { name, type } = extractNameType(rest);
+      // 날짜가 줄 앞쪽(전체 길이의 절반 이전)에 위치하면 dateWasFirst
+      const dateWasFirst = line.indexOf(dateMatch[0]) <= 3;
+      const { name, type } = extractNameType(rest, dateWasFirst);
       items.push(makeItem(name, type, dt));
       continue;
     }
@@ -3021,7 +3026,7 @@ function parseTextToItems(raw) {
   return items;
 }
 
-function extractNameType(text) {
+function extractNameType(text, dateWasFirst) {
   // 종류 키워드 먼저 찾기
   let foundType = null;
   let remaining = text;
@@ -3033,9 +3038,28 @@ function extractNameType(text) {
       break;
     }
   }
-  // 남은 텍스트 정리: 앞뒤 공백·구분자만 제거, 이름 속 숫자는 보존
-  const name = remaining.replace(/^[\s\/\.\-~]+|[\s\/\.\-~]+$/g, '').replace(/\s+/g,' ').trim() || '미정';
-  return { name, type: foundType || '기타' };
+  // 남은 텍스트 정리
+  const name = remaining.replace(/^[\s\/\.\-~]+|[\s\/\.\-~]+$/g, '').replace(/\s+/g,' ').trim();
+
+  if (foundType) {
+    // 타입 키워드가 명시된 경우: 그대로 사용
+    return { name: name || '미정', type: foundType };
+  }
+
+  // 타입 키워드 없음 → 날짜가 먼저 나왔거나(일정 형태), 이름이 없으면 → 일정
+  // 날짜가 먼저 나온 경우: "5/12 팀 회의" 같은 패턴
+  if (dateWasFirst) {
+    // 내용이 있으면 해당 내용을 이름(일정 제목)으로, 없으면 '일정'
+    return { name: name || '일정', type: '일정' };
+  }
+
+  // 날짜가 뒤에 있는 경우(이름+날짜): 이름이 한글 2~5글자면 사람 이름 → 연차
+  if (/^[가-힣]{2,5}$/.test(name)) {
+    return { name, type: '연차' };
+  }
+
+  // 그 외: 일정으로 분류
+  return { name: name || '일정', type: '일정' };
 }
 
 function makeItem(name, type, dt) {
@@ -3280,8 +3304,10 @@ async function runAiAnalysis() {
 }
 
 const TYPE_COLORS = {
-  '연차':'#ff8a76','반차':'var(--blue)','교육':'var(--green)','출장':'var(--amber)',
-  '점검':'var(--amber)','회의':'var(--blue)','작업':'var(--green)','행사':'var(--purple)','기타':'#888'
+  '연차':'#ff8a76','반차':'var(--blue)','전반차':'var(--blue)','후반차':'var(--purple)',
+  '교육':'var(--green)','출장':'var(--amber)',
+  '점검':'var(--amber)','회의':'var(--blue)','작업':'var(--green)','행사':'var(--purple)',
+  '일정':'var(--blue)','기타':'#888'
 };
 
 function showAiResults(items) {
