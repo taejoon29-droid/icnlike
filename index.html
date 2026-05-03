@@ -815,21 +815,24 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
   <!-- ══ 오른쪽: 일정 요약 사이드바 (PC모드) ══ -->
   <div class="pc-board-col">
     <div class="pc-board-sidebar-header">
-      📋 이번 달 일정
+      📋 일정 · 연차 조회
     </div>
 
     <div class="pc-board-inline">
-      <!-- 월 네비게이션 -->
-      <div class="sidebar-month-nav">
-        <button class="sidebar-month-btn" onclick="sidebarMoveMonth(-1)">◀</button>
-        <span id="sidebarMonthLabel" style="font-size:0.9rem;font-weight:800;"></span>
-        <button class="sidebar-month-btn" onclick="sidebarMoveMonth(1)">▶</button>
+      <!-- 날짜 네비게이션 -->
+      <div class="sidebar-month-nav" style="padding:11px 12px 0;gap:6px;">
+        <button class="sidebar-month-btn" onclick="sidebarMoveDay(-1)" title="이전 날" style="padding:3px 12px;font-size:1rem;">◀</button>
+        <div style="flex:1;text-align:center;">
+          <div id="sidebarMonthLabel" style="font-size:0.85rem;font-weight:800;color:var(--text);line-height:1.3;"></div>
+          <button id="sidebarTodayBtn" onclick="sidebarGoToday()" style="display:none;margin-top:3px;background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:10px;padding:2px 10px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:inherit;">오늘로</button>
+        </div>
+        <button class="sidebar-month-btn" onclick="sidebarMoveDay(1)" title="다음 날" style="padding:3px 12px;font-size:1rem;">▶</button>
       </div>
 
       <!-- 일정 섹션 -->
       <div class="sidebar-section">
         <div class="sidebar-section-title sched-title">
-          <span>📅 일정</span>
+          <span id="sidebarSchedTitle">📅 오늘 일정</span>
           <span class="sidebar-count-badge" id="sidebarSchedCount">0건</span>
         </div>
         <div id="sidebarSchedList">
@@ -840,7 +843,7 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
       <!-- 연차/휴가 섹션 (오늘) -->
       <div class="sidebar-section">
         <div class="sidebar-section-title vac-title">
-          <span>🏖️ 오늘 연차 · 휴가</span>
+          <span id="sidebarVacTitle">🏖️ 오늘 연차 · 휴가</span>
           <span class="sidebar-count-badge" id="sidebarVacCount">0건</span>
         </div>
         <div id="sidebarVacList">
@@ -1508,6 +1511,19 @@ window.renderCalendar = function renderCalendar() {
 const VAC_TYPES_SET = new Set(['연차','반차','교육','출장','기타']);
 const SCHED_TYPES_SET = new Set(['점검','회의','작업','행사','일정']);
 
+// 사이드바 날짜 오프셋 (0 = 오늘, ±N = N일 이동)
+let _sidebarDayOffset = 0;
+
+function sidebarMoveDay(n) {
+  _sidebarDayOffset += n;
+  renderSidebarSchedule();
+}
+
+function sidebarGoToday() {
+  _sidebarDayOffset = 0;
+  renderSidebarSchedule();
+}
+
 function sidebarMoveMonth(n) {
   sidebarMonth = new Date(sidebarMonth.getFullYear(), sidebarMonth.getMonth() + n, 1);
   renderSidebarSchedule();
@@ -1515,56 +1531,60 @@ function sidebarMoveMonth(n) {
 
 function renderSidebarSchedule() {
   const label = document.getElementById('sidebarMonthLabel');
+  const todayBtn = document.getElementById('sidebarTodayBtn');
   const vacList = document.getElementById('sidebarVacList');
   const schedList = document.getElementById('sidebarSchedList');
   const vacCount = document.getElementById('sidebarVacCount');
   const schedCount = document.getElementById('sidebarSchedCount');
+  const vacTitle = document.getElementById('sidebarVacTitle');
+  const schedTitle = document.getElementById('sidebarSchedTitle');
   if (!vacList || !schedList) return;
 
-  const y = sidebarMonth.getFullYear();
-  const m = sidebarMonth.getMonth();
-  if (label) label.textContent = y + '년 ' + (m+1) + '월';
-
   const data = window._vacationData || {};
-  const schedEntries = [];
 
-  // 오늘 날짜 키
-  const todayObj = new Date();
-  const todayKey = todayObj.getFullYear() + '-' +
-    String(todayObj.getMonth()+1).padStart(2,'0') + '-' +
-    String(todayObj.getDate()).padStart(2,'0');
+  // 기준 날짜 = 오늘 + offset
+  const baseObj = new Date();
+  baseObj.setDate(baseObj.getDate() + _sidebarDayOffset);
+  const baseKey = baseObj.getFullYear() + '-' +
+    String(baseObj.getMonth()+1).padStart(2,'0') + '-' +
+    String(baseObj.getDate()).padStart(2,'0');
+  const baseDay = baseObj.getDate();
+  const baseM = baseObj.getMonth() + 1;
+  const baseY = baseObj.getFullYear();
+  const weekNames = ['일','월','화','수','목','금','토'];
+  const isToday = _sidebarDayOffset === 0;
 
-  // 연차: 오늘 것만
+  // 날짜 라벨
+  if (label) label.textContent = baseY + '년 ' + baseM + '월 ' + baseDay + '일 (' + weekNames[baseObj.getDay()] + ')';
+
+  // 오늘 버튼: 오늘이 아닐 때만 표시
+  if (todayBtn) todayBtn.style.display = isToday ? 'none' : '';
+
+  // 섹션 타이틀 동적 변경
+  const dayLabel = isToday ? '오늘' : (baseM + '/' + baseDay);
+  if (vacTitle) vacTitle.textContent = '🏖️ ' + dayLabel + ' 연차 · 휴가';
+  if (schedTitle) schedTitle.textContent = '📅 ' + dayLabel + ' 일정';
+
+  // 연차
   const vacEntries = [];
-  (data[todayKey] || []).forEach(item => {
+  (data[baseKey] || []).forEach(item => {
     if (!item.name && !item.type) return;
-    if (VAC_TYPES_SET.has(item.type)) {
-      vacEntries.push({ dateKey: todayKey, day: todayObj.getDate(), ...item });
-    }
+    if (VAC_TYPES_SET.has(item.type)) vacEntries.push({ dateKey: baseKey, day: baseDay, ...item });
   });
 
-  // 일정: 이번 달 전체
-  Object.keys(data).forEach(key => {
-    const [ky, km, kd] = key.split('-').map(Number);
-    if (ky === y && km === m+1) {
-      (data[key] || []).forEach(item => {
-        if (!item.name && !item.type) return;
-        if (!VAC_TYPES_SET.has(item.type)) {
-          schedEntries.push({ dateKey: key, day: kd, ...item });
-        }
-      });
-    }
+  // 일정
+  const schedEntries = [];
+  (data[baseKey] || []).forEach(item => {
+    if (!item.name && !item.type) return;
+    if (!VAC_TYPES_SET.has(item.type)) schedEntries.push({ dateKey: baseKey, day: baseDay, ...item });
   });
-
-  vacEntries.sort((a,b) => a.day - b.day);
-  schedEntries.sort((a,b) => a.day - b.day);
 
   if (vacCount) vacCount.textContent = vacEntries.length + '건';
   if (schedCount) schedCount.textContent = schedEntries.length + '건';
 
-  // 연차 렌더 (오늘)
+  // 연차 렌더
   if (vacEntries.length === 0) {
-    vacList.innerHTML = '<div class="sidebar-empty">오늘 연차·휴가가 없습니다</div>';
+    vacList.innerHTML = '<div class="sidebar-empty">' + dayLabel + ' 연차·휴가가 없습니다</div>';
   } else {
     vacList.innerHTML = '';
     vacEntries.forEach(e => {
@@ -1573,8 +1593,8 @@ function renderSidebarSchedule() {
       item.className = 'sidebar-item';
       item.innerHTML = `
         <div class="sidebar-item-date">
-          <span class="sdate-m">${m+1}월</span>
-          ${e.day}일
+          <span class="sdate-m">${baseM}월</span>
+          ${baseDay}일
         </div>
         <div class="sidebar-item-name">${escHtml(e.name || '—')}</div>
         ${e.type ? `<span class="sidebar-item-type ${badgeClass}">${escHtml(e.type)}</span>` : ''}
@@ -1585,7 +1605,7 @@ function renderSidebarSchedule() {
 
   // 일정 렌더
   if (schedEntries.length === 0) {
-    schedList.innerHTML = '<div class="sidebar-empty">등록된 일정이 없습니다</div>';
+    schedList.innerHTML = '<div class="sidebar-empty">' + dayLabel + ' 등록된 일정이 없습니다</div>';
   } else {
     schedList.innerHTML = '';
     schedEntries.forEach(e => {
@@ -1595,8 +1615,8 @@ function renderSidebarSchedule() {
       item.style.alignItems = 'flex-start';
       item.innerHTML = `
         <div class="sidebar-item-date" style="margin-top:2px;">
-          <span class="sdate-m">${m+1}월</span>
-          ${e.day}일
+          <span class="sdate-m">${baseM}월</span>
+          ${baseDay}일
         </div>
         <div style="flex:1;min-width:0;">
           <div class="sidebar-item-name">${escHtml(e.name || '—')}</div>
