@@ -3116,6 +3116,7 @@ function toggleDashboard() {
   content.style.display = _dashVisible ? '' : 'none';
   btn.textContent = _dashVisible ? '숨기기 ▲' : '표시하기 ▼';
 }
+let _clockTimer = null;
 function startFooterClock() {
   if (_clockTimer) return;
   function tick() {
