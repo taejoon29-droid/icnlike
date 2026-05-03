@@ -287,6 +287,10 @@ body.pc-mode .pc-top-quickbar { display: flex; }
   font-size: 0.8rem; padding: 12px 0;
   font-style: italic;
 }
+.sidebar-item-memo {
+  font-size: 0.72rem; color: var(--text3); margin-top: 3px;
+  white-space: pre-wrap; word-break: break-all; line-height: 1.4;
+}
 
 /* 이번달 네비게이션 */
 .sidebar-month-nav {
@@ -379,6 +383,12 @@ body.pc-mode .dash-footer { display: flex; }
   --accent: #e8543a; --accent2: #ff6b50;
   --blue: #4a9eff; --green: #34c975; --amber: #ffb340; --purple: #bf5af2;
 }
+body.light-mode {
+  --bg: #f2f2f7; --bg2: #ffffff; --bg3: #e8e8ed; --bg4: #d8d8df;
+  --border: #c8c8d0; --text: #1a1a1e; --text2: #48484f; --text3: #98989f;
+  --accent: #e8543a; --accent2: #d44428;
+  --blue: #1a6fd4; --green: #1a9e55; --amber: #c87800; --purple: #8a3dca;
+}
 * { box-sizing: border-box; }
 body {
   font-family: -apple-system,'Pretendard',sans-serif;
@@ -409,11 +419,115 @@ body {
   display: flex; flex-direction: column; transition: 0.1s;
 }
 .day-cell:hover { border-color: var(--bg4); background: var(--bg3); }
+/* ── 모바일: 이벤트 점 표시 ── */
+.event-dot-wrap {
+  display: none;
+  gap: 3px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 3px;
+}
 @media (max-width: 600px) {
   .duty-container { display: none; }
-  .day-cell { min-height: 72px; border-radius: 10px; }
+  .day-cell { min-height: 72px; border-radius: 10px; cursor: pointer; }
   .date-number { font-size: 0.82rem; }
+  .item-list { display: none; }
+  .holiday-name { font-size: 0.54rem; }
+  .event-dot-wrap { display: flex; }
 }
+.event-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+}
+.event-dot.dot-sched { background: var(--blue); }
+.event-dot.dot-holiday { background: #ff6b6b; }
+
+/* ── 날짜 상세 팝업 ── */
+#dayDetailOverlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 5000;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+#dayDetailOverlay.show { display: flex; }
+#dayDetailPanel {
+  background: var(--bg2);
+  border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 0 0 calc(20px + env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 30px rgba(0,0,0,0.4);
+  animation: slideUp 0.25s cubic-bezier(0.32,0.72,0,1);
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.ddp-handle {
+  width: 40px; height: 4px; border-radius: 2px;
+  background: var(--bg4); margin: 12px auto 0;
+}
+.ddp-header {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.ddp-date-title {
+  font-size: 1.1rem; font-weight: 800; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.ddp-holiday-badge {
+  font-size: 0.7rem; font-weight: 700; color: #ff6b6b;
+  background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.3);
+  border-radius: 8px; padding: 2px 8px;
+}
+.ddp-close {
+  background: var(--bg3); border: none; color: var(--text2);
+  width: 28px; height: 28px; border-radius: 50%; font-size: 16px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.ddp-section { padding: 14px 20px 0; }
+.ddp-section-title {
+  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ddp-section-title.title-duty { color: var(--amber); }
+.ddp-section-title.title-sched { color: var(--blue); }
+.ddp-section-title.title-vac { color: #ff8a76; }
+.ddp-duty-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-bottom: 4px;
+}
+.ddp-duty-card {
+  border-radius: 12px; padding: 10px 8px; text-align: center;
+  border: 1px solid var(--border); background: var(--bg3);
+}
+.ddp-duty-label { font-size: 0.72rem; color: var(--text3); margin-bottom: 4px; font-weight: 600; }
+.ddp-duty-value { font-size: 1rem; font-weight: 800; }
+.ddp-duty-value.v-주 { color: var(--amber); }
+.ddp-duty-value.v-야 { color: var(--purple); }
+.ddp-duty-value.v-비 { color: var(--green); }
+body.light-mode .ddp-duty-value.v-주 { color: #b36a00; }
+body.light-mode .ddp-duty-value.v-야 { color: #6b22b0; }
+body.light-mode .ddp-duty-value.v-비 { color: #157a40; }
+.ddp-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--bg3); border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 7px;
+  border: 1px solid var(--border);
+}
+.ddp-item-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+}
+.ddp-item-name { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+.ddp-item-sub { font-size: 0.75rem; color: var(--text3); margin-top: 2px; }
+.ddp-empty { color: var(--text3); font-size: 0.82rem; font-style: italic; padding: 4px 0 8px; }
+.ddp-img { width: 100%; border-radius: 10px; margin-top: 6px; cursor: pointer; }
 .is-today { background: var(--bg3) !important; border-color: var(--accent) !important; }
 .is-today .date-number {
   background: var(--accent); color: #fff;
@@ -425,14 +539,42 @@ body {
 .date-number { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; color: var(--text); line-height: 1; }
 .week-sun .date-number { color: #ff6b6b; }
 .week-sat .date-number { color: var(--blue); }
+.is-holiday .date-number { color: #ff6b6b !important; }
+.holiday-name {
+  font-size: 0.58rem; color: #ff8a76; font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  margin-bottom: 2px; line-height: 1.2;
+}
+body.light-mode .holiday-name { color: #c0392b; }
+/* 테마 토글 버튼 */
+#themeModeBtn {
+  position: fixed; top: 10px; right: 110px; z-index: 9999;
+  background: var(--bg3); color: var(--text2);
+  border: 1px solid var(--border); border-radius: 20px;
+  padding: 6px 14px; font-size: 0.75rem; font-weight: 700;
+  cursor: pointer; transition: 0.2s;
+  display: flex; align-items: center; gap: 5px;
+  font-family: -apple-system,'Pretendard',sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+#themeModeBtn:active { transform: scale(0.94); }
+body.light-mode #themeModeBtn { background: var(--bg3); color: var(--text2); }
 .duty-container {
   background: rgba(255,255,255,0.04); border-radius: 5px; padding: 3px 4px;
   font-size: 0.64rem; margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.06);
 }
+body.light-mode .duty-container {
+  background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1);
+}
 .duty-row { display: flex; justify-content: space-between; align-items: center; }
+.duty-row span { color: var(--text3); }
+body.light-mode .duty-row span { color: #666; }
 b[data-type^="주"] { color: var(--amber); }
 b[data-type^="야"] { color: var(--purple); }
 b[data-type^="비"] { color: var(--green); }
+body.light-mode b[data-type^="주"] { color: #b36a00; font-weight: 800; }
+body.light-mode b[data-type^="야"] { color: #6b22b0; font-weight: 800; }
+body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
 .item-list { display: flex; flex-direction: column; gap: 3px; margin-top: auto; }
 .vacation-tag {
   font-size: 0.65rem; font-weight: 700; padding: 2px 5px;
@@ -616,7 +758,21 @@ b[data-type^="비"] { color: var(--green); }
 </div>
 
 <!-- PC 모드 전환 버튼 -->
+<!-- 날짜 상세 팝업 (모바일) -->
+<div id="dayDetailOverlay" onclick="closeDayDetail(event)">
+  <div id="dayDetailPanel">
+    <div class="ddp-handle"></div>
+    <div class="ddp-header">
+      <div class="ddp-date-title" id="ddpTitle"></div>
+      <button class="ddp-close" onclick="closeDayDetailDirect()">✕</button>
+    </div>
+    <div id="ddpBody"></div>
+  </div>
+</div>
+
 <button id="pcModeBtn" onclick="togglePcMode()">🖥️ PC모드</button>
+<!-- 테마 전환 버튼 -->
+<button id="themeModeBtn" onclick="toggleTheme()">☀️ 라이트</button>
 
 <div class="pc-layout-wrap">
   <!-- 왼쪽: 캘린더 컬럼 -->
@@ -663,17 +819,6 @@ b[data-type^="비"] { color: var(--green); }
         <button class="sidebar-month-btn" onclick="sidebarMoveMonth(1)">▶</button>
       </div>
 
-      <!-- 연차/휴가 섹션 -->
-      <div class="sidebar-section">
-        <div class="sidebar-section-title vac-title">
-          <span>🏖️ 연차 · 휴가</span>
-          <span class="sidebar-count-badge" id="sidebarVacCount">0건</span>
-        </div>
-        <div id="sidebarVacList">
-          <div class="sidebar-empty">등록된 연차가 없습니다</div>
-        </div>
-      </div>
-
       <!-- 일정 섹션 -->
       <div class="sidebar-section">
         <div class="sidebar-section-title sched-title">
@@ -682,6 +827,17 @@ b[data-type^="비"] { color: var(--green); }
         </div>
         <div id="sidebarSchedList">
           <div class="sidebar-empty">등록된 일정이 없습니다</div>
+        </div>
+      </div>
+
+      <!-- 연차/휴가 섹션 -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title vac-title">
+          <span>🏖️ 연차 · 휴가</span>
+          <span class="sidebar-count-badge" id="sidebarVacCount">0건</span>
+        </div>
+        <div id="sidebarVacList">
+          <div class="sidebar-empty">등록된 연차가 없습니다</div>
         </div>
       </div>
 
@@ -792,6 +948,10 @@ b[data-type^="비"] { color: var(--green); }
               <button onclick="selectVacType(this,'교육')" class="type-sel-btn">교육</button>
               <button onclick="selectVacType(this,'출장')" class="type-sel-btn">출장</button>
               <button onclick="selectVacType(this,'기타')" class="type-sel-btn">기타</button>
+            </div>
+            <div id="vacEtcWrap" style="display:none;margin-top:8px;">
+              <input id="vacEtcText" type="text" placeholder="예) 육아휴직, 출산휴가, 병가 등" maxlength="20"
+                style="width:100%;background:var(--bg3);border:1px solid var(--accent);border-radius:10px;padding:9px 12px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;">
             </div>
           </div>
           <div>
@@ -1001,7 +1161,7 @@ function fileToBase64(file) {
 
 async function saveVacation(dateKey, entry) {
   if (firebaseReady) {
-    const docData = { dateKey, name: entry.name || '', type: entry.type || '', img: entry.img || '' };
+    const docData = { dateKey, name: entry.name || '', type: entry.type || '', img: entry.img || '', memo: entry.memo || '' };
     await addDoc(collection(db, 'vacations'), docData);
   } else {
     const STORAGE_KEY = 'power_system_v5_stable';
@@ -1201,10 +1361,26 @@ window.renderCalendar = function renderCalendar() {
     if (dateObj.toDateString() === new Date().toDateString()) cell.classList.add('is-today');
     if (dateObj.getDay() === 0) cell.classList.add('week-sun');
     if (dateObj.getDay() === 6) cell.classList.add('week-sat');
+
+    // 공휴일 체크
+    const holidayName = KR_HOLIDAYS[dateKey];
+    if (holidayName) cell.classList.add('is-holiday');
+
     if (isAddMode) { cell.classList.add('add-mode'); cell.onclick = () => onCellClick(dateKey); }
+    else {
+      // 모바일: 날짜 클릭 → 상세 팝업
+      cell.onclick = () => openDayDetail(dateKey, dateObj);
+    }
 
     const num = document.createElement('span');
     num.className = 'date-number'; num.innerText = d; cell.appendChild(num);
+
+    // 공휴일 이름 표시
+    if (holidayName) {
+      const hn = document.createElement('div');
+      hn.className = 'holiday-name'; hn.textContent = holidayName;
+      cell.appendChild(hn);
+    }
 
     const dutyBox = document.createElement('div');
     dutyBox.className = 'duty-container';
@@ -1238,6 +1414,27 @@ window.renderCalendar = function renderCalendar() {
       });
     }
     cell.appendChild(listContainer);
+
+    // 모바일 이벤트 점 표시
+    const dotWrap = document.createElement('div');
+    dotWrap.className = 'event-dot-wrap';
+    if (holidayName) {
+      const d = document.createElement('span');
+      d.className = 'event-dot dot-holiday'; dotWrap.appendChild(d);
+    }
+    const items = data[dateKey] || [];
+    const vacItems = items.filter(i => i.name && VAC_TYPES_SET.has(i.type));
+    const schedItems = items.filter(i => i.name && !VAC_TYPES_SET.has(i.type));
+    schedItems.slice(0, 3).forEach(() => {
+      const d = document.createElement('span');
+      d.className = 'event-dot dot-sched'; dotWrap.appendChild(d);
+    });
+    vacItems.slice(0, 3).forEach(() => {
+      const d = document.createElement('span');
+      d.className = 'event-dot'; dotWrap.appendChild(d);
+    });
+    cell.appendChild(dotWrap);
+
     grid.appendChild(cell);
   }
 
@@ -1326,13 +1523,17 @@ function renderSidebarSchedule() {
       const badgeClass = 'badge-' + (e.type || '일정');
       const item = document.createElement('div');
       item.className = 'sidebar-item';
+      item.style.alignItems = 'flex-start';
       item.innerHTML = `
-        <div class="sidebar-item-date">
+        <div class="sidebar-item-date" style="margin-top:2px;">
           <span class="sdate-m">${m+1}월</span>
           ${e.day}일
         </div>
-        <div class="sidebar-item-name">${escHtml(e.name || '—')}</div>
-        ${e.type ? `<span class="sidebar-item-type ${badgeClass}">${escHtml(e.type)}</span>` : ''}
+        <div style="flex:1;min-width:0;">
+          <div class="sidebar-item-name">${escHtml(e.name || '—')}</div>
+          ${e.memo ? `<div class="sidebar-item-memo">💬 ${escHtml(e.memo)}</div>` : ''}
+        </div>
+        ${e.type ? `<span class="sidebar-item-type ${badgeClass}" style="margin-top:2px;">${escHtml(e.type)}</span>` : ''}
       `;
       schedList.appendChild(item);
     });
@@ -1515,6 +1716,8 @@ function openRegisterModal(prefillDateKey) {
   document.getElementById('regSchedMemo').value = '';
   clearRegVacImg();
   selectVacType(document.querySelector('#vacTypeButtons .type-sel-btn'), '연차');
+  document.getElementById('vacEtcWrap').style.display = 'none';
+  if (document.getElementById('vacEtcText')) document.getElementById('vacEtcText').value = '';
   selectSchedType(document.querySelector('#schedTypeButtons .type-sel-btn'), '점검');
   switchRegTab('vacation');
   document.getElementById('registerModal').style.display = 'flex';
@@ -1542,6 +1745,15 @@ function selectVacType(btn, type) {
   _regVacType = type;
   document.querySelectorAll('#vacTypeButtons .type-sel-btn').forEach(b => b.classList.remove('active-type'));
   btn.classList.add('active-type');
+  const etcWrap = document.getElementById('vacEtcWrap');
+  const etcInput = document.getElementById('vacEtcText');
+  if (type === '기타') {
+    etcWrap.style.display = 'block';
+    setTimeout(() => etcInput && etcInput.focus(), 50);
+  } else {
+    etcWrap.style.display = 'none';
+    if (etcInput) etcInput.value = '';
+  }
 }
 function selectSchedType(btn, type) {
   _regSchedType = type;
@@ -1572,7 +1784,13 @@ async function submitVacation() {
   const dateVal = document.getElementById('regVacDate').value;
   if (!name) { alert('이름을 입력해주세요.'); return; }
   if (!dateVal) { alert('날짜를 선택해주세요.'); return; }
-  const entry = { name, type: _regVacType, img: _regVacImgData };
+  let vacType = _regVacType;
+  if (vacType === '기타') {
+    const etcVal = (document.getElementById('vacEtcText').value || '').trim();
+    if (!etcVal) { alert('기타 종류를 직접 입력해주세요.\n예) 육아휴직, 출산휴가, 병가 등'); document.getElementById('vacEtcText').focus(); return; }
+    vacType = etcVal;
+  }
+  const entry = { name, type: vacType, img: _regVacImgData };
   const apiReady = await waitForVacationAPI(5000);
   try {
     if (apiReady && window._vacationAPI) await window._vacationAPI.saveVacation(dateVal, entry);
@@ -1911,6 +2129,149 @@ async function submitPost() {
 }
 
 // ════════════════════════════════
+// 대한민국 공휴일 (2024~2026)
+// ════════════════════════════════
+const KR_HOLIDAYS = {
+  // ── 2024 ──
+  '2024-01-01':'신정',
+  '2024-02-09':'설날 연휴','2024-02-10':'설날','2024-02-11':'설날 연휴','2024-02-12':'대체공휴일',
+  '2024-03-01':'삼일절',
+  '2024-04-10':'국회의원선거일',
+  '2024-05-05':'어린이날','2024-05-06':'대체공휴일',
+  '2024-05-15':'부처님오신날',
+  '2024-06-06':'현충일',
+  '2024-08-15':'광복절',
+  '2024-09-16':'추석 연휴','2024-09-17':'추석','2024-09-18':'추석 연휴',
+  '2024-10-03':'개천절','2024-10-09':'한글날',
+  '2024-12-25':'크리스마스',
+  // ── 2025 ──
+  '2025-01-01':'신정',
+  '2025-01-28':'설날 연휴','2025-01-29':'설날','2025-01-30':'설날 연휴',
+  '2025-03-01':'삼일절','2025-03-03':'대체공휴일',
+  '2025-05-05':'어린이날','2025-05-06':'대체공휴일',
+  '2025-05-13':'부처님오신날',
+  '2025-06-06':'현충일',
+  '2025-08-15':'광복절',
+  '2025-10-03':'개천절',
+  '2025-10-05':'추석 연휴','2025-10-06':'추석','2025-10-07':'추석 연휴','2025-10-08':'대체공휴일',
+  '2025-10-09':'한글날',
+  '2025-12-25':'크리스마스',
+  // ── 2026 ──
+  '2026-01-01':'신정',
+  '2026-02-16':'설날 연휴','2026-02-17':'설날','2026-02-18':'설날 연휴','2026-02-19':'대체공휴일',
+  '2026-03-01':'삼일절','2026-03-02':'대체공휴일',
+  '2026-05-05':'어린이날',
+  '2026-05-24':'부처님오신날','2026-05-25':'대체공휴일',
+  '2026-06-06':'현충일',
+  '2026-08-15':'광복절',
+  '2026-09-24':'추석 연휴','2026-09-25':'추석','2026-09-26':'추석 연휴','2026-09-28':'대체공휴일',
+  '2026-10-03':'개천절','2026-10-05':'대체공휴일',
+  '2026-10-09':'한글날',
+  '2026-12-25':'크리스마스',
+};
+
+// ════════════════════════════════
+// 날짜 상세 팝업 (모바일)
+// ════════════════════════════════
+function openDayDetail(dateKey, dateObj) {
+  // PC모드에서는 팝업 비활성화
+  if (document.body.classList.contains('pc-mode')) return;
+  const overlay = document.getElementById('dayDetailOverlay');
+  const titleEl = document.getElementById('ddpTitle');
+  const body    = document.getElementById('ddpBody');
+
+  const DOW = ['일','월','화','수','목','금','토'];
+  const y = dateObj.getFullYear(), mo = dateObj.getMonth()+1, d = dateObj.getDate();
+  const dow = DOW[dateObj.getDay()];
+  const holidayName = KR_HOLIDAYS[dateKey];
+
+  // 헤더
+  titleEl.innerHTML =
+    `${y}년 ${mo}월 ${d}일 (${dow})` +
+    (holidayName ? ` <span class="ddp-holiday-badge">${escHtml(holidayName)}</span>` : '');
+
+  // 근무조
+  let html = `<div class="ddp-section">
+    <div class="ddp-section-title title-duty">👷 조별 근무</div>
+    <div class="ddp-duty-grid">`;
+  for (let k = 0; k < 3; k++) {
+    const duty = getDutyValue(dateObj, k*2);
+    const type = duty.slice(0,1);
+    html += `<div class="ddp-duty-card">
+      <div class="ddp-duty-label">${k+1}조</div>
+      <div class="ddp-duty-value v-${type}">${escHtml(duty)}</div>
+    </div>`;
+  }
+  html += `</div></div>`;
+
+  // 일정 & 연차
+  const data = getData();
+  const items = data[dateKey] || [];
+  const schedItems = items.filter(i => i.name && !VAC_TYPES_SET.has(i.type));
+  const vacItems   = items.filter(i => i.name && VAC_TYPES_SET.has(i.type));
+
+  html += `<div class="ddp-section" style="margin-top:10px;">
+    <div class="ddp-section-title title-sched">📅 일정</div>`;
+  if (schedItems.length === 0) {
+    html += `<div class="ddp-empty">등록된 일정이 없습니다</div>`;
+  } else {
+    schedItems.forEach(item => {
+      const colorMap = {'점검':'var(--amber)','회의':'var(--blue)','작업':'var(--green)','행사':'var(--purple)'};
+      const c = colorMap[item.type] || 'var(--blue)';
+      html += `<div class="ddp-item">
+        <span class="ddp-item-dot" style="background:${c};margin-top:5px;"></span>
+        <div style="flex:1;min-width:0;">
+          <div class="ddp-item-name">${escHtml(item.name)}</div>
+          ${item.type ? `<div class="ddp-item-sub">${escHtml(item.type)}</div>` : ''}
+          ${item.memo ? `<div class="ddp-item-sub" style="margin-top:2px;">💬 ${escHtml(item.memo)}</div>` : ''}
+        </div>
+      </div>`;
+    });
+  }
+  html += `</div>`;
+
+  html += `<div class="ddp-section" style="margin-top:4px;">
+    <div class="ddp-section-title title-vac">🏖️ 연차 · 휴가</div>`;
+  if (vacItems.length === 0) {
+    html += `<div class="ddp-empty">등록된 연차가 없습니다</div>`;
+  } else {
+    vacItems.forEach(item => {
+      html += `<div class="ddp-item">
+        <span class="ddp-item-dot" style="background:var(--accent);margin-top:5px;"></span>
+        <div style="flex:1;min-width:0;">
+          <div class="ddp-item-name">${escHtml(item.name)}</div>
+          ${item.type ? `<div class="ddp-item-sub">${escHtml(item.type)}</div>` : ''}
+          ${item.img ? `<img src="${escHtml(item.img)}" class="ddp-img" onclick="openZoom('${escHtml(item.img)}','${escHtml(item.name)}')">` : ''}
+        </div>
+      </div>`;
+    });
+  }
+  html += `</div><div style="height:8px;"></div>`;
+
+  body.innerHTML = html;
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDayDetail(e) {
+  if (e && e.target !== document.getElementById('dayDetailOverlay')) return;
+  closeDayDetailDirect();
+}
+function closeDayDetailDirect() {
+  document.getElementById('dayDetailOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// ════════════════════════════════
+// 테마 (라이트/다크) 전환
+// ════════════════════════════════
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  localStorage.setItem('workhub_theme', isLight ? 'light' : 'dark');
+  document.getElementById('themeModeBtn').textContent = isLight ? '🌙 다크' : '☀️ 라이트';
+}
+
+// ════════════════════════════════
 // 초기화 및 PC 모드
 // ════════════════════════════════
 window.addEventListener('boardAPIReady', () => {
@@ -1919,7 +2280,16 @@ window.addEventListener('boardAPIReady', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   sidebarMonth = new Date(current.getFullYear(), current.getMonth(), 1);
+
+  // 테마 복원
+  if (localStorage.getItem('workhub_theme') === 'light') {
+    document.body.classList.add('light-mode');
+    document.getElementById('themeModeBtn').textContent = '🌙 다크';
+  }
+
   window.renderCalendar();
+
+  // PC모드: 명시적으로 '1'일 때만 PC모드, 그 외(null 포함)는 모바일 기본
   if (localStorage.getItem('workhub_pcmode') === '1') {
     document.body.classList.add('pc-mode');
     document.getElementById('pcModeBtn').innerHTML = '📱 모바일';
