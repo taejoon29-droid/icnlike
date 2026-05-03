@@ -98,6 +98,25 @@ body.pc-mode .pc-board-col {
   overflow: hidden;
   max-height: calc(100vh - 100px);
   overflow-y: auto;
+  transition: min-width 0.25s, max-width 0.25s;
+}
+
+/* 사이드바 접힌 상태 */
+body.pc-mode .pc-board-col.sidebar-collapsed {
+  min-width: 0;
+  max-width: 52px;
+  overflow: visible;
+}
+body.pc-mode .pc-board-col.sidebar-collapsed .pc-board-sidebar-header {
+  writing-mode: initial;
+  padding: 12px 8px;
+  justify-content: center;
+}
+body.pc-mode .pc-board-col.sidebar-collapsed .pc-board-sidebar-header span:first-child {
+  display: none;
+}
+body.pc-mode .pc-board-col.sidebar-collapsed #sidebarContent {
+  display: none;
 }
 
 body.pc-mode .duty-container { display: block !important; }
@@ -813,12 +832,16 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
   </div>
 
   <!-- ══ 오른쪽: 일정 요약 사이드바 (PC모드) ══ -->
-  <div class="pc-board-col">
-    <div class="pc-board-sidebar-header">
-      📋 일정 · 연차 조회
+  <div class="pc-board-col" id="pcBoardCol">
+    <div class="pc-board-sidebar-header" style="justify-content:space-between;">
+      <span>📋 일정 · 연차 조회</span>
+      <button id="sidebarToggleBtn" onclick="toggleSidebar()"
+        style="background:var(--bg4);border:none;color:var(--text2);border-radius:12px;padding:3px 11px;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;white-space:nowrap;">
+        숨기기 ▲
+      </button>
     </div>
 
-    <div class="pc-board-inline">
+    <div class="pc-board-inline" id="sidebarContent">
       <!-- 날짜 네비게이션 -->
       <div class="sidebar-month-nav" style="padding:11px 12px 0;gap:6px;">
         <button class="sidebar-month-btn" onclick="sidebarMoveDay(-1)" title="이전 날" style="padding:3px 12px;font-size:1rem;">◀</button>
@@ -1016,7 +1039,7 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div>
             <label style="font-size:0.75rem;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;">👤 이름</label>
-            <input id="regVacName" type="text" placeholder="이름 입력" maxlength="20"
+            <input id="regVacName" type="text" inputmode="text" placeholder="이름 입력" maxlength="20"
               style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:0.9rem;color:var(--text);outline:none;font-family:inherit;">
           </div>
           <div>
@@ -1045,7 +1068,7 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
         <div style="display:flex;flex-direction:column;gap:10px;">
           <div>
             <label style="font-size:0.75rem;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;">📝 일정 제목</label>
-            <input id="regSchedTitle" type="text" placeholder="일정 제목 입력" maxlength="30"
+            <input id="regSchedTitle" type="text" inputmode="text" placeholder="일정 제목 입력" maxlength="30"
               style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:0.9rem;color:var(--text);outline:none;font-family:inherit;">
           </div>
           <div>
@@ -2495,8 +2518,8 @@ function extractNameType(text) {
       break;
     }
   }
-  // 남은 텍스트에서 숫자·특수문자 제거 → 이름
-  const name = remaining.replace(/[0-9\/\.\-~]/g, '').replace(/\s+/g,' ').trim() || '미정';
+  // 남은 텍스트 정리: 앞뒤 공백·구분자만 제거, 이름 속 숫자는 보존
+  const name = remaining.replace(/^[\s\/\.\-~]+|[\s\/\.\-~]+$/g, '').replace(/\s+/g,' ').trim() || '미정';
   return { name, type: foundType || '기타' };
 }
 
@@ -2822,6 +2845,27 @@ async function registerAiResults() {
 
 
 let _clockTimer = null;
+
+// ════════════════════════════════
+// 사이드바 숨기기/표시하기 토글
+// ════════════════════════════════
+let _sidebarVisible = true;
+function toggleSidebar() {
+  const col = document.getElementById('pcBoardCol');
+  const btn = document.getElementById('sidebarToggleBtn');
+  const content = document.getElementById('sidebarContent');
+  if (!col || !btn) return;
+  _sidebarVisible = !_sidebarVisible;
+  if (_sidebarVisible) {
+    col.classList.remove('sidebar-collapsed');
+    btn.textContent = '숨기기 ▲';
+    content.style.display = '';
+  } else {
+    col.classList.add('sidebar-collapsed');
+    btn.textContent = '▼';
+    content.style.display = 'none';
+  }
+}
 
 // ════════════════════════════════
 // 대시보드 숨기기/표시하기 토글
