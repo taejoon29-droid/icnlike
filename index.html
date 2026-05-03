@@ -1945,28 +1945,45 @@ let _regVacImgData = '';
 let _regPendingDateKey = '';
 
 function openRegisterModal(prefillDateKey) {
-  if (isAddMode) { isAddMode = false; document.getElementById('mainAddBtn').innerText = '+'; window.renderCalendar(); }
-  const today = new Date();
-  const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-  if (prefillDateKey) {
-    document.getElementById('regVacDate').value = prefillDateKey;
-    document.getElementById('regSchedDate').value = prefillDateKey;
-    _regPendingDateKey = prefillDateKey;
-  } else {
-    document.getElementById('regVacDate').value = todayStr;
-    document.getElementById('regSchedDate').value = todayStr;
-    _regPendingDateKey = '';
+  try {
+    if (isAddMode) { isAddMode = false; document.getElementById('mainAddBtn').innerText = '+'; window.renderCalendar(); }
+    const today = new Date();
+    const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+    const fillDate = prefillDateKey || todayStr;
+    const regVacDate = document.getElementById('regVacDate');
+    const regSchedDate = document.getElementById('regSchedDate');
+    if (regVacDate) regVacDate.value = fillDate;
+    if (regSchedDate) regSchedDate.value = fillDate;
+    _regPendingDateKey = prefillDateKey || '';
+
+    const regVacName = document.getElementById('regVacName');
+    const regSchedTitle = document.getElementById('regSchedTitle');
+    const regSchedMemo = document.getElementById('regSchedMemo');
+    if (regVacName) regVacName.value = '';
+    if (regSchedTitle) regSchedTitle.value = '';
+    if (regSchedMemo) regSchedMemo.value = '';
+
+    clearRegVacImg();
+
+    const firstVacBtn = document.querySelector('#vacTypeButtons .type-sel-btn');
+    if (firstVacBtn) selectVacType(firstVacBtn, '연차');
+
+    const vacEtcWrap = document.getElementById('vacEtcWrap');
+    if (vacEtcWrap) vacEtcWrap.style.display = 'none';
+    const vacEtcText = document.getElementById('vacEtcText');
+    if (vacEtcText) vacEtcText.value = '';
+
+    const firstSchedBtn = document.querySelector('#schedTypeButtons .type-sel-btn');
+    if (firstSchedBtn) selectSchedType(firstSchedBtn, '점검');
+
+    switchRegTab('vacation');
+    document.getElementById('registerModal').style.display = 'flex';
+  } catch(e) {
+    console.error('openRegisterModal error:', e);
+    // 최소한 모달은 열기
+    const modal = document.getElementById('registerModal');
+    if (modal) modal.style.display = 'flex';
   }
-  document.getElementById('regVacName').value = '';
-  document.getElementById('regSchedTitle').value = '';
-  document.getElementById('regSchedMemo').value = '';
-  clearRegVacImg();
-  selectVacType(document.querySelector('#vacTypeButtons .type-sel-btn'), '연차');
-  document.getElementById('vacEtcWrap').style.display = 'none';
-  if (document.getElementById('vacEtcText')) document.getElementById('vacEtcText').value = '';
-  selectSchedType(document.querySelector('#schedTypeButtons .type-sel-btn'), '점검');
-  switchRegTab('vacation');
-  document.getElementById('registerModal').style.display = 'flex';
 }
 function closeRegisterModal() { document.getElementById('registerModal').style.display = 'none'; }
 function closeRegisterIfOutside(e) { if (e.target === document.getElementById('registerModal')) closeRegisterModal(); }
@@ -2021,8 +2038,10 @@ function handleRegVacImg(input) {
 }
 function clearRegVacImg() {
   _regVacImgData = '';
-  document.getElementById('regVacImgPreview').style.display = 'none';
-  document.getElementById('regVacImgArea').textContent = '📎 사진 첨부 (선택사항)';
+  const preview = document.getElementById('regVacImgPreview');
+  if (preview) preview.style.display = 'none';
+  const area = document.getElementById('regVacImgArea');
+  if (area) area.textContent = '📎 사진 첨부 (선택사항)';
 }
 
 async function submitVacation() {
