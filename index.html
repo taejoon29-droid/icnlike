@@ -1011,20 +1011,58 @@ body.light-mode b[data-type^="비"] { color: #157a40; font-weight: 800; }
     </div>
 
     <!-- 게시판 인라인 카드 (PC모드 대시보드) -->
-    <div class="dash-card" style="display:flex;flex-direction:column;min-height:280px;">
-      <div class="dash-card-header">
+    <div class="dash-card" style="display:flex;flex-direction:column;min-height:340px;max-height:480px;">
+      <div class="dash-card-header" style="flex-shrink:0;">
         <div class="dash-card-title">
           <div class="dash-icon" style="background:rgba(232,84,58,0.15);">📋</div>
-          전원설비 게시판
+          <span id="dashBoardHeaderTitle">전원설비 게시판</span>
         </div>
-        <button onclick="switchTab('write');openBoard();" style="background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:8px;padding:4px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 글쓰기</button>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span id="dashBoardSyncBadge" class="pc-sync-badge"></span>
+          <button id="dashWriteBtn" onclick="dashSwitchView('write')" style="background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:8px;padding:4px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 글쓰기</button>
+        </div>
       </div>
-      <!-- 카테고리 필터 -->
-      <div id="dashBoardCatFilters" style="display:flex;gap:5px;flex-wrap:wrap;padding:8px 14px 0;"></div>
-      <!-- 게시글 목록 -->
-      <div style="flex:1;overflow-y:auto;padding:8px 14px 14px;">
-        <div id="dashPostList" style="display:flex;flex-direction:column;gap:6px;">
-          <div class="dash-loading">불러오는 중...</div>
+
+      <!-- ① 목록 뷰 -->
+      <div id="dashViewList" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+        <div id="dashBoardCatFilters" style="display:flex;gap:5px;flex-wrap:wrap;padding:8px 14px 6px;flex-shrink:0;"></div>
+        <div style="flex:1;overflow-y:auto;padding:0 14px 14px;">
+          <div id="dashPostList" style="display:flex;flex-direction:column;gap:6px;padding-top:4px;">
+            <div class="dash-loading">불러오는 중...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② 상세 뷰 -->
+      <div id="dashViewDetail" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+        <div style="padding:8px 14px 6px;flex-shrink:0;border-bottom:1px solid var(--border);">
+          <button onclick="dashSwitchView('list')" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 12px;font-size:0.78rem;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">← 목록으로</button>
+        </div>
+        <div id="dashPostDetail" style="flex:1;overflow-y:auto;padding:14px 16px;"></div>
+      </div>
+
+      <!-- ③ 글쓰기 뷰 -->
+      <div id="dashViewWrite" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+        <div style="padding:8px 14px 6px;flex-shrink:0;border-bottom:1px solid var(--border);">
+          <button onclick="dashSwitchView('list')" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 12px;font-size:0.78rem;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;">← 취소</button>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:14px 16px;">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <input id="dashWriteAuthor" type="text" placeholder="작성자 이름" maxlength="20"
+              style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;box-sizing:border-box;">
+            <select id="dashWriteCat" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;box-sizing:border-box;">
+              <option value="공지">📢 공지</option>
+              <option value="업무" selected>🔧 업무</option>
+              <option value="질문">❓ 질문</option>
+              <option value="자유">💬 자유</option>
+            </select>
+            <input id="dashWriteTitle" type="text" placeholder="제목" maxlength="60"
+              style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;box-sizing:border-box;">
+            <textarea id="dashWriteBody" placeholder="내용을 입력하세요..." rows="5"
+              style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:0.85rem;color:var(--text);outline:none;font-family:inherit;resize:none;box-sizing:border-box;"></textarea>
+            <div id="dashWriteError" style="display:none;background:rgba(232,84,58,0.12);border:1px solid rgba(232,84,58,0.3);color:#ff8a76;border-radius:8px;padding:8px 12px;font-size:0.82rem;"></div>
+            <button onclick="dashSubmitPost()" style="background:var(--accent);color:white;border:none;border-radius:10px;padding:11px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;width:100%;">📤 등록</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1305,6 +1343,10 @@ try {
     window._allPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     if (document.getElementById('boardModal').style.display === 'flex') {
       if (typeof window.renderPostList === 'function') window.renderPostList();
+    }
+    // 대시보드 인라인 게시판도 갱신
+    if (document.body.classList.contains('pc-mode') && typeof renderDashBoardInline === 'function') {
+      renderDashBoardInline();
     }
   }, (err) => { console.warn('게시글 onSnapshot 오류:', err); });
 
@@ -1606,31 +1648,62 @@ window.renderCalendar = function renderCalendar() {
       const schedItems2 = allItems.filter(item => item.name && !VAC_TYPES_SET.has(item.type));
       const vacItems2   = allItems.filter(item => item.name && VAC_TYPES_SET.has(item.type));
       const sortedItems = [...schedItems2, ...vacItems2];
-      sortedItems.forEach((item, _idx) => {
-        const origIndex = allItems.indexOf(item);
-        if (item.name) {
+
+      // 연차/일정 개수 확인
+      const vacCount2  = vacItems2.filter(i => i.name).length;
+      const schedCount2 = schedItems2.filter(i => i.name).length;
+      const MAX_SHOW = 2; // 이 수 초과하면 요약 표시
+
+      const showSummary = vacCount2 > MAX_SHOW || schedCount2 > MAX_SHOW;
+
+      if (showSummary) {
+        // 요약 태그: 연차 N명, 일정 N개
+        if (vacCount2 > 0) {
           const tag = document.createElement('div');
           tag.className = 'vacation-tag';
-          // 일정은 파란 계열, 연차는 빨간 계열
-          if (!VAC_TYPES_SET.has(item.type)) {
-            tag.style.background = 'rgba(74,158,255,0.18)';
-            tag.style.color = 'var(--blue)';
-            tag.style.borderColor = 'rgba(74,158,255,0.3)';
-          }
-          const label = item.name + (item.type ? '(' + item.type + ')' : '');
-          tag.innerText = label;
-          tag.title = label; // hover 시 전체 이름 표시
-          tag.onclick = e => { e.stopPropagation(); deleteItem(dateKey, origIndex); };
+          tag.innerText = '🏖️ 연차 ' + vacCount2 + '명';
+          tag.title = vacItems2.filter(i=>i.name).map(i=>i.name+'('+(i.type||'')+')').join(', ');
+          tag.onclick = e => { e.stopPropagation(); openDayDetail(dateKey, dateObj); };
           listContainer.appendChild(tag);
         }
-        if (item.img) {
-          const imgEl = document.createElement('img');
-          imgEl.src = item.img; imgEl.className = 'img-thumb';
-          imgEl.onclick = e => { e.stopPropagation(); openZoom(item.img, item.name || '이미지'); };
-          imgEl.oncontextmenu = e => { e.preventDefault(); deleteItem(dateKey, origIndex); };
-          listContainer.appendChild(imgEl);
+        if (schedCount2 > 0) {
+          const tag = document.createElement('div');
+          tag.className = 'vacation-tag';
+          tag.style.background = 'rgba(74,158,255,0.18)';
+          tag.style.color = 'var(--blue)';
+          tag.style.borderColor = 'rgba(74,158,255,0.3)';
+          tag.innerText = '📅 일정 ' + schedCount2 + '개';
+          tag.title = schedItems2.filter(i=>i.name).map(i=>i.name+'('+(i.type||'')+')').join(', ');
+          tag.onclick = e => { e.stopPropagation(); openDayDetail(dateKey, dateObj); };
+          listContainer.appendChild(tag);
         }
-      });
+      } else {
+        sortedItems.forEach((item, _idx) => {
+          const origIndex = allItems.indexOf(item);
+          if (item.name) {
+            const tag = document.createElement('div');
+            tag.className = 'vacation-tag';
+            // 일정은 파란 계열, 연차는 빨간 계열
+            if (!VAC_TYPES_SET.has(item.type)) {
+              tag.style.background = 'rgba(74,158,255,0.18)';
+              tag.style.color = 'var(--blue)';
+              tag.style.borderColor = 'rgba(74,158,255,0.3)';
+            }
+            const label = item.name + (item.type ? '(' + item.type + ')' : '');
+            tag.innerText = label;
+            tag.title = label;
+            tag.onclick = e => { e.stopPropagation(); deleteItem(dateKey, origIndex); };
+            listContainer.appendChild(tag);
+          }
+          if (item.img) {
+            const imgEl = document.createElement('img');
+            imgEl.src = item.img; imgEl.className = 'img-thumb';
+            imgEl.onclick = e => { e.stopPropagation(); openZoom(item.img, item.name || '이미지'); };
+            imgEl.oncontextmenu = e => { e.preventDefault(); deleteItem(dateKey, origIndex); };
+            listContainer.appendChild(imgEl);
+          }
+        });
+      }
     }
     cell.appendChild(listContainer);
 
@@ -1863,21 +1936,34 @@ function renderDashboard() {
 }
 
 // ════════════════════════════════
-// 대시보드: 게시판 인라인 렌더링
+// 대시보드: 인라인 게시판 (목록/상세/글쓰기 완전 연동)
 // ════════════════════════════════
 let _dashCatFilter = '전체';
+let _dashCurrentView = 'list'; // 'list' | 'detail' | 'write'
+
+function dashSwitchView(view) {
+  _dashCurrentView = view;
+  document.getElementById('dashViewList').style.display   = (view === 'list')   ? 'flex' : 'none';
+  document.getElementById('dashViewDetail').style.display = (view === 'detail') ? 'flex' : 'none';
+  document.getElementById('dashViewWrite').style.display  = (view === 'write')  ? 'flex' : 'none';
+  const titleEl = document.getElementById('dashBoardHeaderTitle');
+  const writeBtn = document.getElementById('dashWriteBtn');
+  if (view === 'list')   { if(titleEl) titleEl.textContent = '전원설비 게시판'; if(writeBtn) writeBtn.style.display=''; }
+  if (view === 'detail') { if(titleEl) titleEl.textContent = '게시글 상세';     if(writeBtn) writeBtn.style.display='none'; }
+  if (view === 'write')  { if(titleEl) titleEl.textContent = '글쓰기';           if(writeBtn) writeBtn.style.display='none'; }
+}
 
 function renderDashBoardInline() {
   const listEl = document.getElementById('dashPostList');
   const filterEl = document.getElementById('dashBoardCatFilters');
   if (!listEl) return;
 
-  // 카테고리 필터 버튼 렌더 (최초 1회)
+  // 카테고리 필터 버튼 (최초 1회)
   if (filterEl && filterEl.children.length === 0) {
-    const cats = ['전체', '공지', '업무', '질문', '자유'];
-    cats.forEach(cat => {
+    ['전체','공지','업무','질문','자유'].forEach(cat => {
       const btn = document.createElement('button');
-      btn.style.cssText = 'padding:3px 10px;border-radius:14px;border:1px solid var(--border);font-size:0.74rem;cursor:pointer;transition:0.15s;font-family:inherit;' + (cat === _dashCatFilter ? 'background:var(--accent);color:white;border-color:var(--accent);' : 'background:var(--bg3);color:var(--text2);');
+      btn.style.cssText = 'padding:3px 10px;border-radius:14px;border:1px solid var(--border);font-size:0.74rem;cursor:pointer;transition:0.15s;font-family:inherit;flex-shrink:0;' +
+        (cat === _dashCatFilter ? 'background:var(--accent);color:white;border-color:var(--accent);' : 'background:var(--bg3);color:var(--text2);');
       btn.textContent = cat;
       btn.onclick = () => {
         _dashCatFilter = cat;
@@ -1898,7 +1984,7 @@ function renderDashBoardInline() {
   }
 
   listEl.innerHTML = '';
-  filtered.slice(0, 8).forEach(post => {
+  filtered.forEach(post => {
     const card = document.createElement('div');
     card.style.cssText = 'border:1px solid var(--border);border-radius:10px;padding:9px 12px;cursor:pointer;transition:0.15s;background:var(--bg3);';
     card.onmouseover = () => { card.style.background='var(--bg4)'; };
@@ -1912,20 +1998,12 @@ function renderDashBoardInline() {
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:3px;">
         <div style="font-size:0.85rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${escHtml(post.title)}</div>
-        <span style="font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap;background:${color}22;color:${color};">${escHtml(post.category)}</span>
+        <span style="font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap;background:${color}22;color:${color};flex-shrink:0;">${escHtml(post.category)}</span>
       </div>
-      <div style="font-size:0.72rem;color:var(--text3);">${escHtml(post.author)} · ${dateStr}${fileCount > 0 ? ' · 📎' + fileCount : ''}</div>`;
-    card.onclick = () => { openBoard(); showPostDetail(post); };
+      <div style="font-size:0.72rem;color:var(--text3);">${escHtml(post.author)} · ${dateStr}${fileCount > 0 ? ' · 📎'+fileCount : ''}</div>`;
+    card.onclick = () => dashShowPostDetail(post);
     listEl.appendChild(card);
   });
-
-  if (filtered.length > 8) {
-    const more = document.createElement('button');
-    more.textContent = '+ ' + (filtered.length - 8) + '개 더 보기';
-    more.style.cssText = 'width:100%;margin-top:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:7px;font-size:0.78rem;cursor:pointer;font-family:inherit;';
-    more.onclick = () => openBoard();
-    listEl.appendChild(more);
-  }
 
   // 동기화 뱃지 업데이트
   const badge = document.getElementById('dashBoardSyncBadge');
@@ -1934,6 +2012,107 @@ function renderDashBoardInline() {
     badge.className = boardBadge.className.replace('sync-badge','pc-sync-badge');
     badge.innerHTML = boardBadge.innerHTML;
   }
+}
+
+function dashShowPostDetail(post) {
+  const detail = document.getElementById('dashPostDetail');
+  if (!detail) return;
+  dashSwitchView('detail');
+
+  let ts;
+  try { ts = post.createdAt?.seconds ? new Date(post.createdAt.seconds*1000) : new Date(post.createdAt); }
+  catch(e) { ts = new Date(); }
+  const dateStr = ts.toLocaleString('ko-KR');
+  const color = CAT_COLORS[post.category] || '#888';
+
+  // 첨부파일 HTML
+  let filesHTML = '';
+  if (post.attachments && post.attachments.length > 0) {
+    filesHTML = '<div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;"><div style="font-size:0.8rem;color:var(--text3);font-weight:700;margin-bottom:8px;">📎 첨부파일</div>';
+    post.attachments.forEach((att, i) => {
+      const attKey = 'dash_' + (post.id || 'local') + '_' + i;
+      window._attStore[attKey] = att;
+      if (att.type && att.type.startsWith('image/') && att.url) {
+        filesHTML += `<div style="margin-bottom:10px;">
+          <img src="${att.url}" style="width:100%;border-radius:8px;cursor:pointer;border:1px solid var(--border);" onclick="openZoom('${att.url}','${escHtml(att.name)}')">
+          <button onclick="downloadAtt('${attKey}')" style="width:100%;margin-top:5px;background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:#ff8a76;border-radius:8px;padding:6px;font-size:0.78rem;cursor:pointer;font-weight:600;">⬇ 다운로드</button>
+        </div>`;
+      } else {
+        const fi = getFileIcon(att.name, att.type);
+        filesHTML += `<div onclick="downloadAtt('${attKey}')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(232,84,58,0.1);border-radius:8px;margin-bottom:6px;cursor:pointer;color:#ff8a76;font-size:0.82rem;">
+          <span>${fi.icon}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(att.name)}</span>
+        </div>`;
+      }
+    });
+    filesHTML += '</div>';
+  }
+
+  // 삭제 버튼
+  const deleteBtn = `<button onclick="dashDeletePost('${escHtml(post.id||'')}', this)"
+    style="margin-top:14px;background:none;border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:0.78rem;font-family:inherit;">
+    🗑️ 삭제
+  </button>`;
+
+  detail.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <span style="font-size:0.7rem;font-weight:700;padding:2px 9px;border-radius:8px;background:${color}22;color:${color};">${escHtml(post.category)}</span>
+    </div>
+    <div style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:8px;line-height:1.4;">${escHtml(post.title)}</div>
+    <div style="font-size:0.75rem;color:var(--text3);margin-bottom:14px;">${escHtml(post.author)} · ${dateStr}</div>
+    <div style="font-size:0.88rem;line-height:1.75;color:var(--text2);white-space:pre-wrap;border-top:1px solid var(--border);padding-top:12px;">${escHtml(post.body)}</div>
+    ${filesHTML}
+    ${deleteBtn}
+  `;
+}
+
+async function dashDeletePost(postId, btn) {
+  if (!postId) return;
+  if (!confirm('이 게시글을 삭제할까요?')) return;
+  btn.disabled = true; btn.textContent = '삭제 중...';
+  try {
+    const post = (window._allPosts||[]).find(p=>p.id===postId);
+    if (window._boardAPI) await window._boardAPI.deletePost(postId, post?.attachments||[]);
+    dashSwitchView('list');
+    renderDashBoardInline();
+  } catch(e) {
+    btn.disabled=false; btn.textContent='🗑️ 삭제';
+    alert('삭제 실패: ' + e.message);
+  }
+}
+
+async function dashSubmitPost() {
+  const author = (document.getElementById('dashWriteAuthor')?.value || '').trim();
+  const cat    = document.getElementById('dashWriteCat')?.value || '업무';
+  const title  = (document.getElementById('dashWriteTitle')?.value || '').trim();
+  const body   = (document.getElementById('dashWriteBody')?.value || '').trim();
+  const errEl  = document.getElementById('dashWriteError');
+  if (errEl) errEl.style.display = 'none';
+  if (!author) { if(errEl){errEl.textContent='작성자 이름을 입력하세요.';errEl.style.display='';} return; }
+  if (!title)  { if(errEl){errEl.textContent='제목을 입력하세요.';errEl.style.display='';} return; }
+  if (!body)   { if(errEl){errEl.textContent='내용을 입력하세요.';errEl.style.display='';} return; }
+
+  const submitBtn = document.querySelector('#dashViewWrite button[onclick="dashSubmitPost()"]');
+  if (submitBtn) { submitBtn.disabled=true; submitBtn.textContent='등록 중...'; }
+
+  const post = { author, category: cat, title, body, attachments:[] };
+  try {
+    if (window._boardAPI) await window._boardAPI.savePost(post, []);
+    else {
+      const id='local_'+Date.now();
+      const p={id,...post,createdAt:Date.now()};
+      window._allPosts=(window._allPosts||[]);
+      window._allPosts.unshift(p);
+    }
+    // 입력 초기화
+    ['dashWriteAuthor','dashWriteTitle','dashWriteBody'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    dashSwitchView('list');
+    renderDashBoardInline();
+  } catch(e) {
+    if(errEl){errEl.textContent='등록 실패: '+e.message;errEl.style.display='';}
+  }
+  if (submitBtn) { submitBtn.disabled=false; submitBtn.textContent='📤 등록'; }
 }
 
 // ════════════════════════════════
