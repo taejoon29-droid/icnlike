@@ -1696,10 +1696,25 @@ async function removeVacation(dateKey, index) {
   // ── Firestore 모드 ──
   if (firebaseReady) {
     // _firestoreId가 있으면 직접 삭제
-    const firestoreId = targetItem ? targetItem._firestoreId : null;
+    let firestoreId = targetItem ? targetItem._firestoreId : null;
+
+    // _firestoreId가 없는 경우 — dateKey + name + type으로 일치하는 문서 검색
+    if (!firestoreId && targetItem) {
+      try {
+        const snap = await getDocs(collection(db, 'vacations'));
+        const match = snap.docs.find(d => {
+          const dd = d.data();
+          return dd.dateKey === dateKey &&
+                 dd.name === (targetItem.name || '') &&
+                 dd.type === (targetItem.type || '');
+        });
+        if (match) firestoreId = match.id;
+      } catch(e) { console.warn('Firestore 검색 오류:', e); }
+    }
+
     if (firestoreId) {
       // 1) 메모리 즉시 갱신 (onSnapshot 오기 전에 화면 먼저)
-      const newItems = origItems.filter((_, i) => i !== index);
+      const newItems = (window._vacationData[dateKey] || []).filter(item => item._firestoreId !== firestoreId);
       if (newItems.length === 0) delete window._vacationData[dateKey];
       else window._vacationData[dateKey] = newItems;
       _refreshViews(dateKey);
@@ -1708,28 +1723,8 @@ async function removeVacation(dateKey, index) {
       catch(e) { console.warn('Firestore 삭제 오류:', e); }
       return;
     }
-    // _firestoreId가 없는 경우 — dateKey + name + type으로 일치하는 문서 검색 후 삭제
-    if (targetItem) {
-      try {
-        const q = collection(db, 'vacations');
-        const snap = await getDocs(q);
-        const match = snap.docs.find(d => {
-          const dd = d.data();
-          return dd.dateKey === dateKey &&
-                 dd.name === (targetItem.name || '') &&
-                 dd.type === (targetItem.type || '');
-        });
-        if (match) {
-          const newItems = origItems.filter((_, i) => i !== index);
-          if (newItems.length === 0) delete window._vacationData[dateKey];
-          else window._vacationData[dateKey] = newItems;
-          _refreshViews(dateKey);
-          await deleteDoc(doc(db, 'vacations', match.id));
-          return;
-        }
-      } catch(e) { console.warn('Firestore 검색 삭제 오류:', e); }
-    }
-    // 그래도 못 찾으면 메모리에서만 제거
+
+    // 그래도 못 찾으면 메모리에서만 인덱스로 제거
     const newItems2 = origItems.filter((_, i) => i !== index);
     if (newItems2.length === 0) delete window._vacationData[dateKey];
     else window._vacationData[dateKey] = newItems2;
@@ -2758,8 +2753,18 @@ async function deleteItem(key, idx) {
 async function _doDeleteItem(key, idx) {
   await waitForVacationAPI(3000);
   if (window._vacationAPI) {
-    try { await window._vacationAPI.removeVacation(key, idx); }
-    catch(e) { alert('삭제 실패: ' + e.message); }
+    // 현재 인덱스의 항목을 미리 캡처 (비동기 중 인덱스 변화 방지)
+    const items = window._vacationData[key] || [];
+    const targetItem = items[idx];
+    // _firestoreId가 있으면 Firestore 기반 삭제 (인덱스 무관)
+    if (targetItem && targetItem._firestoreId) {
+      try { await window._vacationAPI.removeVacation(key, idx); }
+      catch(e) { alert('삭제 실패: ' + e.message); }
+    } else {
+      // 인덱스 기반 삭제 (로컬 모드 또는 id 없는 경우)
+      try { await window._vacationAPI.removeVacation(key, idx); }
+      catch(e) { alert('삭제 실패: ' + e.message); }
+    }
   } else {
     // _vacationAPI 없을 때 직접 처리
     const raw = localStorage.getItem(STORAGE_KEY);
