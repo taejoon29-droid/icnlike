@@ -2057,7 +2057,7 @@ const VAC_TYPES_SET = new Set(['연차','반차','전반','후반','전반차','
 function isItemVac(item) {
   if (!item) return false;
   if (item.isVac !== undefined) return item.isVac === true;
-  return isItemVac(item);
+  return VAC_TYPES_SET.has(item.type);
 }
 const SCHED_TYPES_SET = new Set(['점검','회의','작업','행사','일정']);
 
