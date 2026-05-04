@@ -263,6 +263,14 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 .workhub-brand .wh-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
 .workhub-sub { font-size: 0.72rem; color: var(--text3); font-weight: 500; letter-spacing: 0.08em; }
 
+/* date input 다크모드 날짜 깨짐 방지 */
+input[type="date"] {
+  color-scheme: dark;
+}
+body.light-mode input[type="date"] {
+  color-scheme: light;
+}
+
 /* ── 일정 등록 모달 공용 ── */
 .type-sel-btn {
   padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border);
@@ -509,6 +517,12 @@ body.pc-mode .pc-dashboard { display: flex; }
   width: 100%; background: var(--bg3); border: 1px solid var(--border);
   border-radius: 10px; padding: 9px 12px; font-size: 0.88rem;
   color: var(--text); outline: none; font-family: inherit; box-sizing: border-box;
+}
+.iam-edit-form input[type="date"] {
+  color-scheme: dark;
+}
+body.light-mode .iam-edit-form input[type="date"] {
+  color-scheme: light;
 }
 .iam-edit-form textarea { resize: none; height: 64px; }
 .iam-btn-save {
@@ -1064,14 +1078,18 @@ body.pc-mode .vacation-tag {
         <label>👤 이름</label>
         <input id="iamEditName" type="text" maxlength="20" placeholder="이름">
         <label style="margin-top:6px;">📂 종류</label>
-        <select id="iamEditVacType">
+        <select id="iamEditVacType" onchange="onIamVacTypeChange()">
           <option value="연차">연차</option>
           <option value="전반">전반 (오전)</option>
           <option value="후반">후반 (오후)</option>
           <option value="교육">교육</option>
           <option value="출장">출장</option>
-          <option value="기타">기타</option>
+          <option value="직접입력">직접입력</option>
         </select>
+        <div id="iamEditVacCustomWrap" style="display:none;margin-top:6px;">
+          <input id="iamEditVacCustom" type="text" maxlength="20" placeholder="종류 직접 입력 (예: 병가, 육아휴직...)"
+            style="width:100%;background:var(--bg3);border:1px solid var(--accent);border-radius:10px;padding:9px 12px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;box-sizing:border-box;">
+        </div>
         <label style="margin-top:6px;">📅 날짜</label>
         <input id="iamEditVacDate" type="date">
       </div>
@@ -1079,13 +1097,17 @@ body.pc-mode .vacation-tag {
         <label>📝 제목</label>
         <input id="iamEditSchedTitle" type="text" maxlength="30" placeholder="일정 제목">
         <label style="margin-top:6px;">🏷️ 종류</label>
-        <select id="iamEditSchedType">
+        <select id="iamEditSchedType" onchange="onIamSchedTypeChange()">
           <option value="점검">점검</option>
           <option value="회의">회의</option>
           <option value="작업">작업</option>
           <option value="행사">행사</option>
-          <option value="기타">기타</option>
+          <option value="직접입력">직접입력</option>
         </select>
+        <div id="iamEditSchedCustomWrap" style="display:none;margin-top:6px;">
+          <input id="iamEditSchedCustom" type="text" maxlength="20" placeholder="종류 직접 입력 (예: 교육, 훈련, 외근...)"
+            style="width:100%;background:var(--bg3);border:1px solid var(--blue);border-radius:10px;padding:9px 12px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;box-sizing:border-box;">
+        </div>
         <label style="margin-top:6px;">📅 날짜</label>
         <input id="iamEditSchedDate" type="date">
         <label style="margin-top:6px;">💬 메모 (선택)</label>
@@ -1438,7 +1460,7 @@ body.pc-mode .vacation-tag {
               <button onclick="selectVacType(this,'반차')" class="type-sel-btn">반차</button>
               <button onclick="selectVacType(this,'교육')" class="type-sel-btn">교육</button>
               <button onclick="selectVacType(this,'출장')" class="type-sel-btn">출장</button>
-              <button onclick="selectVacType(this,'기타')" class="type-sel-btn">기타</button>
+              <button onclick="selectVacType(this,'직접입력')" class="type-sel-btn">직접입력</button>
             </div>
             <!-- 반차 전반/후반 선택 -->
             <div id="vacHalfWrap" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
@@ -1481,7 +1503,11 @@ body.pc-mode .vacation-tag {
               <button onclick="selectSchedType(this,'회의')" class="type-sel-btn sched-type">회의</button>
               <button onclick="selectSchedType(this,'작업')" class="type-sel-btn sched-type">작업</button>
               <button onclick="selectSchedType(this,'행사')" class="type-sel-btn sched-type">행사</button>
-              <button onclick="selectSchedType(this,'기타')" class="type-sel-btn sched-type">기타</button>
+              <button onclick="selectSchedType(this,'직접입력')" class="type-sel-btn sched-type">직접입력</button>
+            </div>
+            <div id="schedEtcWrap" style="display:none;margin-top:8px;">
+              <input id="schedEtcText" type="text" placeholder="예) 교육, 훈련, 외근 등" maxlength="20"
+                style="width:100%;background:var(--bg3);border:1px solid var(--blue);border-radius:10px;padding:9px 12px;font-size:0.88rem;color:var(--text);outline:none;font-family:inherit;">
             </div>
           </div>
           <div>
@@ -2478,6 +2504,10 @@ function openRegisterModal(prefillDateKey) {
 
     const firstSchedBtn = document.querySelector('#schedTypeButtons .type-sel-btn');
     if (firstSchedBtn) selectSchedType(firstSchedBtn, '점검');
+    const schedEtcWrap = document.getElementById('schedEtcWrap');
+    if (schedEtcWrap) schedEtcWrap.style.display = 'none';
+    const schedEtcText = document.getElementById('schedEtcText');
+    if (schedEtcText) schedEtcText.value = '';
 
     switchRegTab('vacation');
     document.getElementById('registerModal').style.display = 'flex';
@@ -2518,7 +2548,7 @@ function selectVacType(btn, type) {
   const etcInput = document.getElementById('vacEtcText');
   const halfWrap = document.getElementById('vacHalfWrap');
 
-  if (type === '기타') {
+  if (type === '직접입력') {
     etcWrap.style.display = 'block';
     halfWrap.style.display = 'none';
     setTimeout(() => etcInput && etcInput.focus(), 50);
@@ -2551,6 +2581,15 @@ function selectSchedType(btn, type) {
   _regSchedType = type;
   document.querySelectorAll('#schedTypeButtons .type-sel-btn').forEach(b => b.classList.remove('active-type'));
   btn.classList.add('active-type');
+  const etcWrap = document.getElementById('schedEtcWrap');
+  const etcInput = document.getElementById('schedEtcText');
+  if (type === '직접입력') {
+    if (etcWrap) etcWrap.style.display = 'block';
+    setTimeout(() => etcInput && etcInput.focus(), 50);
+  } else {
+    if (etcWrap) etcWrap.style.display = 'none';
+    if (etcInput) etcInput.value = '';
+  }
 }
 function handleRegVacImg(input) {
   if (input.files && input.files[0]) {
@@ -2579,9 +2618,9 @@ async function submitVacation() {
   if (!name) { alert('이름을 입력해주세요.'); return; }
   if (!dateVal) { alert('날짜를 선택해주세요.'); return; }
   let vacType = _regVacType;
-  if (vacType === '기타') {
+  if (vacType === '직접입력') {
     const etcVal = (document.getElementById('vacEtcText').value || '').trim();
-    if (!etcVal) { alert('기타 종류를 직접 입력해주세요.\n예) 육아휴직, 출산휴가, 병가 등'); document.getElementById('vacEtcText').focus(); return; }
+    if (!etcVal) { alert('종류를 직접 입력해주세요.\n예) 육아휴직, 출산휴가, 병가 등'); document.getElementById('vacEtcText').focus(); return; }
     vacType = etcVal;
   } else if (vacType === '반차') {
     // 전반 / 후반 구분 저장
@@ -2607,7 +2646,13 @@ async function submitSchedule() {
   const memo = document.getElementById('regSchedMemo').value.trim();
   if (!title) { alert('일정 제목을 입력해주세요.'); return; }
   if (!dateVal) { alert('날짜를 선택해주세요.'); return; }
-  const entry = { name: title, type: _regSchedType, img: '', memo, isVac: false };
+  let schedType = _regSchedType;
+  if (schedType === '직접입력') {
+    const etcVal = (document.getElementById('schedEtcText').value || '').trim();
+    if (!etcVal) { alert('종류를 직접 입력해주세요.\n예) 교육, 훈련, 외근 등'); document.getElementById('schedEtcText').focus(); return; }
+    schedType = etcVal;
+  }
+  const entry = { name: title, type: schedType, img: '', memo, isVac: false };
   closeRegisterModal();
   try {
     if (window._vacationAPI) {
@@ -3190,13 +3235,19 @@ function openItemEdit() {
     document.getElementById('iamEditSchedFields').style.display = 'none';
     document.getElementById('iamEditName').value = item.name || '';
     const typeSelect = document.getElementById('iamEditVacType');
-    const knownVacTypes = ['연차','전반','후반','전반차','후반차','교육','출장','기타'];
+    const knownVacTypes = ['연차','전반','후반','전반차','후반차','교육','출장'];
     // 구버전 데이터(전반차/후반차) → 신버전(전반/후반) 자동 변환
     const normalizedType = item.type === '전반차' ? '전반' : item.type === '후반차' ? '후반' : item.type;
+    const iamEditVacCustomWrap = document.getElementById('iamEditVacCustomWrap');
+    const iamEditVacCustom = document.getElementById('iamEditVacCustom');
     if (knownVacTypes.includes(normalizedType)) {
       typeSelect.value = normalizedType;
+      if (iamEditVacCustomWrap) iamEditVacCustomWrap.style.display = 'none';
     } else {
-      typeSelect.value = '기타'; // 직접입력 값도 기타 선택칸으로 표시
+      // 직접입력된 값
+      typeSelect.value = '직접입력';
+      if (iamEditVacCustomWrap) iamEditVacCustomWrap.style.display = '';
+      if (iamEditVacCustom) iamEditVacCustom.value = item.type || '';
     }
     document.getElementById('iamEditVacDate').value = _iamKey;
   } else {
@@ -3204,7 +3255,17 @@ function openItemEdit() {
     document.getElementById('iamEditSchedFields').style.display = '';
     document.getElementById('iamEditSchedTitle').value = item.name || '';
     const schedSelect = document.getElementById('iamEditSchedType');
-    schedSelect.value = item.type || '기타';
+    const knownSchedTypes = ['점검','회의','작업','행사'];
+    const iamEditSchedCustomWrap = document.getElementById('iamEditSchedCustomWrap');
+    const iamEditSchedCustom = document.getElementById('iamEditSchedCustom');
+    if (knownSchedTypes.includes(item.type)) {
+      schedSelect.value = item.type;
+      if (iamEditSchedCustomWrap) iamEditSchedCustomWrap.style.display = 'none';
+    } else {
+      schedSelect.value = '직접입력';
+      if (iamEditSchedCustomWrap) iamEditSchedCustomWrap.style.display = '';
+      if (iamEditSchedCustom) iamEditSchedCustom.value = item.type || '';
+    }
     document.getElementById('iamEditSchedDate').value = _iamKey;
     document.getElementById('iamEditMemo').value = item.memo || '';
   }
@@ -3213,6 +3274,32 @@ function openItemEdit() {
 function cancelItemEdit() {
   document.getElementById('iamEditForm').classList.remove('show');
   document.getElementById('iamActions').style.display = '';
+}
+
+function onIamVacTypeChange() {
+  const val = document.getElementById('iamEditVacType').value;
+  const wrap = document.getElementById('iamEditVacCustomWrap');
+  const inp = document.getElementById('iamEditVacCustom');
+  if (val === '직접입력') {
+    wrap.style.display = '';
+    setTimeout(() => inp && inp.focus(), 50);
+  } else {
+    wrap.style.display = 'none';
+    if (inp) inp.value = '';
+  }
+}
+
+function onIamSchedTypeChange() {
+  const val = document.getElementById('iamEditSchedType').value;
+  const wrap = document.getElementById('iamEditSchedCustomWrap');
+  const inp = document.getElementById('iamEditSchedCustom');
+  if (val === '직접입력') {
+    wrap.style.display = '';
+    setTimeout(() => inp && inp.focus(), 50);
+  } else {
+    wrap.style.display = 'none';
+    if (inp) inp.value = '';
+  }
 }
 
 async function saveItemEdit() {
@@ -3225,14 +3312,24 @@ async function saveItemEdit() {
 
   if (_iamIsVac) {
     const newName = document.getElementById('iamEditName').value.trim();
-    const newType = document.getElementById('iamEditVacType').value;
+    let newType = document.getElementById('iamEditVacType').value;
+    if (newType === '직접입력') {
+      const customVal = (document.getElementById('iamEditVacCustom')?.value || '').trim();
+      if (!customVal) { alert('종류를 직접 입력해주세요.'); document.getElementById('iamEditVacCustom')?.focus(); return; }
+      newType = customVal;
+    }
     newDateKey = document.getElementById('iamEditVacDate').value;
     if (!newName) { alert('이름을 입력해주세요.'); return; }
     if (!newDateKey) { alert('날짜를 선택해주세요.'); return; }
     newEntry = { name: newName, type: newType, img: item.img || '', memo: item.memo || '', isVac: true };
   } else {
     const newTitle = document.getElementById('iamEditSchedTitle').value.trim();
-    const newType = document.getElementById('iamEditSchedType').value;
+    let newType = document.getElementById('iamEditSchedType').value;
+    if (newType === '직접입력') {
+      const customVal = (document.getElementById('iamEditSchedCustom')?.value || '').trim();
+      if (!customVal) { alert('종류를 직접 입력해주세요.'); document.getElementById('iamEditSchedCustom')?.focus(); return; }
+      newType = customVal;
+    }
     newDateKey = document.getElementById('iamEditSchedDate').value;
     const newMemo = document.getElementById('iamEditMemo').value.trim();
     if (!newTitle) { alert('제목을 입력해주세요.'); return; }
