@@ -1215,6 +1215,13 @@ body.pc-mode .vacation-tag {
         </button>
       </div>
 
+      <!-- 일간 전체 삭제 버튼 -->
+      <div style="padding:0 16px 8px;">
+        <button id="dailyDeleteBtn" onclick="bulkDeleteDay()" style="width:100%;background:rgba(232,84,58,0.08);border:1px solid rgba(232,84,58,0.2);color:var(--text3);border-radius:10px;padding:8px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;" onmouseover="this.style.background='rgba(232,84,58,0.2)';this.style.color='#ff8a76';this.style.borderColor='rgba(232,84,58,0.4)'" onmouseout="this.style.background='rgba(232,84,58,0.08)';this.style.color='var(--text3)';this.style.borderColor='rgba(232,84,58,0.2)'">
+          🗑️ 이 날 전체 삭제
+        </button>
+      </div>
+
       <!-- 월별 일괄 삭제 -->
       <div style="padding:0 16px 14px;">
         <div id="bulkDeleteWrap" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
@@ -1689,17 +1696,34 @@ async function saveVacation(dateKey, entry) {
   }
 }
 
-async function removeVacation(dateKey, index) {
-  const origItems = window._vacationData[dateKey] || [];
-  const targetItem = origItems[index];
-
+async function removeVacation(dateKey, index, fsId) {
   // ── Firestore 모드 ──
   if (firebaseReady) {
-    // _firestoreId가 있으면 직접 삭제
-    let firestoreId = targetItem ? targetItem._firestoreId : null;
+    // fsId를 직접 받았으면 바로 사용, 없으면 메모리에서 찾기
+    let targetFsId = fsId || null;
+    if (!targetFsId) {
+      const items = window._vacationData[dateKey] || [];
+      const item = items[index];
+      if (item && item._firestoreId) targetFsId = item._firestoreId;
+    }
 
-    // _firestoreId가 없는 경우 — dateKey + name + type으로 일치하는 문서 검색
-    if (!firestoreId && targetItem) {
+    if (targetFsId) {
+      // 1) 메모리에서 해당 fsId 항목 즉시 제거
+      const cur = window._vacationData[dateKey] || [];
+      const newItems = cur.filter(it => it._firestoreId !== targetFsId);
+      if (newItems.length === 0) delete window._vacationData[dateKey];
+      else window._vacationData[dateKey] = newItems;
+      _refreshViews(dateKey);
+      // 2) Firestore 실제 삭제
+      try { await deleteDoc(doc(db, 'vacations', targetFsId)); }
+      catch(e) { console.warn('Firestore 삭제 오류:', e); }
+      return;
+    }
+
+    // fsId를 아무데서도 못 찾으면 — Firestore 전체 검색으로 일치 항목 삭제
+    const origItems = window._vacationData[dateKey] || [];
+    const targetItem = origItems[index];
+    if (targetItem) {
       try {
         const snap = await getDocs(collection(db, 'vacations'));
         const match = snap.docs.find(d => {
@@ -1708,26 +1732,21 @@ async function removeVacation(dateKey, index) {
                  dd.name === (targetItem.name || '') &&
                  dd.type === (targetItem.type || '');
         });
-        if (match) firestoreId = match.id;
-      } catch(e) { console.warn('Firestore 검색 오류:', e); }
+        if (match) {
+          const newItems = (window._vacationData[dateKey] || []).filter(it => it._firestoreId !== match.id);
+          if (newItems.length === 0) delete window._vacationData[dateKey];
+          else window._vacationData[dateKey] = newItems;
+          _refreshViews(dateKey);
+          await deleteDoc(doc(db, 'vacations', match.id));
+          return;
+        }
+      } catch(e) { console.warn('Firestore 검색 삭제 오류:', e); }
     }
 
-    if (firestoreId) {
-      // 1) 메모리 즉시 갱신 (onSnapshot 오기 전에 화면 먼저)
-      const newItems = (window._vacationData[dateKey] || []).filter(item => item._firestoreId !== firestoreId);
-      if (newItems.length === 0) delete window._vacationData[dateKey];
-      else window._vacationData[dateKey] = newItems;
-      _refreshViews(dateKey);
-      // 2) Firestore 삭제 (onSnapshot이 재동기화)
-      try { await deleteDoc(doc(db, 'vacations', firestoreId)); }
-      catch(e) { console.warn('Firestore 삭제 오류:', e); }
-      return;
-    }
-
-    // 그래도 못 찾으면 메모리에서만 인덱스로 제거
-    const newItems2 = origItems.filter((_, i) => i !== index);
-    if (newItems2.length === 0) delete window._vacationData[dateKey];
-    else window._vacationData[dateKey] = newItems2;
+    // 최후 수단: 메모리 인덱스로만 제거
+    const fallback = (window._vacationData[dateKey] || []).filter((_, i) => i !== index);
+    if (fallback.length === 0) delete window._vacationData[dateKey];
+    else window._vacationData[dateKey] = fallback;
     _refreshViews(dateKey);
     return;
   }
@@ -1825,7 +1844,7 @@ async function loadPostsLocal() {
 }
 
 window._boardAPI = { savePost, deletePost, loadPostsLocal, firebaseReady: () => firebaseReady };
-window._vacationAPI = { saveVacation, removeVacation };
+window._vacationAPI = { saveVacation, removeVacation };  // removeVacation(dateKey, index, fsId?)
 window.dispatchEvent(new Event('boardAPIReady'));
 </script>
 
@@ -2750,21 +2769,11 @@ async function deleteItem(key, idx) {
   showDeletePwModal(key, idx);
 }
 
-async function _doDeleteItem(key, idx) {
+async function _doDeleteItem(key, idx, fsId) {
   await waitForVacationAPI(3000);
   if (window._vacationAPI) {
-    // 현재 인덱스의 항목을 미리 캡처 (비동기 중 인덱스 변화 방지)
-    const items = window._vacationData[key] || [];
-    const targetItem = items[idx];
-    // _firestoreId가 있으면 Firestore 기반 삭제 (인덱스 무관)
-    if (targetItem && targetItem._firestoreId) {
-      try { await window._vacationAPI.removeVacation(key, idx); }
-      catch(e) { alert('삭제 실패: ' + e.message); }
-    } else {
-      // 인덱스 기반 삭제 (로컬 모드 또는 id 없는 경우)
-      try { await window._vacationAPI.removeVacation(key, idx); }
-      catch(e) { alert('삭제 실패: ' + e.message); }
-    }
+    try { await window._vacationAPI.removeVacation(key, idx, fsId); }
+    catch(e) { alert('삭제 실패: ' + e.message); }
   } else {
     // _vacationAPI 없을 때 직접 처리
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -3184,7 +3193,11 @@ function openDayDetail(dateKey, dateObj) {
       </div>`;
     });
   }
-  html += `</div><div style="height:8px;"></div>`;
+  html += `</div><div style="padding:10px 20px 8px;">
+    <button onclick="bulkDeleteDay('${dateKey}')" style="width:100%;background:rgba(232,84,58,0.1);border:1px solid rgba(232,84,58,0.25);color:#ff8a76;border-radius:12px;padding:10px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">
+      🗑️ 이 날 전체 삭제
+    </button>
+  </div><div style="height:8px;"></div>`;
 
   body.innerHTML = html;
   overlay.classList.add('show');
@@ -3203,9 +3216,10 @@ function closeDayDetailDirect() {
 // ════════════════════════════════
 // ✏️ 항목 수정/삭제 액션 모달
 // ════════════════════════════════
-let _iamKey = null;   // dateKey
-let _iamIdx = null;   // 원래 인덱스
-let _iamIsVac = false; // 연차 여부
+let _iamKey = null;        // dateKey
+let _iamIdx = null;        // 원래 인덱스 (fallback)
+let _iamFsId = null;       // _firestoreId (우선 사용)
+let _iamIsVac = false;     // 연차 여부
 
 function openItemAction(dateKey, idx) {
   const data = window._vacationData || {};
@@ -3215,6 +3229,7 @@ function openItemAction(dateKey, idx) {
 
   _iamKey = dateKey;
   _iamIdx = idx;
+  _iamFsId = item._firestoreId || null;
   _iamIsVac = isItemVac(item);
 
   // 모달 정보 채우기
@@ -3251,7 +3266,7 @@ function closeItemActionModal(e) {
 }
 function closeItemActionModalDirect() {
   document.getElementById('itemActionModal').classList.remove('show');
-  _iamKey = null; _iamIdx = null;
+  _iamKey = null; _iamIdx = null; _iamFsId = null;
 }
 
 function openItemEdit() {
@@ -3369,7 +3384,7 @@ async function saveItemEdit() {
   }
 
   // 기존 항목 삭제
-  await _doDeleteItem(_iamKey, _iamIdx);
+  await _doDeleteItem(_iamKey, _iamIdx, _iamFsId);
 
   // 새 항목 저장 (날짜가 바뀌었을 수도 있음)
   try {
@@ -3399,8 +3414,9 @@ async function saveItemEdit() {
 }
 
 function requestItemDelete() {
+  const key = _iamKey, idx = _iamIdx, fsId = _iamFsId;
   closeItemActionModalDirect();
-  showDeletePwModal(_iamKey, _iamIdx);
+  showDeletePwModal(key, idx, fsId);
 }
 
 // ════════════════════════════════
@@ -3987,14 +4003,15 @@ const DELETE_PASSWORD = '7060';
 let _pwBuffer = '';
 let _pwTargetKey = null;
 let _pwTargetIdx = null;
+let _pwTargetFsId = null;
 
-function showDeletePwModal(key, idx) {
+function showDeletePwModal(key, idx, fsId) {
   _pwTargetKey = key;
   _pwTargetIdx = idx;
+  _pwTargetFsId = fsId || null;
   _pwBuffer = '';
   _updatePwDots();
   document.getElementById('deletePwError').style.display = 'none';
-  // 이미 열려있으면 대상만 교체 (연속 삭제 지원)
   document.getElementById('deletePwModal').style.display = 'flex';
 }
 
@@ -4006,6 +4023,7 @@ function closeDeletePwModalDirect() {
   _pwBuffer = '';
   _pwTargetKey = null;
   _pwTargetIdx = null;
+  _pwTargetFsId = null;
 }
 
 function pwInput(digit) {
@@ -4038,44 +4056,39 @@ function _updatePwDots() {
 
 async function _checkPassword() {
   if (_pwBuffer === DELETE_PASSWORD) {
-    // 정답 - 모달을 닫지 않고 삭제 후 연속 입력 대기
     const key = _pwTargetKey;
     const idx = _pwTargetIdx;
+    const fsId = _pwTargetFsId;
     _pwBuffer = '';
     _pwTargetKey = null;
     _pwTargetIdx = null;
+    _pwTargetFsId = null;
     _updatePwDots();
     document.getElementById('deletePwError').style.display = 'none';
 
-    // 점들을 초록색으로 잠깐 표시
     for (let i = 0; i < 4; i++) {
       const dot = document.getElementById('pwDot' + i);
       if (dot) { dot.classList.remove('filled'); dot.classList.add('pw-dot-ok'); }
     }
-    await _doDeleteItem(key, idx);
+    await _doDeleteItem(key, idx, fsId);
     setTimeout(() => {
       for (let i = 0; i < 4; i++) {
         const dot = document.getElementById('pwDot' + i);
         if (dot) dot.classList.remove('pw-dot-ok');
       }
-      // 더 삭제할 항목이 없으면 모달 닫기
       if (_pwTargetKey === null) {
         document.getElementById('deletePwModal').style.display = 'none';
       }
-      // PC모드: 사이드바 및 세로 패널 갱신
       if (document.body.classList.contains('pc-mode')) {
         if (typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
         const pppPanel = document.getElementById('pcPortraitPanel');
         if (pppPanel && pppPanel.classList.contains('visible')) {
-          const dateObj2 = new Date(key + 'T00:00:00');
-          openPcPortraitPanel(key, dateObj2);
+          openPcPortraitPanel(key, new Date(key + 'T00:00:00'));
         }
       }
-      // 모바일 상세 팝업 갱신
       const overlay = document.getElementById('dayDetailOverlay');
       if (overlay && overlay.classList.contains('show')) {
-        const dateObj = new Date(key + 'T00:00:00');
-        openDayDetail(key, dateObj);
+        openDayDetail(key, new Date(key + 'T00:00:00'));
       }
     }, 350);
   } else {
@@ -4171,6 +4184,30 @@ function closePcPortraitPanel() {
 // ════════════════════════════════
 let _sidebarVisible = true;
 // ════════════════════════════════
+// 🗑️ 일간 전체 삭제
+// ════════════════════════════════
+async function bulkDeleteDay(dateKey) {
+  // dateKey가 없으면 사이드바 현재 날짜 사용
+  if (!dateKey) {
+    const baseObj = new Date();
+    baseObj.setDate(baseObj.getDate() + _sidebarDayOffset);
+    dateKey = baseObj.getFullYear() + '-' +
+      String(baseObj.getMonth()+1).padStart(2,'0') + '-' +
+      String(baseObj.getDate()).padStart(2,'0');
+  }
+  const data = window._vacationData || {};
+  const items = data[dateKey] || [];
+  const valid = items.filter(i => i.name || i.type);
+  if (valid.length === 0) { alert('이 날 삭제할 항목이 없습니다.'); return; }
+  const [y, mo, d] = dateKey.split('-');
+  if (!confirm(`🗑️ ${y}년 ${mo}월 ${d}일의 항목 ${valid.length}건을 모두 삭제할까요?\n비밀번호 없이 즉시 삭제됩니다.`)) return;
+  await _doBulkDelete([dateKey]);
+  // 모바일 팝업 닫기
+  closeDayDetailDirect();
+  alert(`✅ ${mo}월 ${d}일 ${valid.length}건 삭제 완료`);
+}
+
+// ════════════════════════════════
 // 🗑️ 월별 일괄 삭제
 // ════════════════════════════════
 let _bulkDeleteOpen = false;
@@ -4248,9 +4285,9 @@ async function _doBulkDelete(dateKeys) {
   for (const key of dateKeys) {
     const items = [...(window._vacationData[key] || [])];
     for (let i = items.length - 1; i >= 0; i--) {
+      const fsId = items[i]._firestoreId || null;
       try {
-        if (window._vacationAPI) await window._vacationAPI.removeVacation(key, i);
-        // removeVacation이 메모리도 갱신하므로 다음 루프엔 최신 상태 반영됨
+        if (window._vacationAPI) await window._vacationAPI.removeVacation(key, i, fsId);
       } catch(e) { console.warn('삭제 실패:', key, i, e); }
     }
   }
