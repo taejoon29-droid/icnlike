@@ -1602,16 +1602,6 @@ try {
     window._vacationData = firestoreData;
     if (typeof window.renderCalendar === 'function') window.renderCalendar();
     if (document.body.classList.contains('pc-mode') && typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
-    // 모바일 날짜 상세 팝업이 열려있으면 갱신
-    const _overlay = document.getElementById('dayDetailOverlay');
-    if (_overlay && _overlay.classList.contains('show') && window._currentDetailKey) {
-      if (typeof openDayDetail === 'function') openDayDetail(window._currentDetailKey, new Date(window._currentDetailKey + 'T00:00:00'));
-    }
-    // PC 세로 패널 갱신
-    const _ppp = document.getElementById('pcPortraitPanel');
-    if (_ppp && _ppp.classList.contains('visible') && window._currentDetailKey) {
-      if (typeof openPcPortraitPanel === 'function') openPcPortraitPanel(window._currentDetailKey, new Date(window._currentDetailKey + 'T00:00:00'));
-    }
   }, (err) => { console.warn('연차 onSnapshot 오류:', err); });
 
   const postsRef = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
@@ -1659,7 +1649,7 @@ function fileToBase64(file) {
 
 async function saveVacation(dateKey, entry) {
   if (firebaseReady) {
-    const docData = { dateKey, name: entry.name || '', type: entry.type || '', img: entry.img || '', memo: entry.memo || '' };
+    const docData = { dateKey, name: entry.name || '', type: entry.type || '', img: entry.img || '', memo: entry.memo || '', isVac: entry.isVac !== undefined ? entry.isVac : true };
     await addDoc(collection(db, 'vacations'), docData);
   } else {
     const STORAGE_KEY = 'power_system_v5_stable';
@@ -1674,43 +1664,42 @@ async function saveVacation(dateKey, entry) {
 }
 
 async function removeVacation(dateKey, index) {
-  const STORAGE_KEY = 'power_system_v5_stable';
-  if (firebaseReady && window._vacationData) {
-    const items = window._vacationData[dateKey] || [];
-    const item = items[index];
-    if (item && item._firestoreId) {
-      await deleteDoc(doc(db, 'vacations', item._firestoreId));
-    }
-    // Firebase 삭제 후 로컬 메모리 동기화
-    const updated = window._vacationData[dateKey] ? [...window._vacationData[dateKey]] : [];
-    updated.splice(index, 1);
-    if (updated.length === 0) {
-      delete window._vacationData[dateKey];
-    } else {
-      window._vacationData[dateKey] = updated;
-    }
-    // localStorage도 갱신 (오프라인 폴백 대비)
-    try {
-      const lsRaw = localStorage.getItem(STORAGE_KEY);
-      const lsData = lsRaw ? JSON.parse(lsRaw) : {};
-      if (lsData[dateKey]) {
-        lsData[dateKey].splice(index, 1);
-        if (lsData[dateKey].length === 0) delete lsData[dateKey];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(lsData));
-      }
-    } catch(e) {}
-    if (typeof window.renderCalendar === 'function') window.renderCalendar();
+  // splice 전에 _firestoreId 먼저 확보
+  const origItems = window._vacationData[dateKey] || [];
+  const targetItem = origItems[index];
+  const firestoreId = targetItem ? targetItem._firestoreId : null;
+
+  // 1) 메모리(_vacationData) 즉시 갱신
+  const newItems = origItems.filter((_, i) => i !== index);
+  if (newItems.length === 0) delete window._vacationData[dateKey];
+  else window._vacationData[dateKey] = newItems;
+
+  // 2) 화면 즉시 갱신
+  if (typeof window.renderCalendar === 'function') window.renderCalendar();
+  if (document.body.classList.contains('pc-mode') && typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
+  const _ov = document.getElementById('dayDetailOverlay');
+  if (_ov && _ov.classList.contains('show') && window._currentDetailKey) {
+    if (typeof openDayDetail === 'function') openDayDetail(window._currentDetailKey, new Date(window._currentDetailKey + 'T00:00:00'));
+  }
+  const _ppp = document.getElementById('pcPortraitPanel');
+  if (_ppp && _ppp.classList.contains('visible') && window._currentDetailKey) {
+    if (typeof openPcPortraitPanel === 'function') openPcPortraitPanel(window._currentDetailKey, new Date(window._currentDetailKey + 'T00:00:00'));
+  }
+
+  // 3) 백엔드(Firestore 또는 localStorage) 삭제
+  if (firebaseReady && firestoreId) {
+    try { await deleteDoc(doc(db, 'vacations', firestoreId)); } catch(e) { console.warn('Firestore 삭제 오류:', e); }
+    // onSnapshot이 재동기화하므로 localStorage는 건드리지 않음
     return;
   }
-  // Firebase 미연결 -> localStorage만 처리
+  // Firebase 미사용 → localStorage 삭제
+  const STORAGE_KEY = 'power_system_v5_stable';
   const raw = localStorage.getItem(STORAGE_KEY);
   const data = raw ? JSON.parse(raw) : {};
   if (data[dateKey]) {
     data[dateKey].splice(index, 1);
     if (data[dateKey].length === 0) delete data[dateKey];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    window._vacationData = data;
-    if (typeof window.renderCalendar === 'function') window.renderCalendar();
   }
 }
 
@@ -1950,8 +1939,8 @@ window.renderCalendar = function renderCalendar() {
     if (data[dateKey]) {
       const allItems = data[dateKey];
       // 일정(schedule) 먼저, 연차(vacation) 나중에
-      const schedItems2 = allItems.filter(item => item.name && !VAC_TYPES_SET.has(item.type));
-      const vacItems2   = allItems.filter(item => item.name && VAC_TYPES_SET.has(item.type));
+      const schedItems2 = allItems.filter(item => item.name && !isItemVac(item));
+      const vacItems2   = allItems.filter(item => item.name && isItemVac(item));
       const sortedItems = [...schedItems2, ...vacItems2];
 
       // 연차/일정 개수 확인
@@ -2001,7 +1990,7 @@ window.renderCalendar = function renderCalendar() {
             const tag = document.createElement('div');
             tag.className = 'vacation-tag';
             // 일정은 빨간 계열, 연차는 초록 계열(기본)
-            if (!VAC_TYPES_SET.has(item.type)) {
+            if (!isItemVac(item)) {
               tag.style.background = 'rgba(232,84,58,0.18)';
               tag.style.color = '#ff8a76';
               tag.style.borderColor = 'rgba(232,84,58,0.3)';
@@ -2064,6 +2053,12 @@ window.renderCalendar = function renderCalendar() {
 // 우측 사이드바: 일정+연차 분리 렌더링
 // ════════════════════════════════
 const VAC_TYPES_SET = new Set(['연차','반차','전반','후반','전반차','후반차','교육','출장','기타']);
+// isVac 플래그가 있으면 우선 사용, 없으면 type으로 판단 (구버전 호환)
+function isItemVac(item) {
+  if (!item) return false;
+  if (item.isVac !== undefined) return item.isVac === true;
+  return isItemVac(item);
+}
 const SCHED_TYPES_SET = new Set(['점검','회의','작업','행사','일정']);
 
 // 사이드바 날짜 오프셋 (0 = 오늘, ±N = N일 이동)
@@ -2125,7 +2120,7 @@ function renderSidebarSchedule() {
   const schedEntries = [];
   (data[baseKey] || []).forEach((item, origIdx) => {
     if (!item.name && !item.type) return;
-    if (VAC_TYPES_SET.has(item.type)) vacEntries.push({ item, origIdx });
+    if (isItemVac(item)) vacEntries.push({ item, origIdx });
     else schedEntries.push({ item, origIdx });
   });
 
@@ -2592,7 +2587,7 @@ async function submitVacation() {
     // 전반 / 후반 구분 저장
     vacType = _regHalfDay === '전반' ? '전반' : '후반';
   }
-  const entry = { name, type: vacType, img: _regVacImgData };
+  const entry = { name, type: vacType, img: _regVacImgData, isVac: true };
   closeRegisterModal();
   try {
     if (window._vacationAPI) {
@@ -2612,7 +2607,7 @@ async function submitSchedule() {
   const memo = document.getElementById('regSchedMemo').value.trim();
   if (!title) { alert('일정 제목을 입력해주세요.'); return; }
   if (!dateVal) { alert('날짜를 선택해주세요.'); return; }
-  const entry = { name: title, type: _regSchedType, img: '', memo };
+  const entry = { name: title, type: _regSchedType, img: '', memo, isVac: false };
   closeRegisterModal();
   try {
     if (window._vacationAPI) {
@@ -2682,30 +2677,30 @@ async function _doDeleteItem(key, idx) {
   await waitForVacationAPI(3000);
   if (window._vacationAPI) {
     try { await window._vacationAPI.removeVacation(key, idx); }
-    catch(e) { alert('삭제 실패: ' + e.message); return; }
+    catch(e) { alert('삭제 실패: ' + e.message); }
   } else {
+    // Firebase 없을 때: 메모리+로컬스토리지+화면 직접 갱신
     const raw = localStorage.getItem(STORAGE_KEY);
     const data = raw ? JSON.parse(raw) : {};
     if (data[key]) {
       data[key].splice(idx, 1);
       if (data[key].length === 0) delete data[key];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      window._vacationData = data;
-      window.renderCalendar();
     }
-  }
-  // 삭제 후 모든 UI 갱신
-  if (typeof window.renderCalendar === 'function') window.renderCalendar();
-  if (document.body.classList.contains('pc-mode') && typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
-  // 날짜 상세 오버레이가 열려있으면 갱신
-  const dayOverlay = document.getElementById('dayDetailOverlay');
-  if (dayOverlay && dayOverlay.classList.contains('show')) {
-    if (typeof openDayDetail === 'function') openDayDetail(key, new Date(key + 'T00:00:00'));
-  }
-  // PC 세로 패널이 열려있으면 갱신
-  const pppPanel = document.getElementById('pcPortraitPanel');
-  if (pppPanel && pppPanel.classList.contains('visible')) {
-    if (typeof openPcPortraitPanel === 'function') openPcPortraitPanel(key, new Date(key + 'T00:00:00'));
+    const memItems = window._vacationData[key] ? [...window._vacationData[key]] : [];
+    memItems.splice(idx, 1);
+    if (memItems.length === 0) delete window._vacationData[key];
+    else window._vacationData[key] = memItems;
+    if (typeof window.renderCalendar === 'function') window.renderCalendar();
+    if (document.body.classList.contains('pc-mode') && typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
+    const _ov = document.getElementById('dayDetailOverlay');
+    if (_ov && _ov.classList.contains('show') && window._currentDetailKey) {
+      if (typeof openDayDetail === 'function') openDayDetail(window._currentDetailKey, new Date(window._currentDetailKey + 'T00:00:00'));
+    }
+    const _ppp = document.getElementById('pcPortraitPanel');
+    if (_ppp && _ppp.classList.contains('visible') && window._currentDetailKey) {
+      if (typeof openPcPortraitPanel === 'function') openPcPortraitPanel(window._currentDetailKey, new Date(window._currentDetailKey + 'T00:00:00'));
+    }
   }
 }
 
@@ -3066,8 +3061,8 @@ function openDayDetail(dateKey, dateObj) {
   // 일정 & 연차
   const data = getData();
   const items = data[dateKey] || [];
-  const schedItems = items.filter(i => i.name && !VAC_TYPES_SET.has(i.type));
-  const vacItems   = items.filter(i => i.name && VAC_TYPES_SET.has(i.type));
+  const schedItems = items.filter(i => i.name && !isItemVac(i));
+  const vacItems   = items.filter(i => i.name && isItemVac(i));
 
   html += `<div class="ddp-section" style="margin-top:10px;">
     <div class="ddp-section-title title-sched">📅 일정</div>`;
@@ -3142,7 +3137,7 @@ function openItemAction(dateKey, idx) {
 
   _iamKey = dateKey;
   _iamIdx = idx;
-  _iamIsVac = VAC_TYPES_SET.has(item.type);
+  _iamIsVac = isItemVac(item);
 
   // 모달 정보 채우기
   const isVac = _iamIsVac;
@@ -3198,7 +3193,11 @@ function openItemEdit() {
     const knownVacTypes = ['연차','전반','후반','전반차','후반차','교육','출장','기타'];
     // 구버전 데이터(전반차/후반차) → 신버전(전반/후반) 자동 변환
     const normalizedType = item.type === '전반차' ? '전반' : item.type === '후반차' ? '후반' : item.type;
-    typeSelect.value = knownVacTypes.includes(normalizedType) ? normalizedType : '기타';
+    if (knownVacTypes.includes(normalizedType)) {
+      typeSelect.value = normalizedType;
+    } else {
+      typeSelect.value = '기타'; // 직접입력 값도 기타 선택칸으로 표시
+    }
     document.getElementById('iamEditVacDate').value = _iamKey;
   } else {
     document.getElementById('iamEditVacFields').style.display = 'none';
@@ -3230,7 +3229,7 @@ async function saveItemEdit() {
     newDateKey = document.getElementById('iamEditVacDate').value;
     if (!newName) { alert('이름을 입력해주세요.'); return; }
     if (!newDateKey) { alert('날짜를 선택해주세요.'); return; }
-    newEntry = { name: newName, type: newType, img: item.img || '', memo: item.memo || '' };
+    newEntry = { name: newName, type: newType, img: item.img || '', memo: item.memo || '', isVac: true };
   } else {
     const newTitle = document.getElementById('iamEditSchedTitle').value.trim();
     const newType = document.getElementById('iamEditSchedType').value;
@@ -3238,7 +3237,7 @@ async function saveItemEdit() {
     const newMemo = document.getElementById('iamEditMemo').value.trim();
     if (!newTitle) { alert('제목을 입력해주세요.'); return; }
     if (!newDateKey) { alert('날짜를 선택해주세요.'); return; }
-    newEntry = { name: newTitle, type: newType, img: '', memo: newMemo };
+    newEntry = { name: newTitle, type: newType, img: '', memo: newMemo, isVac: false };
   }
 
   // 기존 항목 삭제
@@ -3481,7 +3480,7 @@ async function registerAiVacResults() {
   const apiReady = await waitForVacationAPI(5000);
   let success = 0, fail = 0;
   for (const item of valid) {
-    const entry = { name: item.name, type: item.type || '연차', img: '', memo: item.memo || '' };
+    const entry = { name: item.name, type: item.type || '연차', img: '', memo: item.memo || '', isVac: true };
     try {
       if (apiReady && window._vacationAPI) await window._vacationAPI.saveVacation(item.date, entry);
       else localSaveVacation(item.date, entry);
@@ -3994,8 +3993,8 @@ function openPcPortraitPanel(dateKey, dateObj) {
   // 원본 인덱스를 보존하면서 분류
   const withIdx = items.map((item, origIdx) => ({ item, origIdx }))
     .filter(({ item }) => item.name);
-  const schedWithIdx = withIdx.filter(({ item }) => !VAC_TYPES_SET.has(item.type));
-  const vacWithIdx   = withIdx.filter(({ item }) =>  VAC_TYPES_SET.has(item.type));
+  const schedWithIdx = withIdx.filter(({ item }) => !isItemVac(item));
+  const vacWithIdx   = withIdx.filter(({ item }) =>  isItemVac(item));
   const allItems2 = [...schedWithIdx, ...vacWithIdx];
 
   body.innerHTML = '';
@@ -4004,7 +4003,7 @@ function openPcPortraitPanel(dateKey, dateObj) {
     body.innerHTML = '<div class="ppp-empty">등록된 일정이 없습니다</div>';
   } else {
     allItems2.forEach(({ item, origIdx }) => {
-      const isVac = VAC_TYPES_SET.has(item.type);
+      const isVac = isItemVac(item);
       const dotColor = isVac ? 'var(--green)' : 'var(--blue)';
       const typeBg   = isVac ? 'rgba(52,201,117,0.15)' : 'rgba(74,158,255,0.15)';
       const typeColor= isVac ? 'var(--green)' : 'var(--blue)';
