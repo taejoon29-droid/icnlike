@@ -1690,17 +1690,70 @@ async function saveVacation(dateKey, entry) {
 }
 
 async function removeVacation(dateKey, index) {
-  // splice 전에 _firestoreId 먼저 확보
   const origItems = window._vacationData[dateKey] || [];
   const targetItem = origItems[index];
-  const firestoreId = targetItem ? targetItem._firestoreId : null;
 
-  // 1) 메모리(_vacationData) 즉시 갱신
-  const newItems = origItems.filter((_, i) => i !== index);
-  if (newItems.length === 0) delete window._vacationData[dateKey];
-  else window._vacationData[dateKey] = newItems;
+  // ── Firestore 모드 ──
+  if (firebaseReady) {
+    // _firestoreId가 있으면 직접 삭제
+    const firestoreId = targetItem ? targetItem._firestoreId : null;
+    if (firestoreId) {
+      // 1) 메모리 즉시 갱신 (onSnapshot 오기 전에 화면 먼저)
+      const newItems = origItems.filter((_, i) => i !== index);
+      if (newItems.length === 0) delete window._vacationData[dateKey];
+      else window._vacationData[dateKey] = newItems;
+      _refreshViews(dateKey);
+      // 2) Firestore 삭제 (onSnapshot이 재동기화)
+      try { await deleteDoc(doc(db, 'vacations', firestoreId)); }
+      catch(e) { console.warn('Firestore 삭제 오류:', e); }
+      return;
+    }
+    // _firestoreId가 없는 경우 — dateKey + name + type으로 일치하는 문서 검색 후 삭제
+    if (targetItem) {
+      try {
+        const q = collection(db, 'vacations');
+        const snap = await getDocs(q);
+        const match = snap.docs.find(d => {
+          const dd = d.data();
+          return dd.dateKey === dateKey &&
+                 dd.name === (targetItem.name || '') &&
+                 dd.type === (targetItem.type || '');
+        });
+        if (match) {
+          const newItems = origItems.filter((_, i) => i !== index);
+          if (newItems.length === 0) delete window._vacationData[dateKey];
+          else window._vacationData[dateKey] = newItems;
+          _refreshViews(dateKey);
+          await deleteDoc(doc(db, 'vacations', match.id));
+          return;
+        }
+      } catch(e) { console.warn('Firestore 검색 삭제 오류:', e); }
+    }
+    // 그래도 못 찾으면 메모리에서만 제거
+    const newItems2 = origItems.filter((_, i) => i !== index);
+    if (newItems2.length === 0) delete window._vacationData[dateKey];
+    else window._vacationData[dateKey] = newItems2;
+    _refreshViews(dateKey);
+    return;
+  }
 
-  // 2) 화면 즉시 갱신
+  // ── localStorage 모드 ──
+  const STORAGE_KEY = 'power_system_v5_stable';
+  const raw = localStorage.getItem(STORAGE_KEY);
+  const data = raw ? JSON.parse(raw) : {};
+  if (data[dateKey]) {
+    data[dateKey].splice(index, 1);
+    if (data[dateKey].length === 0) delete data[dateKey];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+  const memItems = window._vacationData[dateKey] ? [...window._vacationData[dateKey]] : [];
+  memItems.splice(index, 1);
+  if (memItems.length === 0) delete window._vacationData[dateKey];
+  else window._vacationData[dateKey] = memItems;
+  _refreshViews(dateKey);
+}
+
+function _refreshViews(dateKey) {
   if (typeof window.renderCalendar === 'function') window.renderCalendar();
   if (document.body.classList.contains('pc-mode') && typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
   const _ov = document.getElementById('dayDetailOverlay');
@@ -1710,22 +1763,6 @@ async function removeVacation(dateKey, index) {
   const _ppp = document.getElementById('pcPortraitPanel');
   if (_ppp && _ppp.classList.contains('visible') && window._currentDetailKey) {
     if (typeof openPcPortraitPanel === 'function') openPcPortraitPanel(window._currentDetailKey, new Date(window._currentDetailKey + 'T00:00:00'));
-  }
-
-  // 3) 백엔드(Firestore 또는 localStorage) 삭제
-  if (firebaseReady && firestoreId) {
-    try { await deleteDoc(doc(db, 'vacations', firestoreId)); } catch(e) { console.warn('Firestore 삭제 오류:', e); }
-    // onSnapshot이 재동기화하므로 localStorage는 건드리지 않음
-    return;
-  }
-  // Firebase 미사용 → localStorage 삭제
-  const STORAGE_KEY = 'power_system_v5_stable';
-  const raw = localStorage.getItem(STORAGE_KEY);
-  const data = raw ? JSON.parse(raw) : {};
-  if (data[dateKey]) {
-    data[dateKey].splice(index, 1);
-    if (data[dateKey].length === 0) delete data[dateKey];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }
 }
 
@@ -2724,7 +2761,7 @@ async function _doDeleteItem(key, idx) {
     try { await window._vacationAPI.removeVacation(key, idx); }
     catch(e) { alert('삭제 실패: ' + e.message); }
   } else {
-    // Firebase 없을 때: 메모리+로컬스토리지+화면 직접 갱신
+    // _vacationAPI 없을 때 직접 처리
     const raw = localStorage.getItem(STORAGE_KEY);
     const data = raw ? JSON.parse(raw) : {};
     if (data[key]) {
@@ -2736,16 +2773,7 @@ async function _doDeleteItem(key, idx) {
     memItems.splice(idx, 1);
     if (memItems.length === 0) delete window._vacationData[key];
     else window._vacationData[key] = memItems;
-    if (typeof window.renderCalendar === 'function') window.renderCalendar();
-    if (document.body.classList.contains('pc-mode') && typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
-    const _ov = document.getElementById('dayDetailOverlay');
-    if (_ov && _ov.classList.contains('show') && window._currentDetailKey) {
-      if (typeof openDayDetail === 'function') openDayDetail(window._currentDetailKey, new Date(window._currentDetailKey + 'T00:00:00'));
-    }
-    const _ppp = document.getElementById('pcPortraitPanel');
-    if (_ppp && _ppp.classList.contains('visible') && window._currentDetailKey) {
-      if (typeof openPcPortraitPanel === 'function') openPcPortraitPanel(window._currentDetailKey, new Date(window._currentDetailKey + 'T00:00:00'));
-    }
+    _refreshViews(key);
   }
 }
 
@@ -3236,7 +3264,6 @@ function openItemEdit() {
     document.getElementById('iamEditName').value = item.name || '';
     const typeSelect = document.getElementById('iamEditVacType');
     const knownVacTypes = ['연차','전반','후반','전반차','후반차','교육','출장'];
-    // 구버전 데이터(전반차/후반차) → 신버전(전반/후반) 자동 변환
     const normalizedType = item.type === '전반차' ? '전반' : item.type === '후반차' ? '후반' : item.type;
     const iamEditVacCustomWrap = document.getElementById('iamEditVacCustomWrap');
     const iamEditVacCustom = document.getElementById('iamEditVacCustom');
@@ -3244,7 +3271,6 @@ function openItemEdit() {
       typeSelect.value = normalizedType;
       if (iamEditVacCustomWrap) iamEditVacCustomWrap.style.display = 'none';
     } else {
-      // 직접입력된 값
       typeSelect.value = '직접입력';
       if (iamEditVacCustomWrap) iamEditVacCustomWrap.style.display = '';
       if (iamEditVacCustom) iamEditVacCustom.value = item.type || '';
@@ -4216,10 +4242,10 @@ async function _doBulkDelete(dateKeys) {
   await waitForVacationAPI(5000);
   for (const key of dateKeys) {
     const items = [...(window._vacationData[key] || [])];
-    // 역순으로 삭제해야 인덱스 밀림 없음
     for (let i = items.length - 1; i >= 0; i--) {
       try {
         if (window._vacationAPI) await window._vacationAPI.removeVacation(key, i);
+        // removeVacation이 메모리도 갱신하므로 다음 루프엔 최신 상태 반영됨
       } catch(e) { console.warn('삭제 실패:', key, i, e); }
     }
   }
