@@ -72,7 +72,7 @@ body.pc-mode {
 /* PC모드: 캘린더 + 일정 사이드바 2컬럼 */
 body.pc-mode .pc-layout-wrap {
   display: grid;
-  grid-template-columns: 1fr 240px;
+  grid-template-columns: 1fr 480px;
   gap: 16px;
   align-items: start;
 }
@@ -96,7 +96,8 @@ body.pc-mode .pc-board-col {
   border: 1px solid var(--border);
   border-radius: 18px;
   overflow: hidden;
-  max-height: calc(100vh - 100px);
+  min-height: calc(100vh - 100px);
+  max-height: calc(200vh - 200px);
   overflow-y: auto;
   transition: min-width 0.25s, max-width 0.25s;
 }
