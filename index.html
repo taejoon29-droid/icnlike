@@ -167,20 +167,26 @@ body.pc-mode #dashResizeHandle { display: flex; }
 
 /* 사이드바 접힌 상태 */
 body.pc-mode .pc-board-col.sidebar-collapsed {
-  min-width: 0;
-  max-width: 52px;
-  overflow: visible;
+  flex: 0 0 0px !important;
+  width: 0px !important;
+  min-width: 0 !important;
+  max-width: 0px !important;
+  margin-left: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  overflow: hidden !important;
+  opacity: 0;
+  pointer-events: none;
 }
 body.pc-mode .pc-board-col.sidebar-collapsed .pc-board-sidebar-header {
-  writing-mode: initial;
-  padding: 12px 8px;
-  justify-content: center;
-}
-body.pc-mode .pc-board-col.sidebar-collapsed .pc-board-sidebar-header span:first-child {
   display: none;
 }
 body.pc-mode .pc-board-col.sidebar-collapsed #sidebarContent {
   display: none;
+}
+/* 사이드바 열림/닫힘 트랜지션 */
+body.pc-mode .pc-board-col {
+  transition: flex 0.25s ease, width 0.25s ease, margin-left 0.25s ease, opacity 0.2s ease;
 }
 
 body.pc-mode .duty-container { display: block !important; }
@@ -317,6 +323,56 @@ body.pc-mode .pc-top-quickbar { display: flex; }
   white-space: nowrap;
 }
 .pc-quick-link:hover { background: var(--bg4); color: var(--text); }
+
+/* ── AI 검색 바 ── */
+.ai-search-wrap { position: relative; display: flex; align-items: center; }
+.ai-search-bar {
+  display: flex; align-items: center;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s; height: 32px;
+}
+.ai-search-bar:focus-within {
+  border-color: rgba(74,158,255,0.5);
+  box-shadow: 0 0 0 2px rgba(74,158,255,0.12);
+}
+.ai-search-engine-toggle {
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 10px; height: 100%;
+  background: var(--bg4); border-right: 1px solid var(--border);
+  cursor: pointer; font-size: 0.78rem; font-weight: 700;
+  color: var(--text2); white-space: nowrap; user-select: none;
+  transition: background 0.12s; min-width: 0;
+}
+.ai-search-engine-toggle:hover { background: var(--bg3); color: var(--text); }
+.ai-engine-arrow { font-size: 0.65rem; opacity: 0.6; }
+.ai-search-input {
+  border: none; outline: none; background: transparent;
+  padding: 0 8px; font-size: 0.82rem; color: var(--text);
+  font-family: inherit; width: 180px; height: 100%;
+}
+.ai-search-input::placeholder { color: var(--text3); }
+.ai-search-btn {
+  background: rgba(74,158,255,0.15); border: none;
+  border-left: 1px solid var(--border); color: var(--blue);
+  font-size: 1rem; font-weight: 700; padding: 0 12px;
+  height: 100%; cursor: pointer; transition: background 0.12s;
+}
+.ai-search-btn:hover { background: rgba(74,158,255,0.28); }
+.ai-engine-menu {
+  display: none; position: absolute; top: calc(100% + 6px); left: 0;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; z-index: 9999;
+  min-width: 160px; box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+}
+.ai-engine-menu.open { display: block; }
+.ai-engine-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; font-size: 0.82rem; font-weight: 600;
+  color: var(--text2); cursor: pointer; transition: background 0.12s;
+}
+.ai-engine-item:hover { background: var(--bg3); color: var(--text); }
+.ai-engine-item.active { background: rgba(74,158,255,0.12); color: var(--blue); }
 
 /* WORKHUB 브랜드 */
 .workhub-brand {
@@ -512,6 +568,11 @@ body.pc-mode #pcDashboard {
   position: relative;
   overflow: visible !important;
   box-sizing: border-box;
+}
+/* dashContent 높이 리사이즈 시 overflow 강제 적용 */
+#dashContent.resized {
+  overflow: hidden !important;
+  overflow-y: auto !important;
 }
 body.pc-mode.resizing-ns,
 body.pc-mode.resizing-ns * { user-select: none !important; cursor: ns-resize !important; }
@@ -1210,13 +1271,21 @@ body.pc-mode .vacation-tag {
 
 
 <div class="pc-layout-wrap">
-  <!-- 왼쪽: 캘린더 컬럼 -->
-  <div class="pc-cal-col">
+  <!-- 왼쪽: 캘린더 컬럼 (relative로 플로팅 버튼 기준) -->
+  <div class="pc-cal-col" style="position:relative;">
+    <!-- 사이드바 토글 플로팅 버튼 (사이드바 숨길 때 표시) -->
+    <button id="sidebarFloatBtn" onclick="toggleSidebar()"
+      title="일정 사이드바 열기"
+      style="display:none;position:absolute;top:6px;right:6px;z-index:50;
+             background:var(--bg3);border:1px solid var(--border);color:var(--text2);
+             border-radius:50%;width:32px;height:32px;font-size:1rem;font-weight:700;
+             cursor:pointer;font-family:inherit;transition:background 0.15s;
+             align-items:center;justify-content:center;flex-shrink:0;">▶</button>
 
     <!-- PC모드 상단 퀵링크 -->
     <div class="pc-top-quickbar">
       <div class="pc-quickbar-row1">
-        <span class="workhub-brand"><span class="wh-dot"></span>WORKHUB. <span class="workhub-sub">전원설비 스케줄 &amp; 커뮤니티</span></span>
+        <span class="workhub-brand"><span class="wh-dot"></span><span id="pcTopClock" style="font-variant-numeric:tabular-nums;letter-spacing:0.04em;">--:--:--</span> <span class="workhub-sub" id="pcTopDate"></span></span>
       </div>
       <div class="pc-quickbar-row2">
         <a class="pc-quick-link" href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️ 지도</a>
@@ -1226,6 +1295,30 @@ body.pc-mode .vacation-tag {
         <a class="pc-quick-link" href="#" onclick="openBoard(); return false;" style="background:rgba(232,84,58,0.15);border-color:rgba(232,84,58,0.3);color:var(--accent2);">📋 게시판</a>
         <a class="pc-quick-link" href="#" onclick="openRegisterModal(); return false;" style="background:rgba(52,201,117,0.12);border-color:rgba(52,201,117,0.3);color:var(--green);">✏️ 일정등록</a>
         <a class="pc-quick-link" href="#" onclick="openAiScan(); return false;" style="background:rgba(74,158,255,0.12);border-color:rgba(74,158,255,0.3);color:var(--blue);">🤖 AI등록</a>
+
+        <!-- ── AI 검색 버튼 ── -->
+        <div class="ai-search-wrap" id="aiSearchWrap">
+          <div class="ai-search-bar" id="aiSearchBar">
+            <div class="ai-search-engine-toggle" id="aiEngineToggle" onclick="toggleAiEngineMenu(event)" title="검색 엔진 선택">
+              <span id="aiEngineIcon">🔍</span>
+              <span id="aiEngineName">Google AI</span>
+              <span class="ai-engine-arrow">▾</span>
+            </div>
+            <input type="text" id="aiSearchInput" class="ai-search-input" placeholder="검색어 입력..." onkeydown="handleAiSearchKey(event)" />
+            <button class="ai-search-btn" onclick="doAiSearch()" title="검색">→</button>
+          </div>
+          <div class="ai-engine-menu" id="aiEngineMenu">
+            <div class="ai-engine-item active" id="engineOptGoogle" onclick="selectAiEngine('google')">
+              <span>🌐</span><span>Google AI 검색</span>
+            </div>
+            <div class="ai-engine-item" id="engineOptGpt" onclick="selectAiEngine('chatgpt')">
+              <span>🤖</span><span>ChatGPT 검색</span>
+            </div>
+            <div class="ai-engine-item" id="engineOptPerplexity" onclick="selectAiEngine('perplexity')">
+              <span>🔍</span><span>Perplexity AI</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1432,8 +1525,8 @@ body.pc-mode .vacation-tag {
   <div id="dashResizeHandle" title="위아래 드래그 → 높이 조절" style="display:none;">
     <div class="handle-bar"></div>
   </div>
-  <!-- 너비 리사이즈 핸들 (오른쪽) -->
-  <div id="dashboardHeightHandle" title="좌우 드래그 → 너비 조절" style="display:none;position:absolute;right:-14px;top:0;height:100%;width:14px;flex-direction:column;">
+  <!-- 너비 리사이즈 핸들 (왼쪽) -->
+  <div id="dashboardHeightHandle" title="좌우 드래그 → 너비 조절" style="display:none;position:absolute;left:-14px;top:0;height:100%;width:14px;flex-direction:column;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border);border-right:none;border-radius:8px 0 0 8px;cursor:ew-resize;">
     <div class="handle-bar" style="width:4px;height:40px;"></div>
   </div>
 </div>
@@ -4617,9 +4710,73 @@ async function _doBulkDelete(dateKeys) {
   _renderBulkMonthBtns();
 }
 
+// ════════════════════════════════
+// AI 검색 기능
+// ════════════════════════════════
+let _aiEngine = 'google';
+
+function toggleAiEngineMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('aiEngineMenu');
+  if (menu) menu.classList.toggle('open');
+}
+
+function selectAiEngine(engine) {
+  _aiEngine = engine;
+  const menu = document.getElementById('aiEngineMenu');
+  if (menu) menu.classList.remove('open');
+  const icon = document.getElementById('aiEngineIcon');
+  const name = document.getElementById('aiEngineName');
+  document.querySelectorAll('.ai-engine-item').forEach(el => el.classList.remove('active'));
+  const map = {
+    google:     { icon: '🌐', label: 'Google AI',   id: 'engineOptGoogle' },
+    chatgpt:    { icon: '🤖', label: 'ChatGPT',     id: 'engineOptGpt' },
+    perplexity: { icon: '🔍', label: 'Perplexity',  id: 'engineOptPerplexity' }
+  };
+  const opt = map[engine] || map.google;
+  if (icon) icon.textContent = opt.icon;
+  if (name) name.textContent = opt.label;
+  const el = document.getElementById(opt.id);
+  if (el) el.classList.add('active');
+}
+
+function doAiSearch() {
+  const input = document.getElementById('aiSearchInput');
+  const q = input ? input.value.trim() : '';
+  if (!q) { if (input) input.focus(); return; }
+  let url;
+  if (_aiEngine === 'chatgpt') {
+    url = 'https://chatgpt.com/?hints=search&q=' + encodeURIComponent(q);
+  } else if (_aiEngine === 'perplexity') {
+    url = 'https://www.perplexity.ai/search?q=' + encodeURIComponent(q);
+  } else {
+    url = 'https://www.google.com/search?q=' + encodeURIComponent(q) + '&udm=50';
+  }
+  window.open(url, '_blank');
+}
+
+function handleAiSearchKey(e) {
+  if (e.key === 'Enter') doAiSearch();
+  if (e.key === 'Escape') {
+    const menu = document.getElementById('aiEngineMenu');
+    if (menu) menu.classList.remove('open');
+  }
+}
+
+// 메뉴 외부 클릭 시 닫기
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('aiSearchWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const menu = document.getElementById('aiEngineMenu');
+    if (menu) menu.classList.remove('open');
+  }
+});
+
 function toggleSidebar() {
   const col = document.getElementById('pcBoardCol');
   const btn = document.getElementById('sidebarToggleBtn');
+  const floatBtn = document.getElementById('sidebarFloatBtn');
+  const handle = document.getElementById('calSidebarHandle');
   const content = document.getElementById('sidebarContent');
   if (!col || !btn) return;
   _sidebarVisible = !_sidebarVisible;
@@ -4628,11 +4785,15 @@ function toggleSidebar() {
     btn.textContent = '▲';
     btn.style.transform = 'rotate(0deg)';
     content.style.display = '';
+    if (floatBtn) floatBtn.style.display = 'none';
+    if (handle) handle.style.display = '';
   } else {
     col.classList.add('sidebar-collapsed');
     btn.textContent = '▼';
     btn.style.transform = 'rotate(180deg)';
     content.style.display = 'none';
+    if (floatBtn) floatBtn.style.display = 'flex';
+    if (handle) handle.style.display = 'none';
   }
 }
 
@@ -4643,9 +4804,13 @@ let _dashVisible = true;
 function toggleDashboard() {
   const content = document.getElementById('dashContent');
   const btn = document.getElementById('dashToggleBtn');
+  const resizeH = document.getElementById('dashResizeHandle');
+  const resizeW = document.getElementById('dashboardHeightHandle');
   if (!content || !btn) return;
   _dashVisible = !_dashVisible;
   content.style.display = _dashVisible ? '' : 'none';
+  if (resizeH) resizeH.style.display = _dashVisible ? '' : 'none';
+  if (resizeW) resizeW.style.display = _dashVisible ? '' : 'none';
   btn.textContent = _dashVisible ? '▲' : '▼';
   btn.style.transform = _dashVisible ? 'rotate(0deg)' : 'rotate(180deg)';
 }
@@ -4653,158 +4818,157 @@ let _clockTimer = null;
 function startFooterClock() {
   if (_clockTimer) return;
   function tick() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
     const el = document.getElementById('footerClock');
-    if (!el) return;
-    el.textContent = new Date().toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    if (el) el.textContent = timeStr;
+    const topClock = document.getElementById('pcTopClock');
+    if (topClock) topClock.textContent = timeStr;
+    const topDate = document.getElementById('pcTopDate');
+    if (topDate) topDate.textContent = now.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
   }
   tick();
   _clockTimer = setInterval(tick, 1000);
 }
 
 // ══════════════════════════════════════════
-// 통합 리사이즈 시스템
+// 통합 리사이즈 시스템 (startSize + delta)
 // ══════════════════════════════════════════
 (function() {
   'use strict';
 
-  // ── localStorage 키 ──
-  const KEYS = {
-    sidebarW:  'resize_sidebarW',
-    dashH:     'resize_dashH',
-    dashW:     'resize_dashW',
-  };
+  const KEYS = { sidebarW:'resize_sidebarW', dashH:'resize_dashH', dashW:'resize_dashW' };
+  const MIN  = { sidebarW:200, dashH:80, dashW:200 };
+  const MAX  = { dashH:3000 };
 
-  const MIN = { sidebarW: 200, dashH: 120, dashW: 300 };
-  const MAX = { dashH: 2000 };
-
-  // ── 드래그 상태 ──
   let drag = null;
-  // drag = { type: 'sidebarW'|'dashH'|'dashW', startX, startY, startSize }
 
-  function cl(add, ...cls) { cls.forEach(c => document.body.classList[add ? 'add' : 'remove'](c)); }
-
-  // ── 각 요소 getter ──
+  function cl(add,...cls){ cls.forEach(c=>document.body.classList[add?'add':'remove'](c)); }
   const $ = id => document.getElementById(id);
+  function px(e){ return e.touches?e.touches[0].clientX:e.clientX; }
+  function py(e){ return e.touches?e.touches[0].clientY:e.clientY; }
 
-  function getSidebarW() {
-    const col = $('pcBoardCol');
-    return col ? col.getBoundingClientRect().width : 384;
-  }
-  function getDashH() {
-    const c = $('dashContent');
-    return c ? c.getBoundingClientRect().height : 400;
-  }
-  function getDashW() {
-    const d = $('pcDashboard');
-    return d ? d.getBoundingClientRect().width : 800;
+  function applySidebarW(w){
+    const col=$('pcBoardCol'); if(!col) return;
+    const v=Math.max(MIN.sidebarW, w);
+    col.style.flex=`0 0 ${v}px`; col.style.width=v+'px';
   }
 
-  // ── 적용 ──
-  function applySidebarW(w) {
-    const col = $('pcBoardCol'); if (!col) return;
-    const capped = Math.max(MIN.sidebarW, w);
-    col.style.flex = `0 0 ${capped}px`;
-    col.style.width = `${capped}px`;
-  }
-  function applyDashH(h) {
-    const c = $('dashContent'); if (!c) return;
-    const capped = Math.min(MAX.dashH, Math.max(MIN.dashH, h));
-    c.style.maxHeight = capped + 'px';
-    c.style.overflowY = 'auto';
-  }
-  function applyDashW(w) {
-    const d = $('pcDashboard'); if (!d) return;
-    const maxW = d.parentElement ? d.parentElement.getBoundingClientRect().width : 1400;
-    const capped = Math.min(maxW, Math.max(MIN.dashW, w));
-    d.style.width = capped + 'px';
-    d.style.maxWidth = '100%';
-  }
-  function showReset(v) {
-    const b = $('dashResetSizeBtn'); if (b) b.style.display = v ? 'inline-block' : 'none';
+  function applyDashH(h){
+    const c=$('dashContent'); if(!c) return;
+    const v=Math.min(MAX.dashH, Math.max(MIN.dashH, h));
+    c.classList.add('resized');
+    c.style.height=v+'px';
+    c.style.maxHeight=v+'px';
+    c.style.minHeight='0px';
+    c.style.overflowY='auto';
   }
 
-  // ── 저장/로드 ──
-  function save(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
-  function load(key) { try { const v = localStorage.getItem(key); return v ? +v : null; } catch(e) { return null; } }
-
-  function loadAll() {
-    const sw = load(KEYS.sidebarW), dh = load(KEYS.dashH), dw = load(KEYS.dashW);
-    if (sw) applySidebarW(sw);
-    if (dh) { applyDashH(dh); showReset(true); }
-    if (dw) { applyDashW(dw); showReset(true); }
+  function applyDashW(w){
+    const d=$('pcDashboard'); if(!d) return;
+    const v=Math.max(MIN.dashW, w);
+    d.style.width=v+'px';
+    d.style.maxWidth='100%';
   }
 
-  // ── 초기화 버튼 ──
-  window.resetDashSize = function() {
-    const d = $('pcDashboard'), c = $('dashContent');
-    if (d) { d.style.width = ''; d.style.maxWidth = ''; }
-    if (c) { c.style.maxHeight = ''; c.style.overflowY = ''; }
-    try { localStorage.removeItem(KEYS.dashH); localStorage.removeItem(KEYS.dashW); } catch(e) {}
+  function showReset(v){ const b=$('dashResetSizeBtn'); if(b) b.style.display=v?'inline-block':'none'; }
+
+  function save(k,v){ try{ localStorage.setItem(k,String(v)); }catch(e){} }
+  function load(k){ try{ const v=localStorage.getItem(k); return v!==null?+v:null; }catch(e){ return null; } }
+
+  function loadAll(){
+    const sw=load(KEYS.sidebarW), dh=load(KEYS.dashH), dw=load(KEYS.dashW);
+    if(sw) applySidebarW(sw);
+    if(dh){ applyDashH(dh); showReset(true); }
+    if(dw){ applyDashW(dw); showReset(true); }
+  }
+
+  window.resetDashSize = function(){
+    const d=$('pcDashboard'), c=$('dashContent');
+    if(d){ d.style.width=''; d.style.maxWidth=''; }
+    if(c){ c.classList.remove('resized'); c.style.height=''; c.style.maxHeight=''; c.style.minHeight=''; c.style.overflowY=''; }
+    try{ localStorage.removeItem(KEYS.dashH); localStorage.removeItem(KEYS.dashW); }catch(e){}
     showReset(false);
   };
 
-  // ── 포인터 좌표 ──
-  function cx(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
-  function cy(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
-
-  // ── mousedown / touchstart ──
-  function startDrag(type, e) {
-    drag = { type, startX: cx(e), startY: cy(e), startSize: 0 };
-    if (type === 'sidebarW') { drag.startSize = getSidebarW(); cl(true, 'resizing-ew'); }
-    if (type === 'dashH')    { drag.startSize = getDashH();    cl(true, 'resizing-ns'); }
-    if (type === 'dashW')    { drag.startSize = getDashW();    cl(true, 'resizing-ew'); }
+  function startDrag(type, e){
     e.preventDefault(); e.stopPropagation();
+    drag = { type, startX: px(e), startY: py(e) };
+
+    if(type==='sidebarW'){
+      const col=$('pcBoardCol');
+      drag.startSize = col ? col.getBoundingClientRect().width : 384;
+      cl(true,'resizing-ew');
+    }
+    if(type==='dashH'){
+      const c=$('dashContent');
+      drag.startSize = c ? c.getBoundingClientRect().height : 200;
+      cl(true,'resizing-ns');
+    }
+    if(type==='dashW'){
+      const d=$('pcDashboard');
+      drag.startSize = d ? d.getBoundingClientRect().width : 800;
+      cl(true,'resizing-ew');
+    }
   }
 
-  // ── mousemove / touchmove ──
-  function onMove(e) {
-    if (!drag) return;
-    const dx = cx(e) - drag.startX;
-    const dy = cy(e) - drag.startY;
-    if (drag.type === 'sidebarW') applySidebarW(drag.startSize + dx);
-    if (drag.type === 'dashH')    applyDashH(drag.startSize + dy);
-    if (drag.type === 'dashW')    { applyDashW(drag.startSize + dx); showReset(true); }
+  function onMove(e){
+    if(!drag) return;
+    const dx = px(e) - drag.startX;
+    const dy = py(e) - drag.startY;
+
+    if(drag.type==='sidebarW'){
+      // 핸들이 캘린더↔사이드바 사이 → 왼쪽으로 드래그 = 사이드바 너비 증가
+      applySidebarW(drag.startSize - dx);
+    }
+    if(drag.type==='dashH'){
+      // 하단 핸들 → 아래로 드래그 = 높이 증가
+      applyDashH(drag.startSize + dy);
+    }
+    if(drag.type==='dashW'){
+      // 오른쪽 핸들 → 오른쪽으로 드래그 = 너비 증가
+      applyDashW(drag.startSize + dx);
+      showReset(true);
+    }
   }
 
-  // ── mouseup / touchend ──
-  function onUp() {
-    if (!drag) return;
-    if (drag.type === 'sidebarW') { const col = $('pcBoardCol'); if (col) save(KEYS.sidebarW, parseInt(col.style.width)); }
-    if (drag.type === 'dashH')    { const c = $('dashContent'); if (c && c.style.maxHeight) { save(KEYS.dashH, parseInt(c.style.maxHeight)); showReset(true); } }
-    if (drag.type === 'dashW')    { const d = $('pcDashboard'); if (d && d.style.width) save(KEYS.dashW, parseInt(d.style.width)); }
-    cl(false, 'resizing-ns', 'resizing-ew');
-    drag = null;
+  function onUp(){
+    if(!drag) return;
+    if(drag.type==='sidebarW'){
+      const col=$('pcBoardCol'); if(col&&col.style.width) save(KEYS.sidebarW, parseInt(col.style.width));
+    }
+    if(drag.type==='dashH'){
+      const c=$('dashContent'); if(c&&c.style.height) { save(KEYS.dashH, parseInt(c.style.height)); showReset(true); }
+    }
+    if(drag.type==='dashW'){
+      const d=$('pcDashboard'); if(d&&d.style.width) save(KEYS.dashW, parseInt(d.style.width));
+    }
+    cl(false,'resizing-ns','resizing-ew');
+    drag=null;
   }
 
-  // ── 전역 이벤트 ──
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onUp);
-  document.addEventListener('touchmove', function(e) { if (drag) { e.preventDefault(); onMove(e); } }, { passive: false });
+  document.addEventListener('touchmove', function(e){ if(drag){ e.preventDefault(); onMove(e); } }, {passive:false});
   document.addEventListener('touchend', onUp);
 
-  // ── DOM 준비 후 핸들 바인딩 ──
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function(){
     loadAll();
 
-    // 사이드바 너비 핸들
-    const hSidebar = $('calSidebarHandle');
-    if (hSidebar) {
-      hSidebar.addEventListener('mousedown', e => startDrag('sidebarW', e));
-      hSidebar.addEventListener('touchstart', e => startDrag('sidebarW', e), { passive: false });
+    const hS=$('calSidebarHandle');
+    if(hS){
+      hS.addEventListener('mousedown', e=>startDrag('sidebarW',e));
+      hS.addEventListener('touchstart', e=>startDrag('sidebarW',e), {passive:false});
     }
-
-    // 대시보드 높이 핸들
-    const hDashH = $('dashResizeHandle');
-    if (hDashH) {
-      hDashH.addEventListener('mousedown', e => startDrag('dashH', e));
-      hDashH.addEventListener('touchstart', e => startDrag('dashH', e), { passive: false });
+    const hH=$('dashResizeHandle');
+    if(hH){
+      hH.addEventListener('mousedown', e=>startDrag('dashH',e));
+      hH.addEventListener('touchstart', e=>startDrag('dashH',e), {passive:false});
     }
-
-    // 대시보드 너비 핸들 (dashboardHeightHandle은 dashW용으로 재사용)
-    const hDashW = $('dashboardHeightHandle');
-    if (hDashW) {
-      hDashW.addEventListener('mousedown', e => startDrag('dashW', e));
-      hDashW.addEventListener('touchstart', e => startDrag('dashW', e), { passive: false });
+    const hW=$('dashboardHeightHandle');
+    if(hW){
+      hW.addEventListener('mousedown', e=>startDrag('dashW',e));
+      hW.addEventListener('touchstart', e=>startDrag('dashW',e), {passive:false});
     }
   });
 })();
