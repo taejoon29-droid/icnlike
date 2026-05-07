@@ -455,7 +455,7 @@ body.light-mode input[type="date"] {
   border: 1px solid rgba(52,201,117,0.3);
 }
 .sched-title .sidebar-count-badge {
-  background: rgba(232,84,58,0.15); color: #ff8a76;
+  background: rgba(74,158,255,0.15); color: #ff8a76;
   border: 1px solid rgba(232,84,58,0.25);
 }
 
@@ -500,13 +500,13 @@ body.light-mode input[type="date"] {
 .badge-출장 { background: rgba(52,201,117,0.12); color: var(--green); border: 1px solid rgba(52,201,117,0.25); }
 .badge-기타 { background: rgba(52,201,117,0.10); color: var(--green); border: 1px solid rgba(52,201,117,0.2); }
 /* 일정 타입 배지 → 빨간 계열 */
-.badge-점검 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
-.badge-연간점검 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
-.badge-분기점검 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
-.badge-회의 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
-.badge-작업 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
-.badge-행사 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
-.badge-일정 { background: rgba(232,84,58,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-점검 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-연간점검 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-분기점검 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-회의 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-작업 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-행사 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-일정 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
 
 .sidebar-empty {
   text-align: center; color: var(--text3);
@@ -535,7 +535,7 @@ body.light-mode input[type="date"] {
 /* 일정 요약 뱃지 (대시보드 하단 카드용) */
 .vac-count-badge {
   font-size: 0.72rem; font-weight: 700;
-  background: rgba(232,84,58,0.15); color: var(--accent2);
+  background: rgba(74,158,255,0.15); color: var(--accent2);
   border-radius: 10px; padding: 2px 8px;
   border: 1px solid rgba(232,84,58,0.2);
 }
@@ -1034,7 +1034,7 @@ body.pc-mode .vacation-tag {
 .file-upload-area:hover { border-color: var(--accent); color: var(--accent2); }
 .file-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 .file-chip {
-  background: rgba(232,84,58,0.15); color: #ff8a76; border-radius: 20px;
+  background: rgba(74,158,255,0.15); color: #ff8a76; border-radius: 20px;
   border: 1px solid rgba(232,84,58,0.25);
   padding: 4px 10px; font-size: 0.78rem; display: flex; align-items: center; gap: 6px;
 }
@@ -1267,14 +1267,14 @@ body.pc-mode .vacation-tag {
     <!-- PC모드 상단 퀵링크 -->
     <div class="pc-top-quickbar">
       <div class="pc-quickbar-row1">
-        <span class="workhub-brand"><span class="wh-dot"></span><span id="pcTopClock" style="font-variant-numeric:tabular-nums;letter-spacing:0.04em;">--:--:--</span> <span class="workhub-sub" id="pcTopDate"></span></span>
+        <span class="workhub-brand"><span class="wh-dot"></span><span id="pcTopClock" style="font-variant-numeric:tabular-nums;letter-spacing:0.04em;">--:--:--</span> <span class="workhub-sub" id="pcTopDate"></span><span id="pcTopSpecialDay" style="margin-left:8px;font-size:0.78rem;font-weight:700;padding:2px 8px;border-radius:8px;display:none;"></span></span>
       </div>
       <div class="pc-quickbar-row2">
         <a class="pc-quick-link" href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️ 지도</a>
         <a class="pc-quick-link" href="https://weather.naver.com/" target="_blank">🌤️ 날씨</a>
         <a class="pc-quick-link" href="https://news.naver.com/main/home.naver" target="_blank">📰 뉴스</a>
         <a class="pc-quick-link" href="https://icn-cafeteria.web.app/" target="_blank">🍴 식당</a>
-        <a class="pc-quick-link" href="#" onclick="openBoard(); return false;" style="background:rgba(232,84,58,0.15);border-color:rgba(232,84,58,0.3);color:var(--accent2);">📋 게시판</a>
+        <a class="pc-quick-link" href="#" onclick="openBoard(); return false;" style="background:rgba(74,158,255,0.15);border-color:rgba(232,84,58,0.3);color:var(--accent2);">📋 게시판</a>
         <a class="pc-quick-link" href="#" onclick="openRegisterModal(); return false;" style="background:rgba(52,201,117,0.12);border-color:rgba(52,201,117,0.3);color:var(--green);">✏️ 일정등록</a>
         <a class="pc-quick-link" href="#" onclick="openAiScan(); return false;" style="background:rgba(74,158,255,0.12);border-color:rgba(74,158,255,0.3);color:var(--blue);">🤖 AI등록</a>
 
@@ -1348,7 +1348,7 @@ body.pc-mode .vacation-tag {
         <button class="sidebar-month-btn" onclick="sidebarMoveDay(-1)" title="이전 날" style="padding:3px 12px;font-size:1rem;">◀</button>
         <div style="flex:1;text-align:center;">
           <div id="sidebarMonthLabel" style="font-size:0.85rem;font-weight:800;color:var(--text);line-height:1.3;"></div>
-          <button id="sidebarTodayBtn" onclick="sidebarGoToday()" style="display:none;margin-top:3px;background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:10px;padding:2px 10px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:inherit;">오늘로</button>
+          <button id="sidebarTodayBtn" onclick="sidebarGoToday()" style="display:none;margin-top:3px;background:rgba(74,158,255,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:10px;padding:2px 10px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:inherit;">오늘로</button>
         </div>
         <button class="sidebar-month-btn" onclick="sidebarMoveDay(1)" title="다음 날" style="padding:3px 12px;font-size:1rem;">▶</button>
       </div>
@@ -1377,7 +1377,7 @@ body.pc-mode .vacation-tag {
 
       <!-- 일정 등록 바로가기 -->
       <div style="padding: 12px 16px 6px;">
-        <button onclick="openRegisterModal()" style="width:100%;background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:10px;padding:10px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;" onmouseover="this.style.background='rgba(232,84,58,0.25)'" onmouseout="this.style.background='rgba(232,84,58,0.15)'">
+        <button onclick="openRegisterModal()" style="width:100%;background:rgba(74,158,255,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:10px;padding:10px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;" onmouseover="this.style.background='rgba(232,84,58,0.25)'" onmouseout="this.style.background='rgba(74,158,255,0.15)'">
           + 일정 · 연차 등록
         </button>
       </div>
@@ -1440,12 +1440,12 @@ body.pc-mode .vacation-tag {
     <div class="dash-card" id="dashBoardCard" style="display:flex;flex-direction:column;min-height:340px;max-height:480px;overflow:hidden;border-radius:16px;">
       <div class="dash-card-header" style="flex-shrink:0;">
         <div class="dash-card-title">
-          <div class="dash-icon" style="background:rgba(232,84,58,0.15);">📋</div>
+          <div class="dash-icon" style="background:rgba(74,158,255,0.15);">📋</div>
           <span id="dashBoardHeaderTitle">전원설비 게시판</span>
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           <span id="dashBoardSyncBadge" class="pc-sync-badge"></span>
-          <button id="dashWriteBtn" onclick="dashSwitchView('write')" style="background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:8px;padding:4px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 글쓰기</button>
+          <button id="dashWriteBtn" onclick="dashSwitchView('write')" style="background:rgba(74,158,255,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:8px;padding:4px 12px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">✏️ 글쓰기</button>
         </div>
       </div>
 
@@ -2136,7 +2136,7 @@ function getFileIcon(name, mime) {
   if (['doc','docx'].includes(ext)) return { icon:'📃', color:'#2b579a', label:'Word' };
   if (['ppt','pptx'].includes(ext)) return { icon:'📊', color:'#d24726', label:'PPT' };
   if (['zip','7z','rar'].includes(ext)) return { icon:'📦', color:'#888', label:'ZIP' };
-  if (mime && mime.startsWith('image/')) return { icon:'🖼️', color:'#e8543a', label:'Image' };
+  if (mime && mime.startsWith('image/')) return { icon:'🖼️', color:'#4a9eff', label:'Image' };
   return { icon:'📎', color:'#666', label: ext.toUpperCase() || 'FILE' };
 }
 function getData() { return window._vacationData || {}; }
@@ -2667,7 +2667,7 @@ function dashShowPostDetail(post) {
       if (att.type && att.type.startsWith('image/') && att.url) {
         filesHTML += `<div style="margin-bottom:10px;">
           <img src="${att.url}" style="width:100%;border-radius:8px;cursor:pointer;border:1px solid var(--border);" onclick="openZoom('${att.url}','${escHtml(att.name)}')">
-          <button onclick="downloadAtt('${attKey}')" style="width:100%;margin-top:5px;background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:#ff8a76;border-radius:8px;padding:6px;font-size:0.78rem;cursor:pointer;font-weight:600;">⬇ 다운로드</button>
+          <button onclick="downloadAtt('${attKey}')" style="width:100%;margin-top:5px;background:rgba(74,158,255,0.15);border:1px solid rgba(232,84,58,0.3);color:#ff8a76;border-radius:8px;padding:6px;font-size:0.78rem;cursor:pointer;font-weight:600;">⬇ 다운로드</button>
         </div>`;
       } else {
         const fi = getFileIcon(att.name, att.type);
@@ -3236,7 +3236,7 @@ function showPostDetail(post) {
       if (att.type && att.type.startsWith('image/') && att.url) {
         filesHTML += `<div style="margin-bottom:12px;"><img src="${att.url}" class="detail-img" onclick="openZoom(window._attStore['${attKey}'].url,'${escHtml(att.name)}')">
           <div style="display:flex;gap:8px;margin-top:5px;">
-            <button onclick="downloadAtt('${attKey}')" style="flex:1;background:rgba(232,84,58,0.15);border:1px solid rgba(232,84,58,0.3);color:#ff8a76;border-radius:8px;padding:7px;font-size:0.8rem;cursor:pointer;font-weight:600;">⬇ 다운로드</button>
+            <button onclick="downloadAtt('${attKey}')" style="flex:1;background:rgba(74,158,255,0.15);border:1px solid rgba(232,84,58,0.3);color:#ff8a76;border-radius:8px;padding:7px;font-size:0.8rem;cursor:pointer;font-weight:600;">⬇ 다운로드</button>
             <button onclick="openZoom(window._attStore['${attKey}'].url,'${escHtml(att.name)}')" style="flex:1;background:var(--bg4);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:7px;font-size:0.8rem;cursor:pointer;">🔍 원본 보기</button>
           </div></div>`;
       } else if (att.url) {
@@ -3517,7 +3517,7 @@ function openItemAction(dateKey, idx) {
   if (isVac) {
     badge.style.cssText = 'background:rgba(52,201,117,0.15);color:var(--green);border:1px solid rgba(52,201,117,0.3);font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:8px;';
   } else {
-    badge.style.cssText = 'background:rgba(232,84,58,0.15);color:#ff8a76;border:1px solid rgba(232,84,58,0.25);font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:8px;';
+    badge.style.cssText = 'background:rgba(74,158,255,0.15);color:#ff8a76;border:1px solid rgba(232,84,58,0.25);font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:8px;';
   }
 
   // 메모
@@ -4788,6 +4788,125 @@ function toggleDashboard() {
 let _clockTimer = null;
 function startFooterClock() {
   if (_clockTimer) return;
+
+  // ── 한국 절기·기념일 데이터 ──
+  function getSpecialDay(date) {
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1; // 1~12
+    const d = date.getDate();
+
+    // 고정 공휴일 / 기념일
+    const fixed = {
+      '1-1':   { label: '신정', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '3-1':   { label: '삼일절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '3-8':   { label: '세계여성의날', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)' },
+      '4-5':   { label: '식목일', color: '#34c975', bg: 'rgba(52,201,117,0.15)' },
+      '5-1':   { label: '노동절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '5-5':   { label: '어린이날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '5-8':   { label: '어버이날', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)' },
+      '5-15':  { label: '스승의날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '5-18':  { label: '5·18민주화운동기념일', color: '#888', bg: 'rgba(136,136,136,0.15)' },
+      '6-6':   { label: '현충일', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '6-25':  { label: '6·25전쟁일', color: '#888', bg: 'rgba(136,136,136,0.15)' },
+      '7-17':  { label: '제헌절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '8-15':  { label: '광복절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '10-3':  { label: '개천절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '10-9':  { label: '한글날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '10-31': { label: '할로윈', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
+      '11-11': { label: '빼빼로데이', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)' },
+      '12-25': { label: '크리스마스', color: '#34c975', bg: 'rgba(52,201,117,0.15)' },
+      '12-31': { label: '연말', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+    };
+
+    const key = `${m}-${d}`;
+    if (fixed[key]) return fixed[key];
+
+    // 24절기 (매년 1~2일 변동, 주요 절기만 근사값으로 수록)
+    // 실제 절기는 태양황경 기반이나 평균값으로 충분히 정확
+    const solarTerms = [
+      // [월, 일범위, 이름, color, bg]
+      [1,  [5,7],   '소한', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [1,  [19,21], '대한', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [2,  [3,5],   '입춘', '#34c975', 'rgba(52,201,117,0.15)'],
+      [2,  [18,20], '우수', '#34c975', 'rgba(52,201,117,0.15)'],
+      [3,  [5,7],   '경칩', '#34c975', 'rgba(52,201,117,0.15)'],
+      [3,  [20,22], '춘분', '#34c975', 'rgba(52,201,117,0.15)'],
+      [4,  [4,6],   '청명', '#34c975', 'rgba(52,201,117,0.15)'],
+      [4,  [19,21], '곡우', '#34c975', 'rgba(52,201,117,0.15)'],
+      [5,  [5,7],   '입하', '#f97316', 'rgba(249,115,22,0.15)'],
+      [5,  [20,22], '소만', '#f97316', 'rgba(249,115,22,0.15)'],
+      [6,  [5,7],   '망종', '#f97316', 'rgba(249,115,22,0.15)'],
+      [6,  [20,22], '하지', '#f97316', 'rgba(249,115,22,0.15)'],
+      [7,  [6,8],   '소서', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [7,  [22,24], '대서', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [8,  [7,8],   '입추', '#c76dd0', 'rgba(199,109,208,0.15)'],
+      [8,  [22,24], '처서', '#c76dd0', 'rgba(199,109,208,0.15)'],
+      [9,  [7,9],   '백로', '#c76dd0', 'rgba(199,109,208,0.15)'],
+      [9,  [22,24], '추분', '#c76dd0', 'rgba(199,109,208,0.15)'],
+      [10, [7,9],   '한로', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [10, [22,24], '상강', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [11, [7,8],   '입동', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [11, [21,23], '소설', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [12, [6,8],   '대설', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [12, [21,23], '동지', '#4a9eff', 'rgba(74,158,255,0.15)'],
+    ];
+    for (const [sm, [s, e], label, color, bg] of solarTerms) {
+      if (m === sm && d >= s && d <= e) return { label, color, bg };
+    }
+
+    // 삼복 (초복·중복·말복: 하지 후 셋째·넷째 경일, 입추 후 첫 경일)
+    // 근사값: 초복 7/11~7/19, 중복 7/21~7/29, 말복 8/7~8/16
+    const bokMap = [
+      [7, [11,19], '초복', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [7, [21,29], '중복', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [8, [7,16],  '말복', '#4a9eff', 'rgba(74,158,255,0.15)'],
+    ];
+    for (const [bm, [s, e], label, color, bg] of bokMap) {
+      if (m === bm && d >= s && d <= e) {
+        // 실제 경일(庚日)인지 확인 (경일 = 천간이 경인 날, 10일 주기)
+        // 기준: 2024-07-15 초복 = 경일. dayIndex로 확인
+        const ref = new Date(2024, 6, 15); // 2024년 초복
+        const diff = Math.round((new Date(y, m-1, d) - ref) / 86400000);
+        if (diff % 10 === 0) return { label, color, bg };
+      }
+    }
+
+    // 음력 기념일 (근사 양력 변환 — 주요 명절만)
+    // 설날: 음력 1월 1일 / 추석: 음력 8월 15일 / 정월대보름: 음력 1월 15일
+    // 단오: 음력 5월 5일 / 칠월칠석: 음력 7월 7일 / 동지: 고정(이미 위에서 처리)
+    // 음력→양력 변환 테이블 (2023~2030)
+    const lunarHolidays = {
+      // 설날 (음력 1/1)
+      '2024-2-10': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '2025-1-29': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '2026-2-17': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '2027-2-6':  { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '2028-1-26': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      // 추석 (음력 8/15)
+      '2024-9-17': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '2025-10-6': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '2026-9-25': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '2027-9-15': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '2028-10-3': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      // 정월대보름 (음력 1/15)
+      '2025-2-12': { label: '정월대보름', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
+      '2026-3-4':  { label: '정월대보름', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
+      '2027-2-21': { label: '정월대보름', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
+      // 단오 (음력 5/5)
+      '2025-5-31': { label: '단오', color: '#34c975', bg: 'rgba(52,201,117,0.15)' },
+      '2026-6-19': { label: '단오', color: '#34c975', bg: 'rgba(52,201,117,0.15)' },
+      '2027-6-9':  { label: '단오', color: '#34c975', bg: 'rgba(52,201,117,0.15)' },
+      // 칠석 (음력 7/7)
+      '2025-7-31': { label: '칠월칠석', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)' },
+      '2026-8-20': { label: '칠월칠석', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)' },
+    };
+    const lunarKey = `${y}-${m}-${d}`;
+    if (lunarHolidays[lunarKey]) return lunarHolidays[lunarKey];
+
+    return null;
+  }
+
+  if (_clockTimer) return;
   function tick() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
@@ -4795,6 +4914,20 @@ function startFooterClock() {
     if (topClock) topClock.textContent = timeStr;
     const topDate = document.getElementById('pcTopDate');
     if (topDate) topDate.textContent = now.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
+    // 특별한 날 표시
+    const specialEl = document.getElementById('pcTopSpecialDay');
+    if (specialEl) {
+      const special = getSpecialDay(now);
+      if (special) {
+        specialEl.textContent = '✦ ' + special.label;
+        specialEl.style.display = 'inline-block';
+        specialEl.style.color = special.color;
+        specialEl.style.background = special.bg;
+        specialEl.style.border = `1px solid ${special.color}40`;
+      } else {
+        specialEl.style.display = 'none';
+      }
+    }
   }
   tick();
   _clockTimer = setInterval(tick, 1000);
