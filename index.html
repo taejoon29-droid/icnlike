@@ -679,24 +679,6 @@ body.light-mode .iam-edit-form input[type="date"] {
 .iam-btn-save:hover { opacity: 0.88; }
 
 /* ── 푸터 ── */
-.dash-footer {
-  display: none;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px 28px;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 4px;
-}
-body.pc-mode .dash-footer { display: flex; }
-.footer-slogan { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.18em; color: var(--text3); text-transform: uppercase; }
-.footer-slogan span { color: var(--accent); }
-.footer-brand-right {
-  font-size: 0.72rem; color: var(--text3); font-weight: 600;
-  letter-spacing: 0.1em; display: flex; align-items: center; gap: 10px;
-}
-.footer-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); }
 
 /* 🔐 삭제 비밀번호 키패드 */
 .pw-dot {
@@ -1531,17 +1513,6 @@ body.pc-mode .vacation-tag {
   </div>
 </div>
 
-<!-- 푸터 슬로건 -->
-<div class="dash-footer">
-  <div class="footer-slogan"></div>
-  <div class="footer-brand-right">
-    <span>WORKHUB.</span>
-    <div class="footer-dot"></div>
-    <span>POWER SYSTEM</span>
-    <div class="footer-dot"></div>
-    <span id="footerClock"></span>
-  </div>
-</div>
 
 <div class="quick-wrap">
   <a href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️<span class="ql">지도</span></a>
@@ -4820,8 +4791,6 @@ function startFooterClock() {
   function tick() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-    const el = document.getElementById('footerClock');
-    if (el) el.textContent = timeStr;
     const topClock = document.getElementById('pcTopClock');
     if (topClock) topClock.textContent = timeStr;
     const topDate = document.getElementById('pcTopDate');
