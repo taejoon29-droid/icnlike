@@ -4539,6 +4539,43 @@ async function _checkPassword() {
       const dot = document.getElementById('pwDot' + i);
       if (dot) { dot.classList.remove('filled'); dot.classList.add('pw-dot-ok'); }
     }
+
+    // bulk 삭제 분기
+    if (key === 'bulk_all') {
+      document.getElementById('deletePwModal').style.display = 'none';
+      const data = window._vacationData || {};
+      const targets = Object.keys(data).filter(k => (data[k] || []).some(i => i.name));
+      const total = targets.reduce((s, k) => s + (data[k] || []).length, 0);
+      await _doBulkDelete(targets);
+      setTimeout(() => { alert(`✅ 전체 ${total}건 삭제 완료`); }, 400);
+      return;
+    }
+    if (key && key.startsWith('bulk_month:')) {
+      document.getElementById('deletePwModal').style.display = 'none';
+      const ym = key.replace('bulk_month:', '');
+      const [year, month] = ym.split('-');
+      const data = window._vacationData || {};
+      const targets = Object.keys(data).filter(k => {
+        const [y, m] = k.split('-');
+        return y === year && m === month && (data[k] || []).some(i => i.name);
+      });
+      const total = targets.reduce((s, k) => s + (data[k] || []).length, 0);
+      await _doBulkDelete(targets);
+      setTimeout(() => { alert(`✅ ${year}년 ${month}월 ${total}건 삭제 완료`); }, 400);
+      return;
+    }
+    if (idx === 'bulk_day') {
+      document.getElementById('deletePwModal').style.display = 'none';
+      const data = window._vacationData || {};
+      const items = data[key] || [];
+      const valid = items.filter(i => i.name || i.type);
+      const [y, mo, d] = key.split('-');
+      await _doBulkDelete([key]);
+      closeDayDetailDirect();
+      setTimeout(() => { alert(`✅ ${mo}월 ${d}일 ${valid.length}건 삭제 완료`); }, 400);
+      return;
+    }
+
     await _doDeleteItem(key, idx, fsId);
     setTimeout(() => {
       for (let i = 0; i < 4; i++) {
@@ -4669,11 +4706,7 @@ async function bulkDeleteDay(dateKey) {
   const valid = items.filter(i => i.name || i.type);
   if (valid.length === 0) { alert('이 날 삭제할 항목이 없습니다.'); return; }
   const [y, mo, d] = dateKey.split('-');
-  if (!confirm(`🗑️ ${y}년 ${mo}월 ${d}일의 항목 ${valid.length}건을 모두 삭제할까요?\n비밀번호 없이 즉시 삭제됩니다.`)) return;
-  await _doBulkDelete([dateKey]);
-  // 모바일 팝업 닫기
-  closeDayDetailDirect();
-  alert(`✅ ${mo}월 ${d}일 ${valid.length}건 삭제 완료`);
+  showDeletePwModal(dateKey, 'bulk_day', null);
 }
 
 // ════════════════════════════════
@@ -4734,9 +4767,7 @@ async function bulkDeleteMonth(year, month) {
   });
   if (targets.length === 0) { alert('해당 월에 삭제할 데이터가 없습니다.'); return; }
   const total = targets.reduce((s, k) => s + (data[k] || []).length, 0);
-  if (!confirm(`🗑️ ${year}년 ${month}월 데이터 ${total}건을 모두 삭제할까요?\n비밀번호 없이 즉시 삭제됩니다.`)) return;
-  await _doBulkDelete(targets);
-  alert(`✅ ${year}년 ${month}월 ${total}건 삭제 완료`);
+  showDeletePwModal('bulk_month:' + year + '-' + month, 'bulk_month', null);
 }
 
 async function bulkDeleteAll() {
@@ -4744,9 +4775,7 @@ async function bulkDeleteAll() {
   const targets = Object.keys(data).filter(k => (data[k] || []).some(i => i.name));
   if (targets.length === 0) { alert('삭제할 데이터가 없습니다.'); return; }
   const total = targets.reduce((s, k) => s + (data[k] || []).length, 0);
-  if (!confirm(`⚠️ 전체 데이터 ${total}건을 모두 삭제할까요?\n이 작업은 되돌릴 수 없습니다.`)) return;
-  await _doBulkDelete(targets);
-  alert(`✅ 전체 ${total}건 삭제 완료`);
+  showDeletePwModal('bulk_all', 'bulk_all', null);
 }
 
 async function _doBulkDelete(dateKeys) {
