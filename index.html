@@ -502,7 +502,7 @@ body.light-mode input[type="date"] {
 /* 일정 타입 배지 → 빨간 계열 */
 .badge-점검 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
 .badge-연간점검 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
-.badge-분기점검 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
+.badge-분기점검 { background: rgba(74,158,255,0.15); color: #4a9eff; border: 1px solid rgba(74,158,255,0.35); }
 .badge-회의 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
 .badge-작업 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
 .badge-행사 { background: rgba(74,158,255,0.15); color: #ff8a76; border: 1px solid rgba(232,84,58,0.25); }
@@ -2311,11 +2311,17 @@ window.renderCalendar = function renderCalendar() {
           if (item.name) {
             const tag = document.createElement('div');
             tag.className = 'vacation-tag';
-            // 일정은 빨간 계열, 연차는 초록 계열(기본)
+            // 일정은 빨간 계열, 연차는 초록 계열(기본), 분기점검은 파란 계열
             if (!isItemVac(item)) {
-              tag.style.background = 'rgba(232,84,58,0.18)';
-              tag.style.color = '#ff8a76';
-              tag.style.borderColor = 'rgba(232,84,58,0.3)';
+              if (item.type === '분기점검') {
+                tag.style.background = 'rgba(74,158,255,0.18)';
+                tag.style.color = '#4a9eff';
+                tag.style.borderColor = 'rgba(74,158,255,0.3)';
+              } else {
+                tag.style.background = 'rgba(232,84,58,0.18)';
+                tag.style.color = '#ff8a76';
+                tag.style.borderColor = 'rgba(232,84,58,0.3)';
+              }
             }
             // 이름만 표시 (타입 없음, 전체 이름)
             const label = item.name + (item.type ? '(' + item.type + ')' : '');
@@ -3458,7 +3464,7 @@ function openDayDetail(dateKey, dateObj) {
   } else {
     schedItems.forEach(item => {
       const origIdx = items.indexOf(item);
-      const colorMap = {'점검':'var(--amber)','회의':'var(--blue)','작업':'var(--green)','행사':'var(--purple)'};
+      const colorMap = {'점검':'var(--amber)','회의':'var(--blue)','작업':'var(--green)','행사':'var(--purple)','분기점검':'var(--blue)','연간점검':'#ff8a76'};
       const c = colorMap[item.type] || 'var(--blue)';
       html += `<div class="ddp-item" style="position:relative;">
         <span class="ddp-item-dot" style="background:${c};margin-top:5px;"></span>
@@ -4380,6 +4386,7 @@ const TYPE_COLORS = {
   '전반반차':'var(--blue)','후반반차':'var(--purple)',
   '교육':'var(--green)','출장':'var(--amber)',
   '점검':'var(--amber)','회의':'var(--blue)','작업':'var(--green)','행사':'var(--purple)',
+  '연간점검':'#ff8a76','분기점검':'#4a9eff',
   '일정':'var(--blue)','기타':'#888'
 };
 
