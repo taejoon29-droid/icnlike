@@ -26,41 +26,6 @@
 }
 #pcModeBtn:active { transform: scale(0.94); }
 
-/* ══════════════════════════════════════
-   가로 방향 유도 오버레이
-══════════════════════════════════════ */
-#rotateOverlay {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(26,26,30,0.97);
-  z-index: 99999;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  text-align: center;
-  padding: 30px;
-  box-sizing: border-box;
-}
-#rotateOverlay .rotate-icon { font-size: 3.5rem; animation: rotateHint 1.8s ease-in-out infinite; }
-@keyframes rotateHint {
-  0%   { transform: rotate(0deg); }
-  30%  { transform: rotate(-90deg); }
-  60%  { transform: rotate(-90deg); }
-  90%  { transform: rotate(0deg); }
-  100% { transform: rotate(0deg); }
-}
-#rotateOverlay .rotate-title { font-size: 1.1rem; font-weight: 800; color: var(--text); line-height: 1.4; }
-#rotateOverlay .rotate-sub { font-size: 0.82rem; color: var(--text3); font-weight: 500; }
-#rotateOverlay .rotate-dismiss {
-  margin-top: 10px;
-  background: var(--bg3); border: 1px solid var(--border);
-  color: var(--text2); border-radius: 20px; padding: 8px 22px;
-  font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit;
-}
-#rotateOverlay .rotate-dismiss:active { background: var(--bg4); }
-body.pc-mode.portrait-warn #rotateOverlay { display: flex; }
 
 /* ── PC 모드 레이아웃 ── */
 body.pc-mode {
@@ -1187,14 +1152,6 @@ body.pc-mode .vacation-tag {
 </head>
 <body>
 
-<!-- 가로 방향 유도 오버레이 -->
-<div id="rotateOverlay">
-  <div class="rotate-icon">📱</div>
-  <div class="rotate-title">화면을 가로로 돌려주세요<br>PC 모드는 가로 방향에 최적화되어 있습니다</div>
-  <div class="rotate-sub">가로 방향으로 전환하면 대시보드가 올바르게 표시됩니다</div>
-  <button class="rotate-dismiss" onclick="dismissRotateOverlay()">그냥 세로로 볼게요</button>
-</div>
-
 <!-- PC 모드 전환 버튼 -->
 <!-- 🔐 삭제 비밀번호 확인 모달 -->
 <div id="deletePwModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:9000;justify-content:center;align-items:center;" onclick="closeDeletePwModal(event)">
@@ -2222,30 +2179,7 @@ window._attStore = {};
 // ─── 사이드바 전용 월 상태 ───
 let sidebarMonth = new Date(); // 현재 달로 초기화
 
-// ── 가로 방향 유도 ──
-let _rotateDismissed = false;
-function checkOrientation() {
-  if (!document.body.classList.contains('pc-mode')) return;
-  const isPortrait = window.innerHeight > window.innerWidth;
-  if (isPortrait && !_rotateDismissed) document.body.classList.add('portrait-warn');
-  else document.body.classList.remove('portrait-warn');
-}
-function dismissRotateOverlay() {
-  _rotateDismissed = true;
-  document.body.classList.remove('portrait-warn');
-}
-window.addEventListener('resize', checkOrientation);
-window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 300));
 window.addEventListener('resize', () => { if (!isPcPortrait()) closePcPortraitPanel(); });
-async function tryLockLandscape() {
-  try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); }
-  catch(e) { checkOrientation(); }
-}
-async function tryUnlockOrientation() {
-  try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }
-  catch(e) {}
-  document.body.classList.remove('portrait-warn');
-}
 
 function escHtml(s) {
   if (!s) return '';
@@ -3938,9 +3872,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (localStorage.getItem('workhub_pcmode') === '1') {
     document.body.classList.add('pc-mode');
     document.getElementById('pcModeBtn').innerHTML = '📱 모바일';
-    _rotateDismissed = false;
-    tryLockLandscape();
-    checkOrientation();
     renderDashboard();
     startFooterClock();
   }
@@ -3952,16 +3883,11 @@ function togglePcMode() {
   if (isPc) {
     btn.innerHTML = '📱 모바일';
     localStorage.setItem('workhub_pcmode', '1');
-    _rotateDismissed = false;
-    tryLockLandscape().then(() => setTimeout(checkOrientation, 400));
     renderDashboard();
     startFooterClock();
   } else {
     btn.innerHTML = '🖥️ PC모드';
     localStorage.setItem('workhub_pcmode', '0');
-    _rotateDismissed = false;
-    tryUnlockOrientation();
-    document.body.classList.remove('portrait-warn');
   }
   window.renderCalendar();
 }
