@@ -1078,6 +1078,61 @@ body.pc-mode .vacation-tag {
 .post-detail { display: none; }
 .post-detail.show { display: block; }
 .post-list-wrap.hide { display: none; }
+
+/* ══ 이달의 현황 모달 (분기점검·연간점검·연차 통합조회 + 카테고리별 삭제) ══ */
+#monthlyOverviewModal {
+  display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.7); z-index: 3600;
+  justify-content: center; align-items: flex-start;
+  padding: 20px; box-sizing: border-box; overflow-y: auto;
+}
+.mo-container {
+  background: var(--bg2); border-radius: 18px; width: 100%;
+  max-width: 640px; margin: auto; border: 1px solid var(--border); overflow: hidden;
+}
+.mo-header {
+  background: var(--bg3); color: var(--text); padding: 14px 18px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.mo-header h2 { margin: 0; font-size: 1rem; font-weight: 700; }
+.mo-nav {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 10px 18px; border-bottom: 1px solid var(--border); background: var(--bg2);
+}
+.mo-nav button {
+  background: var(--bg4); border: none; color: var(--text2); width: 28px; height: 28px;
+  border-radius: 50%; cursor: pointer; font-weight: 700; font-family: inherit; font-size: 1rem;
+}
+.mo-nav-label { font-size: 0.92rem; font-weight: 800; color: var(--text); min-width: 90px; text-align: center; }
+.mo-filter-bar { display: flex; gap: 6px; padding: 10px 18px; border-bottom: 1px solid var(--border); background: var(--bg2); flex-wrap: wrap; }
+.mo-filter-btn {
+  padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border);
+  background: var(--bg3); font-size: 0.8rem; font-weight: 700; cursor: pointer;
+  color: var(--text2); transition: 0.15s; font-family: inherit;
+}
+.mo-filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.mo-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 18px; max-height: 68vh; overflow-y: auto; }
+.mo-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; flex-wrap: wrap; }
+.mo-section-title { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 800; color: var(--text); }
+.mo-count-badge { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; background: var(--bg4); color: var(--text3); }
+.mo-cat-del-btn {
+  background: rgba(232,84,58,0.1); border: 1px solid rgba(232,84,58,0.25); color: #ff8a76;
+  border-radius: 8px; padding: 5px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer;
+  font-family: inherit; white-space: nowrap; transition: 0.15s;
+}
+.mo-cat-del-btn:hover { background: rgba(232,84,58,0.22); }
+.mo-item-row {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px;
+}
+.mo-item-date { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; color: var(--text3); min-width: 36px; }
+.mo-item-name { font-size: 0.85rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mo-item-memo { font-size: 0.72rem; color: var(--text3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mo-item-del { background: var(--bg4); border: 1px solid var(--border); color: var(--text3); border-radius: 8px; padding: 4px 9px; font-size: 0.72rem; cursor: pointer; font-family: inherit; flex-shrink: 0; }
+.mo-item-edit { background: rgba(74,158,255,0.12); border: 1px solid rgba(74,158,255,0.3); color: var(--blue); border-radius: 8px; padding: 4px 9px; font-size: 0.72rem; cursor: pointer; font-family: inherit; flex-shrink: 0; }
+.mo-item-actions { display: flex; gap: 5px; flex-shrink: 0; }
+.mo-empty { text-align: center; color: var(--text3); padding: 16px 0; font-size: 0.82rem; }
 .back-btn {
   background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
   padding: 6px 12px; cursor: pointer; font-size: 0.85rem; color: var(--text2); margin-bottom: 12px;
@@ -1290,6 +1345,7 @@ body.pc-mode .vacation-tag {
         <a class="pc-quick-link" href="#" onclick="openBoard(); return false;" style="background:rgba(74,158,255,0.15);border-color:rgba(232,84,58,0.3);color:var(--accent2);">📋 게시판</a>
         <a class="pc-quick-link" href="#" onclick="openRegisterModal(); return false;" style="background:rgba(52,201,117,0.12);border-color:rgba(52,201,117,0.3);color:var(--green);">✏️ 일정등록</a>
         <a class="pc-quick-link" href="#" onclick="openAiScan(); return false;" style="background:rgba(74,158,255,0.12);border-color:rgba(74,158,255,0.3);color:var(--blue);">🤖 AI등록</a>
+        <a class="pc-quick-link" href="#" onclick="openMonthlyOverview(); return false;" style="background:rgba(255,193,7,0.12);border-color:rgba(255,193,7,0.3);color:var(--amber);">📊 이달현황</a>
 
         <!-- ── AI 검색 버튼 ── -->
         <div class="ai-search-wrap" id="aiSearchWrap">
@@ -1535,6 +1591,7 @@ body.pc-mode .vacation-tag {
   <a href="https://weberp.airportmc.co.kr:8443/" target="_blank">🕐<span class="ql">근태</span></a>
   <a href="#" onclick="openBoard(); return false;">📋<span class="ql">게시판</span></a>
   <a href="#" onclick="openAiScan(); return false;">🤖<span class="ql">AI등록</span></a>
+  <a href="#" onclick="openMonthlyOverview(); return false;">📊<span class="ql">이달현황</span></a>
 </div>
 
 <button class="add-btn" id="mainAddBtn" onclick="openRegisterModal()">+</button>
@@ -1828,6 +1885,58 @@ body.pc-mode .vacation-tag {
           <div class="error-msg" id="uploadError"></div>
           <button class="submit-btn" id="submitBtn" onclick="submitPost()">게시하기</button>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 이달의 현황 모달 (분기점검·연간점검·연차 통합조회 + 카테고리별 삭제) -->
+<div id="monthlyOverviewModal" onclick="closeMonthlyOverviewIfOutside(event)">
+  <div class="mo-container">
+    <div class="mo-header">
+      <h2>📊 이달의 현황</h2>
+      <button class="board-close" onclick="closeMonthlyOverview()">✕</button>
+    </div>
+    <div class="mo-nav">
+      <button onclick="moMoveMonth(-1)" title="이전 달">‹</button>
+      <span class="mo-nav-label" id="moNavLabel">-</span>
+      <button onclick="moMoveMonth(1)" title="다음 달">›</button>
+    </div>
+    <div class="mo-filter-bar" id="moFilterBar">
+      <button class="mo-filter-btn active" data-mo-filter="all" onclick="moSetFilter('all')">전체</button>
+      <button class="mo-filter-btn" data-mo-filter="quart" onclick="moSetFilter('quart')">🟡 분기점검</button>
+      <button class="mo-filter-btn" data-mo-filter="annual" onclick="moSetFilter('annual')">🔴 연간점검</button>
+      <button class="mo-filter-btn" data-mo-filter="vac" onclick="moSetFilter('vac')">🏖️ 연차</button>
+    </div>
+    <div class="mo-body">
+      <div id="moSectionAll">
+        <div class="mo-section-header">
+          <span class="mo-section-title">📅 이달 전체 일정 <span class="mo-count-badge" id="moAllCount">0건</span></span>
+          <button class="mo-cat-del-btn" style="background:rgba(74,158,255,0.1);border-color:rgba(74,158,255,0.3);color:var(--blue);" onclick="moJumpToday()">📍 오늘로 이동</button>
+        </div>
+        <div id="moAllList"></div>
+      </div>
+      <div id="moSectionQuart">
+        <div class="mo-section-header">
+          <span class="mo-section-title">🟡 이달의 분기점검 <span class="mo-count-badge" id="moQuartCount">0건</span></span>
+          <button class="mo-cat-del-btn" onclick="moDeleteCategory('quart')">🗑️ 분기점검 전체삭제</button>
+        </div>
+        <div id="moQuartList"></div>
+      </div>
+      <div id="moSectionAnnual">
+        <div class="mo-section-header">
+          <span class="mo-section-title">🔴 이달의 연간점검 <span class="mo-count-badge" id="moAnnualCount">0건</span></span>
+          <button class="mo-cat-del-btn" onclick="moDeleteCategory('annual')">🗑️ 연간점검 전체삭제</button>
+        </div>
+        <div id="moAnnualList"></div>
+      </div>
+      <div id="moSectionVac">
+        <div class="mo-section-header">
+          <span class="mo-section-title">🏖️ 이달의 연차 <span class="mo-count-badge" id="moVacCount">0건</span></span>
+          <button class="mo-cat-del-btn" onclick="moDeleteCategory('vac')">🗑️ 연차 전체삭제</button>
+        </div>
+        <div id="moVacList"></div>
+        <div id="moVacHint" style="font-size:0.68rem;color:var(--text3);margin-top:4px;">※ 건강검진·반차 등 연차성 항목이 모두 포함됩니다</div>
       </div>
     </div>
   </div>
@@ -3786,6 +3895,10 @@ async function saveItemEdit() {
     const dateObj = new Date(newDateKey + 'T00:00:00');
     openDayDetail(newDateKey, dateObj);
   }
+
+  // 이달의 현황 모달 갱신
+  const moModal = document.getElementById('monthlyOverviewModal');
+  if (moModal && moModal.style.display === 'flex' && typeof renderMonthlyOverview === 'function') renderMonthlyOverview();
 }
 
 function requestItemDelete() {
@@ -4563,6 +4676,18 @@ async function _checkPassword() {
     }
 
     // bulk 삭제 분기
+    if (key && key.startsWith('mo_cat:')) {
+      document.getElementById('deletePwModal').style.display = 'none';
+      const rest = key.replace('mo_cat:', '');
+      const sep = rest.lastIndexOf(':');
+      const catKey = rest.slice(0, sep);
+      const ymPrefix = rest.slice(sep + 1);
+      const predicate = _moCategoryPredicate(catKey);
+      const catLabel = catKey === 'quart' ? '분기점검' : catKey === 'annual' ? '연간점검' : '연차';
+      const count = await _doBulkDeleteFiltered(ymPrefix, predicate);
+      setTimeout(() => { alert(`✅ ${catLabel} ${count}건 삭제 완료`); }, 400);
+      return;
+    }
     if (key === 'bulk_all') {
       document.getElementById('deletePwModal').style.display = 'none';
       const data = window._vacationData || {};
@@ -4618,6 +4743,8 @@ async function _checkPassword() {
       if (overlay && overlay.classList.contains('show')) {
         openDayDetail(key, new Date(key + 'T00:00:00'));
       }
+      const moModal = document.getElementById('monthlyOverviewModal');
+      if (moModal && moModal.style.display === 'flex' && typeof renderMonthlyOverview === 'function') renderMonthlyOverview();
     }, 350);
   } else {
     // 오답 - 흔들기 효과
@@ -4819,6 +4946,247 @@ async function _doBulkDelete(dateKeys) {
   window.renderCalendar();
   if (typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
   _renderBulkMonthBtns();
+  const moModal = document.getElementById('monthlyOverviewModal');
+  if (moModal && moModal.style.display === 'flex' && typeof renderMonthlyOverview === 'function') renderMonthlyOverview();
+}
+
+// ════════════════════════════════
+// 📊 이달의 현황 — 분기점검·연간점검·연차(건강검진·반차 포함) 통합조회 + 카테고리별 삭제
+// ════════════════════════════════
+let _moYear = null, _moMonth = null, _moFilter = 'all';
+
+function openMonthlyOverview() {
+  _moYear = current.getFullYear();
+  _moMonth = current.getMonth() + 1;
+  _moFilter = 'all';
+  document.getElementById('monthlyOverviewModal').style.display = 'flex';
+  renderMonthlyOverview();
+  _moScrollToToday();
+}
+function closeMonthlyOverview() {
+  document.getElementById('monthlyOverviewModal').style.display = 'none';
+}
+function closeMonthlyOverviewIfOutside(e) {
+  if (e.target === document.getElementById('monthlyOverviewModal')) closeMonthlyOverview();
+}
+function moMoveMonth(n) {
+  const d = new Date(_moYear, _moMonth - 1 + n, 1);
+  _moYear = d.getFullYear();
+  _moMonth = d.getMonth() + 1;
+  renderMonthlyOverview();
+}
+function moSetFilter(filterKey) {
+  _moFilter = filterKey;
+  const bar = document.getElementById('moFilterBar');
+  if (bar) {
+    bar.querySelectorAll('.mo-filter-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.moFilter === filterKey);
+    });
+  }
+  _moApplyFilterVisibility();
+  if (filterKey === 'all') _moScrollToToday();
+}
+function moJumpToday() {
+  const t = new Date();
+  _moYear = t.getFullYear();
+  _moMonth = t.getMonth() + 1;
+  if (_moFilter !== 'all') moSetFilter('all'); else renderMonthlyOverview();
+  _moScrollToToday();
+}
+function _moApplyFilterVisibility() {
+  const catMap = { quart: 'moSectionQuart', annual: 'moSectionAnnual', vac: 'moSectionVac' };
+  const allEl = document.getElementById('moSectionAll');
+  if (allEl) allEl.style.display = (_moFilter === 'all') ? '' : 'none';
+  Object.keys(catMap).forEach(catKey => {
+    const el = document.getElementById(catMap[catKey]);
+    if (!el) return;
+    el.style.display = (_moFilter === catKey) ? '' : 'none';
+  });
+}
+function _moTodayKey() {
+  const t = new Date();
+  return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0');
+}
+function _moScrollToToday() {
+  setTimeout(() => {
+    if (_moFilter !== 'all') return;
+    const todayKey = _moTodayKey();
+    if (_moYmPrefix() !== todayKey.slice(0, 7)) return; // 오늘이 현재 보고 있는 달이 아니면 스킵
+    const el = document.querySelector('#moAllList [data-date="' + todayKey + '"]');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 80);
+}
+function _moYmPrefix() {
+  return _moYear + '-' + String(_moMonth).padStart(2, '0');
+}
+// 유형별 표시 색상: 분기점검=파랑, 연간점검=빨강, 연차=초록, 그 외(일정 등)=기본색
+function _moTypeColor(item) {
+  if (item.type === '분기점검') return '#4a9eff';
+  if (item.type === '연간점검') return '#ef4444';
+  if (isItemVac(item)) return '#22c55e';
+  return 'var(--text3)';
+}
+// 카테고리별 판별 함수: quart=분기점검, annual=연간점검, vac=연차(건강검진·반차 등 연차성 항목 전체)
+function _moCategoryPredicate(catKey) {
+  if (catKey === 'quart')  return it => it.type === '분기점검';
+  if (catKey === 'annual') return it => it.type === '연간점검';
+  if (catKey === 'vac')    return it => isItemVac(it);
+  return () => false;
+}
+function _moCollectItems(predicate) {
+  const data = window._vacationData || {};
+  const prefix = _moYmPrefix() + '-';
+  const results = [];
+  Object.keys(data).forEach(key => {
+    if (!key.startsWith(prefix)) return;
+    (data[key] || []).forEach((item, idx) => {
+      if (!item || !item.name) return;
+      if (predicate(item)) results.push({ key, idx, item });
+    });
+  });
+  results.sort((a, b) => a.key.localeCompare(b.key));
+  return results;
+}
+function renderMonthlyOverview() {
+  const label = document.getElementById('moNavLabel');
+  if (label) label.textContent = _moYear + '년 ' + _moMonth + '월';
+
+  _moRenderAllSection();
+  _moRenderSection('moQuartList', 'moQuartCount', _moCollectItems(_moCategoryPredicate('quart')));
+  _moRenderSection('moAnnualList', 'moAnnualCount', _moCollectItems(_moCategoryPredicate('annual')));
+  _moRenderSection('moVacList', 'moVacCount', _moCollectItems(_moCategoryPredicate('vac')));
+  _moApplyFilterVisibility();
+}
+function _moRenderAllSection() {
+  const entries = _moCollectItems(() => true); // 종류 상관없이 이달의 모든 일정·점검·연차
+  const countEl = document.getElementById('moAllCount');
+  if (countEl) countEl.textContent = entries.length + '건';
+  const list = document.getElementById('moAllList');
+  if (!list) return;
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="mo-empty">이달 등록된 항목이 없습니다</div>';
+    return;
+  }
+
+  // 같은 날짜 안에서는 분기점검 > 연간점검 > 연차 > 기타(일정 포함) 순으로 정렬
+  function _moTypePriority(it) {
+    if (it.type === '분기점검') return 0;
+    if (it.type === '연간점검') return 1;
+    if (isItemVac(it)) return 2;
+    return 3;
+  }
+  entries.sort((a, b) => {
+    return a.key.localeCompare(b.key)
+      || (_moTypePriority(a.item) - _moTypePriority(b.item))
+      || String(a.item.name || '').localeCompare(String(b.item.name || ''), 'ko');
+  });
+
+  // 날짜별로 그룹화 (날짜 오름차순은 위 정렬에서 이미 보장됨)
+  const groups = [];
+  let curKey = null, curArr = null;
+  entries.forEach(e => {
+    if (e.key !== curKey) {
+      curKey = e.key;
+      curArr = [];
+      groups.push({ key: curKey, arr: curArr });
+    }
+    curArr.push(e);
+  });
+
+  const todayKey = _moTodayKey();
+  const weekdayNames = ['일', '월', '화', '수', '목', '금', '토'];
+
+  list.innerHTML = groups.map(({ key, arr }) => {
+    const parts = key.split('-');
+    const y = +parts[0], m = +parts[1], d = +parts[2];
+    const isToday = key === todayKey;
+    const wd = weekdayNames[new Date(y, m - 1, d).getDay()];
+    const rows = arr.map(({ key, idx, item }) => {
+      const fsId = item._firestoreId || '';
+      const memo = item.memo ? `<div class="mo-item-memo">${escHtml(item.memo)}</div>` : '';
+      return `
+        <div class="mo-item-row" data-date="${key}" style="${isToday ? 'border-color:var(--accent);background:rgba(232,84,58,0.06);' : ''}">
+          <div style="flex:1;min-width:0;">
+            <div class="mo-item-name">${escHtml(item.name)}${item.type ? ` <span style="color:${_moTypeColor(item)};font-weight:700;">· ${escHtml(item.type)}</span>` : ''}</div>
+            ${memo}
+          </div>
+          <div class="mo-item-actions">
+            <button class="mo-item-edit" title="수정" onclick="moEditItem('${key}',${idx})">✏️</button>
+            <button class="mo-item-del" title="삭제" onclick="moDeleteSingle('${key}',${idx},'${fsId}')">✕</button>
+          </div>
+        </div>`;
+    }).join('');
+    return `
+      <div style="margin-bottom:16px;" data-date="${key}">
+        <div style="font-size:0.78rem;font-weight:800;color:${isToday ? 'var(--accent2)' : 'var(--text2)'};margin-bottom:6px;display:flex;align-items:center;gap:6px;">${m}/${d} (${wd})${isToday ? ' · 오늘' : ''} <span class="mo-count-badge">${arr.length}건</span></div>
+        ${rows}
+      </div>`;
+  }).join('');
+}
+function _moRenderSection(listId, countId, entries) {
+  const list = document.getElementById(listId);
+  const countEl = document.getElementById(countId);
+  if (countEl) countEl.textContent = entries.length + '건';
+  if (!list) return;
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="mo-empty">이달 등록된 항목이 없습니다</div>';
+    return;
+  }
+  list.innerHTML = entries.map(({ key, idx, item }) => {
+    const parts = key.split('-');
+    const m = parts[1], d = parts[2];
+    const fsId = item._firestoreId || '';
+    const memo = item.memo ? `<div class="mo-item-memo">${escHtml(item.memo)}</div>` : '';
+    return `
+      <div class="mo-item-row">
+        <div class="mo-item-date">${m}/${d}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="mo-item-name">${escHtml(item.name)}${item.type ? ` <span style="color:${_moTypeColor(item)};font-weight:700;">· ${escHtml(item.type)}</span>` : ''}</div>
+          ${memo}
+        </div>
+        <div class="mo-item-actions">
+          <button class="mo-item-edit" title="수정" onclick="moEditItem('${key}',${idx})">✏️</button>
+          <button class="mo-item-del" title="삭제" onclick="moDeleteSingle('${key}',${idx},'${fsId}')">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+function moDeleteSingle(key, idx, fsId) {
+  showDeletePwModal(key, idx, fsId || null);
+}
+function moEditItem(key, idx) {
+  openItemAction(key, idx);
+  openItemEdit();
+}
+function moDeleteCategory(catKey) {
+  const predicate = _moCategoryPredicate(catKey);
+  const entries = _moCollectItems(predicate);
+  if (entries.length === 0) { alert('삭제할 항목이 없습니다.'); return; }
+  showDeletePwModal('mo_cat:' + catKey + ':' + _moYmPrefix(), 'bulk_cat', null);
+}
+async function _doBulkDeleteFiltered(ymPrefix, predicate) {
+  await waitForVacationAPI(5000);
+  const data = window._vacationData || {};
+  const keys = Object.keys(data).filter(k => k.startsWith(ymPrefix + '-'));
+  let count = 0;
+  for (const key of keys) {
+    const items = [...(window._vacationData[key] || [])];
+    for (let i = items.length - 1; i >= 0; i--) {
+      const it = items[i];
+      if (!it || !it.name || !predicate(it)) continue;
+      const fsId = it._firestoreId || null;
+      try {
+        if (window._vacationAPI) await window._vacationAPI.removeVacation(key, i, fsId);
+        count++;
+      } catch (e) { console.warn('삭제 실패:', key, i, e); }
+    }
+  }
+  window.renderCalendar();
+  if (typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
+  if (typeof _renderBulkMonthBtns === 'function') _renderBulkMonthBtns();
+  const moModal = document.getElementById('monthlyOverviewModal');
+  if (moModal && moModal.style.display === 'flex') renderMonthlyOverview();
+  return count;
 }
 
 // ════════════════════════════════
