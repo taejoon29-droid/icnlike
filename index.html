@@ -5242,10 +5242,20 @@ function openPcPortraitPanel(dateKey, dateObj) {
   } else {
     allItems2.forEach(({ item, origIdx }) => {
       const isVac = isItemVac(item);
-      const dotColor = isVac ? 'var(--green)' : 'var(--blue)';
-      const typeBg   = isVac ? 'rgba(52,201,117,0.15)' : 'rgba(74,158,255,0.15)';
-      const typeColor= isVac ? 'var(--green)' : 'var(--blue)';
-      const typeBorder= isVac ? 'rgba(52,201,117,0.3)' : 'rgba(74,158,255,0.3)';
+      let dotColor, typeBg, typeColor, typeBorder;
+      if (isVac) {
+        dotColor = 'var(--green)'; typeBg = 'rgba(52,201,117,0.15)';
+        typeColor = 'var(--green)'; typeBorder = 'rgba(52,201,117,0.3)';
+      } else if (item.type === '연간점검') {
+        dotColor = '#ff8a76'; typeBg = 'rgba(232,84,58,0.15)';
+        typeColor = '#ff8a76'; typeBorder = 'rgba(232,84,58,0.3)';
+      } else if (item.type === '분기점검') {
+        dotColor = 'var(--blue)'; typeBg = 'rgba(74,158,255,0.15)';
+        typeColor = 'var(--blue)'; typeBorder = 'rgba(74,158,255,0.3)';
+      } else {
+        dotColor = 'var(--blue)'; typeBg = 'rgba(74,158,255,0.15)';
+        typeColor = 'var(--blue)'; typeBorder = 'rgba(74,158,255,0.3)';
+      }
       const el = document.createElement('div');
       el.className = 'ppp-item';
       el.style.justifyContent = 'space-between';
