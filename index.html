@@ -348,6 +348,28 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 .workhub-brand .wh-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
 .workhub-sub { font-size: 0.72rem; color: var(--text3); font-weight: 500; letter-spacing: 0.08em; }
 
+/* 플립 클락(split-flap) 스타일 */
+.wh-ampm { font-size: 0.78rem; font-weight: 700; color: var(--text2); margin-right: 2px; }
+.fc-clock { display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; }
+.fc-group { display: inline-flex; gap: 2px; }
+.fc-colon { font-size: 0.85rem; font-weight: 800; color: var(--text3); padding: 0 1px; }
+.fc-digit { position: relative; width: 15px; height: 22px; perspective: 120px; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.fc-digit .half { position: absolute; left: 0; width: 100%; height: 11px; overflow: hidden; background: var(--bg4); }
+.fc-digit .half.top { top: 0; border-radius: 3px 3px 0 0; }
+.fc-digit .half.bottom { bottom: 0; border-radius: 0 0 3px 3px; }
+.fc-digit .num { position: absolute; left: 0; width: 100%; height: 22px; line-height: 22px; text-align: center; font-size: 0.92rem; font-weight: 800; color: var(--text); }
+.fc-digit .half.bottom .num { top: -11px; }
+.fc-digit .leaf { position: absolute; left: 0; width: 100%; height: 11px; overflow: hidden; background: var(--bg4); backface-visibility: hidden; }
+.fc-digit .leaf.front { top: 0; transform-origin: bottom; border-radius: 3px 3px 0 0; }
+.fc-digit .leaf.back { bottom: 0; transform-origin: top; transform: rotateX(90deg); border-radius: 0 0 3px 3px; }
+.fc-digit .leaf .num { position: absolute; left: 0; width: 100%; height: 22px; line-height: 22px; text-align: center; font-size: 0.92rem; font-weight: 800; color: var(--text); }
+.fc-digit .leaf.back .num { top: -11px; }
+.fc-digit::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0,0,0,0.3); z-index: 2; }
+.fc-digit.playing .leaf.front { animation: fcFront 0.3s ease-in forwards; }
+.fc-digit.playing .leaf.back { animation: fcBack 0.3s ease-out forwards; animation-delay: 0.3s; }
+@keyframes fcFront { 0% { transform: rotateX(0deg); } 100% { transform: rotateX(-90deg); } }
+@keyframes fcBack { 0% { transform: rotateX(90deg); } 100% { transform: rotateX(0deg); } }
+
 /* date input 다크모드 날짜 깨짐 방지 */
 input[type="date"] {
   color-scheme: dark;
@@ -1326,7 +1348,7 @@ body.pc-mode .vacation-tag {
     <!-- PC모드 상단 퀵링크 -->
     <div class="pc-top-quickbar">
       <div class="pc-quickbar-row1">
-        <span class="workhub-brand"><span class="wh-dot"></span><span id="pcTopClock" style="font-variant-numeric:tabular-nums;letter-spacing:0.04em;">--:--:--</span> <span class="workhub-sub" id="pcTopDate"></span><span id="pcTopSpecialDay" style="margin-left:8px;font-size:0.78rem;font-weight:700;padding:2px 8px;border-radius:8px;display:none;"></span></span>
+        <span class="workhub-brand"><span class="wh-dot"></span><span class="wh-ampm" id="pcTopAmPm">--</span><span class="fc-clock" id="pcFlipClock"><span class="fc-group" id="fcGroupH"></span><span class="fc-colon">:</span><span class="fc-group" id="fcGroupM"></span><span class="fc-colon">:</span><span class="fc-group" id="fcGroupS"></span></span> <span class="workhub-sub" id="pcTopDate"></span><span id="pcTopSpecialDay" style="margin-left:8px;font-size:0.78rem;font-weight:700;padding:2px 8px;border-radius:8px;display:none;"></span></span>
       </div>
       <div class="pc-quickbar-row2">
         <a class="pc-quick-link" href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️ 지도</a>
@@ -5826,11 +5848,53 @@ function startFooterClock() {
   }
 
   if (_clockTimer) return;
+
+  // ── 플립 클락(split-flap) 빌드 & 업데이트 ──
+  function fcBuildDigit(groupEl) {
+    const d = document.createElement('div');
+    d.className = 'fc-digit';
+    d.innerHTML = '<div class="half top"><span class="num">0</span></div><div class="half bottom"><span class="num">0</span></div><div class="leaf front"><span class="num">0</span></div><div class="leaf back"><span class="num">0</span></div>';
+    groupEl.appendChild(d);
+    return d;
+  }
+  function fcBuildGroup(id) {
+    const g = document.getElementById(id);
+    if (!g || g.children.length) return;
+    fcBuildDigit(g); fcBuildDigit(g);
+  }
+  fcBuildGroup('fcGroupH'); fcBuildGroup('fcGroupM'); fcBuildGroup('fcGroupS');
+
+  function fcSetDigit(digitEl, val) {
+    const topN = digitEl.querySelector('.half.top .num');
+    const botN = digitEl.querySelector('.half.bottom .num');
+    const frontN = digitEl.querySelector('.leaf.front .num');
+    const backN = digitEl.querySelector('.leaf.back .num');
+    const old = topN.textContent;
+    if (old === val) return;
+    frontN.textContent = old;
+    backN.textContent = val;
+    digitEl.classList.remove('playing');
+    void digitEl.offsetWidth;
+    digitEl.classList.add('playing');
+    setTimeout(() => { topN.textContent = val; botN.textContent = val; }, 300);
+  }
+  function fcUpdateGroup(id, twoDigitStr) {
+    const g = document.getElementById(id);
+    if (!g || g.children.length < 2) return;
+    fcSetDigit(g.children[0], twoDigitStr[0]);
+    fcSetDigit(g.children[1], twoDigitStr[1]);
+  }
+
   function tick() {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-    const topClock = document.getElementById('pcTopClock');
-    if (topClock) topClock.textContent = timeStr;
+    const h24 = now.getHours();
+    const ampm = h24 < 12 ? '오전' : '오후';
+    let h12 = h24 % 12; if (h12 === 0) h12 = 12;
+    const ampmEl = document.getElementById('pcTopAmPm');
+    if (ampmEl) ampmEl.textContent = ampm;
+    fcUpdateGroup('fcGroupH', String(h12).padStart(2, '0'));
+    fcUpdateGroup('fcGroupM', String(now.getMinutes()).padStart(2, '0'));
+    fcUpdateGroup('fcGroupS', String(now.getSeconds()).padStart(2, '0'));
     const topDate = document.getElementById('pcTopDate');
     if (topDate) topDate.textContent = now.toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
     // 특별한 날 표시
