@@ -393,6 +393,10 @@ body.light-mode input[type="date"] {
   background: rgba(74,158,255,0.2); color: var(--blue);
   border-color: rgba(74,158,255,0.4);
 }
+.type-sel-btn.sched-type.annual-type.active-type {
+  background: rgba(232,84,58,0.2); color: var(--accent2);
+  border-color: rgba(232,84,58,0.4);
+}
 
 /* ── 대시보드 ── */
 .dash-loading { color: var(--text3); font-size: 0.82rem; padding: 16px 0; text-align: center; }
@@ -1879,7 +1883,7 @@ body.pc-mode .vacation-tag {
             <label style="font-size:0.75rem;color:var(--text3);font-weight:600;display:block;margin-bottom:4px;">🏷️ 종류</label>
             <div style="display:flex;gap:6px;flex-wrap:wrap;" id="schedTypeButtons">
               <button onclick="selectSchedType(this,'점검')" class="type-sel-btn sched-type active-type">점검</button>
-              <button onclick="selectSchedType(this,'연간점검')" class="type-sel-btn sched-type">연간점검</button>
+              <button onclick="selectSchedType(this,'연간점검')" class="type-sel-btn sched-type annual-type">연간점검</button>
               <button onclick="selectSchedType(this,'분기점검')" class="type-sel-btn sched-type">분기점검</button>
               <button onclick="selectSchedType(this,'회의')" class="type-sel-btn sched-type">회의</button>
               <button onclick="selectSchedType(this,'작업')" class="type-sel-btn sched-type">작업</button>
