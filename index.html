@@ -1360,7 +1360,7 @@ body.pc-mode .vacation-tag {
       </div>
       <div class="pc-quickbar-row2">
         <a class="pc-quick-link" href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️ 지도</a>
-        <a class="pc-quick-link" href="https://weather.naver.com/" target="_blank">🌤️ 날씨</a>
+        <a class="pc-quick-link" href="#" onclick="scrollToWeather(); return false;">🌤️ 날씨</a>
         <a class="pc-quick-link" href="https://news.naver.com/main/home.naver" target="_blank">📰 뉴스</a>
         <a class="pc-quick-link" href="https://icn-cafeteria.web.app/" target="_blank">🍴 식당</a>
         <a class="pc-quick-link" href="https://weberp.airportmc.co.kr:8443/" target="_blank">🕐 근태</a>
@@ -1512,7 +1512,7 @@ body.pc-mode .vacation-tag {
   <div class="dash-row dash-row-2">
 
     <!-- 날씨 카드 -->
-    <div class="dash-card">
+    <div class="dash-card" id="weatherCard">
       <div class="dash-card-header">
         <div class="dash-card-title">
           <div class="dash-icon" style="background:rgba(74,158,255,0.15);">🌤️</div>
@@ -1609,7 +1609,7 @@ body.pc-mode .vacation-tag {
 
 <div class="quick-wrap">
   <a href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️<span class="ql">지도</span></a>
-  <a href="https://weather.naver.com/" target="_blank">🌤️<span class="ql">날씨</span></a>
+  <a href="#" onclick="scrollToWeather(); return false;">🌤️<span class="ql">날씨</span></a>
   <a href="https://news.naver.com/main/home.naver" target="_blank">📰<span class="ql">뉴스</span></a>
   <a href="https://icn-cafeteria.web.app/" target="_blank">🍴<span class="ql">식당</span></a>
   <a href="https://weberp.airportmc.co.kr:8443/" target="_blank">🕐<span class="ql">근태</span></a>
@@ -5756,6 +5756,18 @@ function toggleDashboard() {
   if (resizeW) resizeW.style.display = _dashVisible ? '' : 'none';
   btn.textContent = _dashVisible ? '▲' : '▼';
   btn.style.transform = _dashVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+
+// '날씨' 버튼 클릭 시 하단 날씨 카드로 스크롤 이동
+function scrollToWeather() {
+  const content = document.getElementById('dashContent');
+  if (content && content.style.display === 'none') {
+    toggleDashboard();
+  }
+  const el = document.getElementById('weatherCard');
+  if (el) {
+    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  }
 }
 let _clockTimer = null;
 function startFooterClock() {
