@@ -45,13 +45,24 @@ body.pc-mode .pc-layout-wrap {
 @media (max-width: 700px) {
   body.pc-mode .pc-layout-wrap {
     flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  body.pc-mode .pc-cal-col {
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
   body.pc-mode .pc-board-col {
     position: static !important;
     max-height: none !important;
     width: 100% !important;
+    margin-left: 0 !important;
+    box-sizing: border-box !important;
   }
   body.pc-mode #calSidebarHandle { display: none !important; }
+  body.pc-mode .pc-dashboard {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
 }
 
 body.pc-mode .pc-cal-col {
@@ -416,6 +427,18 @@ body.light-mode input[type="date"] {
 .weather-details { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px; }
 .weather-detail-item { background: var(--bg3); border-radius: 8px; padding: 7px 10px; font-size: 0.75rem; color: var(--text2); }
 .weather-detail-item strong { color: var(--text); font-size: 0.82rem; display: block; }
+.weather-hourly-wrap { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.weather-hourly-title { font-size: 0.72rem; font-weight: 700; color: var(--text3); letter-spacing: 0.04em; margin-bottom: 8px; }
+.weather-hourly-scroll { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.weather-hourly-scroll::-webkit-scrollbar { height: 5px; }
+.weather-hourly-scroll::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+.weather-hourly-item { flex: 0 0 auto; width: 52px; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 2px; border-radius: 10px; }
+.weather-hourly-item.now { background: var(--bg3); }
+.weather-hourly-time { font-size: 0.7rem; font-weight: 700; color: var(--text3); }
+.weather-hourly-item.now .weather-hourly-time { color: var(--accent2); }
+.weather-hourly-icon { font-size: 1.35rem; line-height: 1; }
+.weather-hourly-temp { font-size: 0.8rem; font-weight: 800; color: var(--text); }
+.weather-hourly-pop { font-size: 0.65rem; color: var(--blue); font-weight: 600; min-height: 11px; }
 
 /* ══ 우측 사이드바: 일정+연차 분리 표시 ══ */
 .sidebar-section {
@@ -2774,11 +2797,11 @@ async function fetchWeather() {
   if (!body) return;
   body.innerHTML = '<div class="dash-loading">⏳ 날씨 불러오는 중...</div>';
   const lat = 37.4602, lon = 126.4407;
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul&forecast_days=1`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation&hourly=temperature_2m,weather_code,precipitation_probability&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul&forecast_days=2`;
   try {
     const res = await fetch(url);
     const d = await res.json();
-    const c = d.current, daily = d.daily;
+    const c = d.current, daily = d.daily, hourly = d.hourly;
     const wmoMap = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'❄️',73:'❄️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️',96:'⛈️',99:'⛈️'};
     const wmoDesc = {0:'맑음',1:'대체로 맑음',2:'부분 흐림',3:'흐림',45:'안개',48:'안개',51:'약한 이슬비',53:'이슬비',55:'강한 이슬비',61:'약한 비',63:'비',65:'강한 비',71:'약한 눈',73:'눈',75:'강한 눈',80:'소나기',81:'소나기',82:'강한 소나기',95:'뇌우',96:'뇌우',99:'강한 뇌우'};
     const code = c.weather_code;
@@ -2786,6 +2809,34 @@ async function fetchWeather() {
     const temp = Math.round(c.temperature_2m), feels = Math.round(c.apparent_temperature);
     const hum = c.relative_humidity_2m, wind = Math.round(c.wind_speed_10m), precip = c.precipitation;
     const tmax = Math.round(daily.temperature_2m_max[0]), tmin = Math.round(daily.temperature_2m_min[0]);
+
+    // 시간대별(hourly) 예보 – 현재 시각부터 이후 24시간
+    let hourlyHtml = '';
+    if (hourly && hourly.time) {
+      const nowTs = Date.now();
+      let startIdx = hourly.time.findIndex(t => new Date(t).getTime() >= nowTs);
+      if (startIdx < 0) startIdx = 0;
+      const slice = hourly.time.slice(startIdx, startIdx + 24);
+      hourlyHtml = slice.map((t, i) => {
+        const idx = startIdx + i;
+        const dt = new Date(t);
+        const hh = dt.getHours();
+        const isNow = i === 0;
+        const label = isNow ? '지금' : `${hh}시`;
+        const hCode = hourly.weather_code[idx];
+        const hIcon = wmoMap[hCode] || '🌡️';
+        const hTemp = Math.round(hourly.temperature_2m[idx]);
+        const pop = hourly.precipitation_probability ? hourly.precipitation_probability[idx] : 0;
+        return `
+          <div class="weather-hourly-item${isNow ? ' now' : ''}">
+            <div class="weather-hourly-time">${label}</div>
+            <div class="weather-hourly-icon">${hIcon}</div>
+            <div class="weather-hourly-temp">${hTemp}°</div>
+            <div class="weather-hourly-pop">${pop > 0 ? pop + '%' : ''}</div>
+          </div>`;
+      }).join('');
+    }
+
     body.innerHTML = `
       <div class="weather-main">
         <div class="weather-icon-big">${icon}</div>
@@ -2800,7 +2851,12 @@ async function fetchWeather() {
         <div class="weather-detail-item"><strong>💧 ${hum}%</strong>습도</div>
         <div class="weather-detail-item"><strong>💨 ${wind}km/h</strong>풍속</div>
         ${precip > 0 ? `<div class="weather-detail-item" style="grid-column:1/-1"><strong>🌧️ ${precip}mm</strong>강수량</div>` : ''}
-      </div>`;
+      </div>
+      ${hourlyHtml ? `
+      <div class="weather-hourly-wrap">
+        <div class="weather-hourly-title">⏱️ 시간대별 날씨</div>
+        <div class="weather-hourly-scroll">${hourlyHtml}</div>
+      </div>` : ''}`;
   } catch(e) {
     body.innerHTML = '<div class="dash-loading">날씨를 불러올 수 없습니다<br><small>네트워크를 확인해주세요</small></div>';
   }
