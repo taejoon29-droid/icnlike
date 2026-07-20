@@ -2502,12 +2502,15 @@ window.renderCalendar = function renderCalendar() {
       const showSummary = vacCount2 > MAX_SHOW || schedCount2 > MAX_SHOW;
 
       if (showSummary) {
-        // 요약 태그: 연차 N명, 일정 N건
-        if (vacCount2 > 0) {
+        // 요약 태그: 일정 N건, 연차 N명
+        if (schedCount2 > 0) {
           const tag = document.createElement('div');
           tag.className = 'vacation-tag';
-          tag.innerText = '연차 ' + vacCount2 + '명';
-          tag.title = vacItems2.filter(i=>i.name).map(i=>i.name+'('+(i.type||'')+')').join(', ');
+          tag.style.background = 'rgba(232,84,58,0.18)';
+          tag.style.color = '#ff8a76';
+          tag.style.borderColor = 'rgba(232,84,58,0.3)';
+          tag.innerText = '일정 ' + schedCount2 + '건';
+          tag.title = schedItems2.filter(i=>i.name).map(i=>i.name+'('+(i.type||'')+')').join(', ');
           tag.onclick = e => {
             e.stopPropagation();
             if (document.body.classList.contains('pc-mode')) {
@@ -2517,14 +2520,11 @@ window.renderCalendar = function renderCalendar() {
           };
           listContainer.appendChild(tag);
         }
-        if (schedCount2 > 0) {
+        if (vacCount2 > 0) {
           const tag = document.createElement('div');
           tag.className = 'vacation-tag';
-          tag.style.background = 'rgba(232,84,58,0.18)';
-          tag.style.color = '#ff8a76';
-          tag.style.borderColor = 'rgba(232,84,58,0.3)';
-          tag.innerText = '일정 ' + schedCount2 + '건';
-          tag.title = schedItems2.filter(i=>i.name).map(i=>i.name+'('+(i.type||'')+')').join(', ');
+          tag.innerText = '연차 ' + vacCount2 + '명';
+          tag.title = vacItems2.filter(i=>i.name).map(i=>i.name+'('+(i.type||'')+')').join(', ');
           tag.onclick = e => {
             e.stopPropagation();
             if (document.body.classList.contains('pc-mode')) {
