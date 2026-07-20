@@ -252,7 +252,21 @@ body.pc-mode .pc-top-quickbar { display: flex; }
 .pc-quickbar-row1 {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
 }
+
+/* 상단 우측 날씨 배지 */
+.weather-top-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(74,158,255,0.15); border: 1px solid rgba(74,158,255,0.3);
+  color: var(--blue); border-radius: 999px; padding: 5px 12px;
+  font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: 0.15s;
+  white-space: nowrap; font-family: inherit;
+}
+.weather-top-badge:hover { background: rgba(74,158,255,0.25); }
+.weather-top-badge .wtb-icon { font-size: 1.05rem; line-height: 1; }
 
 /* 둘째 줄: 버튼들 전부 */
 .pc-quickbar-row2 {
@@ -1357,6 +1371,10 @@ body.pc-mode .vacation-tag {
     <div class="pc-top-quickbar">
       <div class="pc-quickbar-row1">
         <span class="workhub-brand"><span class="wh-dot"></span><span class="wh-ampm" id="pcTopAmPm">--</span><span class="fc-clock" id="pcFlipClock"><span class="fc-group" id="fcGroupH"></span><span class="fc-colon">:</span><span class="fc-group" id="fcGroupM"></span><span class="fc-colon">:</span><span class="fc-group" id="fcGroupS"></span></span> <span class="workhub-sub" id="pcTopDate"></span><span id="pcTopSpecialDay" style="margin-left:8px;font-size:0.78rem;font-weight:700;padding:2px 8px;border-radius:8px;display:none;"></span></span>
+        <button type="button" class="weather-top-badge" id="topWeatherBadge" onclick="scrollToWeather()" title="오늘의 날씨 보기">
+          <span class="wtb-icon" id="topWeatherIcon">🌡️</span>
+          <span id="topWeatherTemp">--°</span>
+        </button>
       </div>
       <div class="pc-quickbar-row2">
         <a class="pc-quick-link" href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️ 지도</a>
@@ -2788,6 +2806,10 @@ async function fetchWeather() {
     const code = c.weather_code;
     const icon = wmoMap[code] || '🌡️', desc = wmoDesc[code] || '알 수 없음';
     const temp = Math.round(c.temperature_2m), feels = Math.round(c.apparent_temperature);
+    const topIcon = document.getElementById('topWeatherIcon');
+    const topTemp = document.getElementById('topWeatherTemp');
+    if (topIcon) topIcon.textContent = icon;
+    if (topTemp) topTemp.textContent = temp + '°';
     const hum = c.relative_humidity_2m, wind = Math.round(c.wind_speed_10m), precip = c.precipitation;
     const tmax = Math.round(daily.temperature_2m_max[0]), tmin = Math.round(daily.temperature_2m_min[0]);
 
