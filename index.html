@@ -1167,6 +1167,13 @@ body.pc-mode .vacation-tag {
   font-family: inherit; white-space: nowrap; transition: 0.15s;
 }
 .mo-cat-del-btn:hover { background: rgba(232,84,58,0.22); }
+.mo-cat-add-btn {
+  background: rgba(52,201,117,0.12); border: 1px solid rgba(52,201,117,0.3); color: var(--green);
+  border-radius: 8px; padding: 5px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer;
+  font-family: inherit; white-space: nowrap; transition: 0.15s;
+}
+.mo-cat-add-btn:hover { background: rgba(52,201,117,0.24); }
+.mo-header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 .mo-item-row {
   display: flex; align-items: center; gap: 8px; padding: 8px 10px;
   background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px;
@@ -2014,28 +2021,40 @@ body.pc-mode .vacation-tag {
       <div id="moSectionAll">
         <div class="mo-section-header">
           <span class="mo-section-title">📅 이달 전체 일정 <span class="mo-count-badge" id="moAllCount">0건</span></span>
-          <button class="mo-cat-del-btn" style="background:rgba(74,158,255,0.1);border-color:rgba(74,158,255,0.3);color:var(--blue);" onclick="moJumpToday()">📍 오늘로 이동</button>
+          <div class="mo-header-actions">
+            <button class="mo-cat-add-btn" onclick="moOpenAddModal('all')">➕ 추가</button>
+            <button class="mo-cat-del-btn" style="background:rgba(74,158,255,0.1);border-color:rgba(74,158,255,0.3);color:var(--blue);" onclick="moJumpToday()">📍 오늘로 이동</button>
+          </div>
         </div>
         <div id="moAllList"></div>
       </div>
       <div id="moSectionQuart">
         <div class="mo-section-header">
           <span class="mo-section-title">🟡 이달의 분기점검 <span class="mo-count-badge" id="moQuartCount">0건</span></span>
-          <button class="mo-cat-del-btn" onclick="moDeleteCategory('quart')">🗑️ 분기점검 전체삭제</button>
+          <div class="mo-header-actions">
+            <button class="mo-cat-add-btn" onclick="moOpenAddModal('quart')">➕ 추가</button>
+            <button class="mo-cat-del-btn" onclick="moDeleteCategory('quart')">🗑️ 분기점검 전체삭제</button>
+          </div>
         </div>
         <div id="moQuartList"></div>
       </div>
       <div id="moSectionAnnual">
         <div class="mo-section-header">
           <span class="mo-section-title">🔴 이달의 연간점검 <span class="mo-count-badge" id="moAnnualCount">0건</span></span>
-          <button class="mo-cat-del-btn" onclick="moDeleteCategory('annual')">🗑️ 연간점검 전체삭제</button>
+          <div class="mo-header-actions">
+            <button class="mo-cat-add-btn" onclick="moOpenAddModal('annual')">➕ 추가</button>
+            <button class="mo-cat-del-btn" onclick="moDeleteCategory('annual')">🗑️ 연간점검 전체삭제</button>
+          </div>
         </div>
         <div id="moAnnualList"></div>
       </div>
       <div id="moSectionVac">
         <div class="mo-section-header">
           <span class="mo-section-title">🏖️ 이달의 연차 <span class="mo-count-badge" id="moVacCount">0건</span></span>
-          <button class="mo-cat-del-btn" onclick="moDeleteCategory('vac')">🗑️ 연차 전체삭제</button>
+          <div class="mo-header-actions">
+            <button class="mo-cat-add-btn" onclick="moOpenAddModal('vac')">➕ 추가</button>
+            <button class="mo-cat-del-btn" onclick="moDeleteCategory('vac')">🗑️ 연차 전체삭제</button>
+          </div>
         </div>
         <div id="moVacList"></div>
         <div id="moVacHint" style="font-size:0.68rem;color:var(--text3);margin-top:4px;">※ 건강검진·반차 등 연차성 항목이 모두 포함됩니다</div>
@@ -2089,6 +2108,8 @@ try {
     window._vacationData = firestoreData;
     if (typeof window.renderCalendar === 'function') window.renderCalendar();
     if (document.body.classList.contains('pc-mode') && typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
+    const moModalSnap = document.getElementById('monthlyOverviewModal');
+    if (moModalSnap && moModalSnap.style.display === 'flex' && typeof renderMonthlyOverview === 'function') renderMonthlyOverview();
   }, (err) => { console.warn('연차 onSnapshot 오류:', err); });
 
   const postsRef = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
@@ -3337,6 +3358,8 @@ async function submitVacation() {
     localSaveVacation(dateVal, entry);
   }
   if (document.body.classList.contains('pc-mode')) renderSidebarSchedule();
+  const moModalV = document.getElementById('monthlyOverviewModal');
+  if (moModalV && moModalV.style.display === 'flex' && typeof renderMonthlyOverview === 'function') renderMonthlyOverview();
 }
 
 async function submitSchedule() {
@@ -3363,6 +3386,8 @@ async function submitSchedule() {
     localSaveVacation(dateVal, entry);
   }
   if (document.body.classList.contains('pc-mode')) renderSidebarSchedule();
+  const moModalS = document.getElementById('monthlyOverviewModal');
+  if (moModalS && moModalS.style.display === 'flex' && typeof renderMonthlyOverview === 'function') renderMonthlyOverview();
 }
 
 function onCellClick(key) { openRegisterModal(key); }
@@ -5639,6 +5664,27 @@ function _moRenderSection(listId, countId, entries) {
 }
 function moDeleteSingle(key, idx, fsId) {
   showDeletePwModal(key, idx, fsId || null);
+}
+// 이달의 현황 → 카테고리별 "추가" 버튼: 등록 모달을 현재 보고 있는 달/카테고리에 맞춰 열기
+function moOpenAddModal(catKey) {
+  const todayKey = _moTodayKey();
+  const viewedPrefix = _moYmPrefix();
+  // 오늘이 현재 보고 있는 달이면 오늘 날짜, 아니면 그 달의 1일을 기본값으로
+  const dateKey = (todayKey.slice(0, 7) === viewedPrefix) ? todayKey : (viewedPrefix + '-01');
+  openRegisterModal(dateKey);
+
+  if (catKey === 'quart' || catKey === 'annual') {
+    switchRegTab('schedule');
+    const typeLabel = catKey === 'quart' ? '분기점검' : '연간점검';
+    const btn = Array.from(document.querySelectorAll('#schedTypeButtons .type-sel-btn'))
+      .find(b => b.textContent.trim() === typeLabel);
+    if (btn) selectSchedType(btn, typeLabel);
+  } else if (catKey === 'vac') {
+    switchRegTab('vacation');
+    const firstVacBtn = document.querySelector('#vacTypeButtons .type-sel-btn');
+    if (firstVacBtn) selectVacType(firstVacBtn, '연차');
+  }
+  // catKey === 'all' 인 경우 openRegisterModal 기본값(연차/휴가 탭) 그대로 사용
 }
 function moEditItem(key, idx) {
   openItemAction(key, idx);
