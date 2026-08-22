@@ -443,6 +443,23 @@ body.light-mode input[type="date"] {
 .news-item:hover { background: var(--bg4); color: var(--text); border-color: var(--border); }
 .news-item-time { display: block; font-size: 0.68rem; color: var(--text3); font-weight: 600; margin-top: 4px; }
 
+/* ── 실시간 인기 검색어 ── */
+.trending-list { display: flex; flex-direction: column; gap: 3px; }
+.trending-item {
+  display: flex; align-items: center; gap: 8px; padding: 5px 6px;
+  border-radius: 8px; text-decoration: none; color: var(--text2);
+  font-size: 0.78rem; font-weight: 600; transition: 0.15s;
+}
+.trending-item:hover { background: var(--bg3); color: var(--text); }
+.trending-rank {
+  flex-shrink: 0; width: 18px; text-align: center; font-size: 0.72rem; font-weight: 800;
+  color: var(--text3);
+}
+.trending-item:nth-child(1) .trending-rank { color: #ff5252; }
+.trending-item:nth-child(2) .trending-rank { color: #ff8a3d; }
+.trending-item:nth-child(3) .trending-rank { color: #ffc107; }
+.trending-keyword { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* ══ 우측 사이드바: 일정+연차 분리 표시 ══ */
 .sidebar-section {
   padding: 14px 16px 10px;
@@ -1403,6 +1420,8 @@ body.pc-mode .vacation-tag {
         <a class="pc-quick-link" href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️ 지도</a>
         <a class="pc-quick-link" href="#" onclick="scrollToWeather(); return false;">🌤️ 날씨</a>
         <a class="pc-quick-link" href="https://news.naver.com/main/home.naver" target="_blank">📰 뉴스</a>
+        <a class="pc-quick-link" href="https://kko.to/qwL9J1z6gN" target="_blank">🚌 버스</a>
+        <a class="pc-quick-link" href="https://place.map.kakao.com/SES3133#timeTableSection" target="_blank">🚇 지하철</a>
         <a class="pc-quick-link" href="https://icn-cafeteria.web.app/" target="_blank">🍴 식당</a>
         <a class="pc-quick-link" href="https://weberp.airportmc.co.kr:8443/" target="_blank">🕐 근태</a>
         <a class="pc-quick-link" href="#" onclick="openBoard(); return false;" style="background:rgba(74,158,255,0.15);border-color:rgba(232,84,58,0.3);color:var(--accent2);">📋 게시판</a>
@@ -1576,7 +1595,13 @@ body.pc-mode .vacation-tag {
           <div class="dash-icon" style="background:rgba(255,193,7,0.15);">📰</div>
           오늘의 뉴스
         </div>
-        <button onclick="fetchNews()" title="새로고침" style="background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 9px;font-size:0.68rem;font-weight:700;cursor:pointer;font-family:inherit;">↺</button>
+        <button onclick="fetchNews();fetchTrending();" title="새로고침" style="background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 9px;font-size:0.68rem;font-weight:700;cursor:pointer;font-family:inherit;">↺</button>
+      </div>
+      <div id="trendingSection" style="padding:10px 14px 8px;flex-shrink:0;border-bottom:1px solid var(--border);">
+        <div style="font-size:0.7rem;font-weight:800;color:var(--text3);letter-spacing:0.03em;margin-bottom:6px;">🔥 실시간 인기 검색어</div>
+        <div id="trendingList" class="trending-list">
+          <div class="dash-loading" style="padding:4px 0;">불러오는 중...</div>
+        </div>
       </div>
       <div class="dash-card-body" id="newsCardBody" style="flex:1;overflow-y:auto;">
         <div class="dash-loading">뉴스 불러오는 중...</div>
@@ -1669,6 +1694,8 @@ body.pc-mode .vacation-tag {
   <a href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank">🗺️<span class="ql">지도</span></a>
   <a href="#" onclick="scrollToWeather(); return false;">🌤️<span class="ql">날씨</span></a>
   <a href="https://news.naver.com/main/home.naver" target="_blank">📰<span class="ql">뉴스</span></a>
+  <a href="https://kko.to/qwL9J1z6gN" target="_blank">🚌<span class="ql">버스</span></a>
+  <a href="https://place.map.kakao.com/SES3133#timeTableSection" target="_blank">🚇<span class="ql">지하철</span></a>
   <a href="https://icn-cafeteria.web.app/" target="_blank">🍴<span class="ql">식당</span></a>
   <a href="https://weberp.airportmc.co.kr:8443/" target="_blank">🕐<span class="ql">근태</span></a>
   <a href="#" onclick="openBoard(); return false;">📋<span class="ql">게시판</span></a>
@@ -2425,6 +2452,26 @@ function escHtml(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+// 텍스트를 HTML 이스케이프한 뒤, 그 안의 웹주소(URL)를 클릭 가능한 링크로 변환
+function linkifyHtml(s) {
+  if (!s) return '';
+  const escaped = escHtml(s);
+  const urlPattern = /((?:https?:\/\/|www\.)[^\s<]+)/gi;
+  return escaped.replace(urlPattern, (match) => {
+    // 문장 끝 구두점(., 콤마, 괄호 등)이 링크에 딸려오지 않도록 정리
+    let url = match;
+    let trailing = '';
+    const trailingPattern = /[)\]},.!?;:'"]+$/;
+    const trailMatch = url.match(trailingPattern);
+    if (trailMatch) {
+      trailing = trailMatch[0];
+      url = url.slice(0, -trailing.length);
+    }
+    if (!url) return match;
+    const href = url.startsWith('www.') ? 'https://' + url : url;
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color:var(--accent2);text-decoration:underline;word-break:break-all;">${url}</a>${trailing}`;
+  });
+}
 function getFileIcon(name, mime) {
   const ext = (name || '').split('.').pop().toLowerCase();
   if (['xlsx','xls','csv'].includes(ext)) return { icon:'📊', color:'#1d6f42', label:'Excel' };
@@ -2922,6 +2969,7 @@ async function fetchWeather() {
 function renderDashboard() {
   fetchWeather();
   fetchNews();
+  fetchTrending();
   renderSidebarSchedule();
   renderDashBoardInline();
 }
@@ -2958,6 +3006,33 @@ async function fetchNews() {
     }).join('') + '</div>';
   } catch (e) {
     body.innerHTML = '<div class="dash-loading">뉴스를 불러올 수 없습니다<br><small>네트워크를 확인해주세요</small></div>';
+  }
+}
+
+// ════════════════════════════════
+// 대시보드: 실시간 인기 검색어 (구글 트렌드 일일 급상승 검색어 · KR · CORS 프록시 경유)
+// ════════════════════════════════
+async function fetchTrending() {
+  const list = document.getElementById('trendingList');
+  if (!list) return;
+  list.innerHTML = '<div class="dash-loading" style="padding:4px 0;">⏳ 불러오는 중...</div>';
+  const feedUrl = 'https://trends.google.com/trends/trendingsearches/daily/rss?geo=KR';
+  const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feedUrl);
+  try {
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error('네트워크 오류');
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text, 'text/xml');
+    if (xml.querySelector('parsererror')) throw new Error('파싱 오류');
+    const items = Array.from(xml.querySelectorAll('item')).slice(0, 10);
+    if (!items.length) throw new Error('검색어 없음');
+    list.innerHTML = items.map((it, i) => {
+      const keyword = (it.querySelector('title')?.textContent || '').trim();
+      const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(keyword);
+      return `<a class="trending-item" href="${escHtml(searchUrl)}" target="_blank" rel="noopener"><span class="trending-rank">${i + 1}</span><span class="trending-keyword">${escHtml(keyword)}</span></a>`;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = '<div class="dash-loading" style="padding:4px 0;">인기 검색어를 불러올 수 없습니다</div>';
   }
 }
 
@@ -3153,7 +3228,7 @@ function dashShowPostDetail(post) {
     </div>
     <div style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:8px;line-height:1.4;">${escHtml(post.title)}</div>
     <div style="font-size:0.75rem;color:var(--text3);margin-bottom:14px;">${escHtml(post.author)} · ${dateStr}</div>
-    <div style="font-size:0.88rem;line-height:1.75;color:var(--text2);white-space:pre-wrap;border-top:1px solid var(--border);padding-top:12px;">${escHtml(post.body)}</div>
+    <div style="font-size:0.88rem;line-height:1.75;color:var(--text2);white-space:pre-wrap;border-top:1px solid var(--border);padding-top:12px;">${linkifyHtml(post.body)}</div>
     ${filesHTML}
     ${actionBtns}
   `;
@@ -3798,7 +3873,7 @@ function showPostDetail(post) {
     <span class="post-cat-badge" style="background:${color}22;color:${color};font-size:0.75rem;padding:3px 10px;border-radius:10px">${escHtml(post.category)}</span>
     <div class="detail-title" style="margin-top:8px">${escHtml(post.title)}</div>
     <div class="detail-meta">${escHtml(post.author)} · ${dateStr}</div>
-    <div class="detail-body">${escHtml(post.body)}</div>
+    <div class="detail-body">${linkifyHtml(post.body)}</div>
     ${filesHTML}
     <div style="display:flex;gap:8px;margin-top:10px;">
       <button class="delete-post-btn" id="editBtn_${escHtml(post.id)}" style="flex:1;margin-top:0;background:rgba(74,158,255,0.15);border:1px solid rgba(74,158,255,0.3);color:#4a9eff;">✏️ 수정</button>
