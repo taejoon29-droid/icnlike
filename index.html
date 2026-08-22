@@ -433,6 +433,16 @@ body.light-mode input[type="date"] {
 .weather-hourly-temp { font-size: 0.8rem; font-weight: 800; color: var(--text); }
 .weather-hourly-pop { font-size: 0.65rem; color: var(--blue); font-weight: 600; min-height: 11px; }
 
+/* ── 오늘의 뉴스 카드 ── */
+.news-list { display: flex; flex-direction: column; gap: 7px; }
+.news-item {
+  display: block; padding: 9px 11px; background: var(--bg3); border: 1px solid transparent;
+  border-radius: 10px; color: var(--text2); font-size: 0.82rem; font-weight: 600;
+  line-height: 1.4; text-decoration: none; transition: 0.15s;
+}
+.news-item:hover { background: var(--bg4); color: var(--text); border-color: var(--border); }
+.news-item-time { display: block; font-size: 0.68rem; color: var(--text3); font-weight: 600; margin-top: 4px; }
+
 /* ══ 우측 사이드바: 일정+연차 분리 표시 ══ */
 .sidebar-section {
   padding: 14px 16px 10px;
@@ -557,10 +567,14 @@ body.light-mode input[type="date"] {
 body.pc-mode .pc-dashboard { display: flex; }
 
 .dash-row { display: grid; gap: 14px; justify-content: start; }
-.dash-row-2 { grid-template-columns: 1fr 1fr; }
+.dash-row-2 { grid-template-columns: 2fr 1fr; }
+.dash-row-3 { grid-template-columns: repeat(3, 1fr); }
 
 @media (max-width: 700px) {
   .dash-row-2 { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 980px) {
+  .dash-row-3 { grid-template-columns: 1fr !important; }
 }
 
 /* ── PC 모드 가로 방향(landscape)에서 대시보드 20% 축소 ── */
@@ -603,9 +617,11 @@ body.pc-mode.resizing-ew * { user-select: none !important; cursor: ew-resize !im
   overflow: visible;
   transition: border-color 0.2s;
   width: 100%;
-  max-width: 384px;
+  min-width: 0;
   box-sizing: border-box;
 }
+.dash-row-2 .dash-card { max-width: 384px; }
+.dash-row-3 .dash-card { max-width: none; }
 .dash-card:hover { border-color: var(--bg4); }
 .dash-card-header {
   display: flex;
@@ -1534,7 +1550,7 @@ body.pc-mode .vacation-tag {
     </div>
   </div>
   <div id="dashContent">
-  <div class="dash-row dash-row-2">
+  <div class="dash-row dash-row-3">
 
     <!-- 날씨 카드 -->
     <div class="dash-card" id="weatherCard">
@@ -1550,6 +1566,23 @@ body.pc-mode .vacation-tag {
       </div>
       <div style="padding:0 14px 12px;">
         <a href="https://weather.naver.com/" target="_blank" class="dash-link-btn">🔗 네이버 날씨 더보기</a>
+      </div>
+    </div>
+
+    <!-- 뉴스 카드 -->
+    <div class="dash-card" id="newsCard" style="display:flex;flex-direction:column;min-height:340px;max-height:480px;overflow:hidden;border-radius:16px;">
+      <div class="dash-card-header" style="flex-shrink:0;">
+        <div class="dash-card-title">
+          <div class="dash-icon" style="background:rgba(255,193,7,0.15);">📰</div>
+          오늘의 뉴스
+        </div>
+        <button onclick="fetchNews()" title="새로고침" style="background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 9px;font-size:0.68rem;font-weight:700;cursor:pointer;font-family:inherit;">↺</button>
+      </div>
+      <div class="dash-card-body" id="newsCardBody" style="flex:1;overflow-y:auto;">
+        <div class="dash-loading">뉴스 불러오는 중...</div>
+      </div>
+      <div style="padding:0 14px 12px;flex-shrink:0;">
+        <a href="https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko" target="_blank" class="dash-link-btn">🔗 구글 뉴스 더보기</a>
       </div>
     </div>
 
@@ -2888,8 +2921,44 @@ async function fetchWeather() {
 
 function renderDashboard() {
   fetchWeather();
+  fetchNews();
   renderSidebarSchedule();
   renderDashBoardInline();
+}
+
+// ════════════════════════════════
+// 대시보드: 오늘의 뉴스 (구글 뉴스 RSS · CORS 프록시 경유)
+// ════════════════════════════════
+async function fetchNews() {
+  const body = document.getElementById('newsCardBody');
+  if (!body) return;
+  body.innerHTML = '<div class="dash-loading">⏳ 뉴스 불러오는 중...</div>';
+  const feedUrl = 'https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko';
+  const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feedUrl);
+  try {
+    const res = await fetch(proxyUrl);
+    if (!res.ok) throw new Error('네트워크 오류');
+    const text = await res.text();
+    const xml = new DOMParser().parseFromString(text, 'text/xml');
+    if (xml.querySelector('parsererror')) throw new Error('파싱 오류');
+    const items = Array.from(xml.querySelectorAll('item')).slice(0, 10);
+    if (!items.length) throw new Error('뉴스 없음');
+    body.innerHTML = '<div class="news-list">' + items.map(it => {
+      const rawTitle = (it.querySelector('title')?.textContent || '').trim();
+      const link = (it.querySelector('link')?.textContent || '#').trim();
+      const pubDate = it.querySelector('pubDate')?.textContent || '';
+      let timeLabel = '';
+      if (pubDate) {
+        const d = new Date(pubDate);
+        if (!isNaN(d.getTime())) {
+          timeLabel = (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+        }
+      }
+      return `<a class="news-item" href="${escHtml(link)}" target="_blank" rel="noopener">${escHtml(rawTitle)}${timeLabel ? `<span class="news-item-time">🕐 ${timeLabel}</span>` : ''}</a>`;
+    }).join('') + '</div>';
+  } catch (e) {
+    body.innerHTML = '<div class="dash-loading">뉴스를 불러올 수 없습니다<br><small>네트워크를 확인해주세요</small></div>';
+  }
 }
 
 // ════════════════════════════════
