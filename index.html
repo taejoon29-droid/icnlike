@@ -454,6 +454,25 @@ body.light-mode input[type="date"] {
 .bm-action-btn.pinned { color: #ffb340; }
 .bm-empty { color: var(--text3); font-size: 0.82rem; text-align: center; padding: 24px 10px; line-height: 1.6; }
 
+/* 즐겨찾기 카드 높이 조절 핸들 */
+.bm-card-resize-handle {
+  flex-shrink: 0;
+  width: 100%; height: 13px;
+  cursor: ns-resize;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg3);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 15px 15px;
+  transition: background 0.15s;
+  touch-action: none;
+}
+.bm-card-resize-handle:hover { background: var(--bg4); }
+.bm-card-resize-handle .handle-bar {
+  width: 36px; height: 4px; border-radius: 2px; background: var(--text3); pointer-events: none;
+}
+body.resizing-bm-card,
+body.resizing-bm-card * { user-select: none !important; cursor: ns-resize !important; }
+
 .bm-pinned-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; width: 58px; cursor: pointer; }
 .bm-pinned-tile img { width: 34px; height: 34px; border-radius: 10px; background: var(--bg3); object-fit: contain; border: 1px solid var(--border); }
 .bm-pinned-tile span { font-size: 0.62rem; color: var(--text2); font-weight: 700; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
@@ -642,6 +661,9 @@ body.pc-mode.resizing-ew * { user-select: none !important; cursor: ew-resize !im
 }
 .dash-row-2 .dash-card { max-width: 384px; }
 .dash-row-3 .dash-card { max-width: none; }
+
+/* 즐겨찾기 카드 높이를 조절해도 같은 행의 날씨 카드는 영향받지 않도록 고정 */
+#weatherCard { align-self: start; }
 .dash-card:hover { border-color: var(--bg4); }
 .dash-card-header {
   display: flex;
@@ -1598,7 +1620,11 @@ body.pc-mode .vacation-tag {
           <div class="dash-icon" style="background:rgba(255,193,7,0.15);">⭐</div>
           즐겨찾기
         </div>
-        <button onclick="bmOpenAddForm()" title="사이트 추가" style="background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 9px;font-size:0.68rem;font-weight:700;cursor:pointer;font-family:inherit;">＋ 추가</button>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button id="bmLongViewBtn" onclick="bmToggleLongView()" title="카드 높이를 두 배로 늘리거나 되돌립니다" style="background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 8px;font-size:0.68rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">⬍ 길게보기</button>
+          <button id="bmResetSizeBtn" onclick="bmResetCardSize()" title="카드 높이 기본값으로" style="display:none;background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 8px;font-size:0.68rem;font-weight:700;cursor:pointer;font-family:inherit;">↺ 초기화</button>
+          <button onclick="bmOpenAddForm()" title="사이트 추가" style="background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 9px;font-size:0.68rem;font-weight:700;cursor:pointer;font-family:inherit;">＋ 추가</button>
+        </div>
       </div>
 
       <!-- 상단 고정 즐겨찾기 -->
@@ -1642,6 +1668,11 @@ body.pc-mode .vacation-tag {
           <button onclick="bmSaveNew()" style="flex:1;background:var(--accent);color:white;border:none;border-radius:10px;padding:9px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">저장</button>
           <button onclick="bmCloseAddForm()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:9px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">취소</button>
         </div>
+      </div>
+
+      <!-- 카드 높이 조절 핸들 (드래그하여 조절, 더블클릭으로 초기화) -->
+      <div id="bmCardResizeHandle" class="bm-card-resize-handle" title="드래그하여 높이 조절 (더블클릭: 초기화)">
+        <div class="handle-bar"></div>
       </div>
     </div>
 
@@ -6474,6 +6505,118 @@ function startFooterClock() {
       hW.addEventListener('touchstart', e=>startDrag('dashW',e), {passive:false});
     }
   });
+})();
+
+// ══════════════════════════════════════════
+// 즐겨찾기 카드 높이 조절 (드래그 + 길게보기/짧게보기)
+// ══════════════════════════════════════════
+(function() {
+  'use strict';
+
+  const KEY = 'resize_bmCardH';
+  const MIN = 180;
+  const MAX = 1400;
+
+  const card = document.getElementById('bookmarkCard');
+  const handle = document.getElementById('bmCardResizeHandle');
+  const resetBtn = document.getElementById('bmResetSizeBtn');
+  const longBtn = document.getElementById('bmLongViewBtn');
+  if (!card || !handle) return;
+
+  let longMode = false;
+  let heightBeforeLong = null;
+
+  function showReset(v) { if (resetBtn) resetBtn.style.display = v ? 'inline-block' : 'none'; }
+
+  function apply(h) {
+    const v = Math.min(MAX, Math.max(MIN, h));
+    card.style.height = v + 'px';
+    card.style.maxHeight = v + 'px';
+    card.style.minHeight = '0px';
+    return v;
+  }
+
+  function save(v) { try { localStorage.setItem(KEY, String(v)); } catch (e) {} }
+  function load() { try { const v = localStorage.getItem(KEY); return v !== null ? +v : null; } catch (e) { return null; } }
+
+  const saved = load();
+  if (saved) { apply(saved); showReset(true); }
+
+  window.bmResetCardSize = function() {
+    card.style.height = '';
+    card.style.maxHeight = '';
+    card.style.minHeight = '';
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    showReset(false);
+    longMode = false;
+    heightBeforeLong = null;
+    if (longBtn) longBtn.textContent = '⬍ 길게보기';
+  };
+
+  window.bmToggleLongView = function() {
+    if (!longMode) {
+      heightBeforeLong = card.getBoundingClientRect().height;
+      const v = apply(heightBeforeLong * 2);
+      save(v);
+      showReset(true);
+      longMode = true;
+      if (longBtn) longBtn.textContent = '⬌ 짧게보기';
+    } else {
+      const back = heightBeforeLong || 340;
+      const v = apply(back);
+      save(v);
+      showReset(true);
+      longMode = false;
+      heightBeforeLong = null;
+      if (longBtn) longBtn.textContent = '⬍ 길게보기';
+    }
+  };
+
+  // ── 드래그 리사이즈 (Pointer Events로 마우스를 떼면 확실히 종료되도록 처리) ──
+  let dragging = false;
+  let startY = 0;
+  let startH = 0;
+  let activePointerId = null;
+
+  function start(e) {
+    e.preventDefault(); e.stopPropagation();
+    dragging = true;
+    startY = e.clientY;
+    startH = card.getBoundingClientRect().height;
+    activePointerId = e.pointerId;
+    try { handle.setPointerCapture(activePointerId); } catch (err) {}
+    document.body.classList.add('resizing-bm-card');
+  }
+  function move(e) {
+    if (!dragging || (activePointerId !== null && e.pointerId !== activePointerId)) return;
+    apply(startH + (e.clientY - startY));
+    showReset(true);
+    // 드래그로 직접 크기를 조절하면 길게보기/짧게보기 토글 상태는 해제
+    longMode = false;
+    heightBeforeLong = null;
+    if (longBtn) longBtn.textContent = '⬍ 길게보기';
+  }
+  function end(e) {
+    if (!dragging) return;
+    dragging = false;
+    if (activePointerId !== null) {
+      try { handle.releasePointerCapture(activePointerId); } catch (err) {}
+    }
+    activePointerId = null;
+    document.body.classList.remove('resizing-bm-card');
+    if (card.style.height) save(parseInt(card.style.height));
+  }
+
+  handle.addEventListener('pointerdown', start);
+  handle.addEventListener('pointermove', move);
+  handle.addEventListener('pointerup', end);
+  handle.addEventListener('pointercancel', end);
+  handle.addEventListener('lostpointercapture', end);
+  handle.addEventListener('dblclick', window.bmResetCardSize);
+  // 창 밖으로 나가거나 포커스를 잃는 등 예외 상황에서도 드래그가 멈추도록 안전장치
+  window.addEventListener('blur', end);
+  document.addEventListener('mouseup', end);
+  document.addEventListener('touchend', end);
 })();
 </script>
 </body>
