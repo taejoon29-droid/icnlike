@@ -433,7 +433,7 @@ body.light-mode input[type="date"] {
 .weather-hourly-temp { font-size: 0.8rem; font-weight: 800; color: var(--text); }
 .weather-hourly-pop { font-size: 0.65rem; color: var(--blue); font-weight: 600; min-height: 11px; }
 
-/* ── 즐겨찾기 카드 ── */
+/* ── 즐겨찾기 사이트 카드 ── */
 .news-list { display: flex; flex-direction: column; gap: 7px; }
 .bm-item {
   display: flex; align-items: center; gap: 10px; padding: 8px 10px;
@@ -1532,7 +1532,7 @@ body.pc-mode .vacation-tag {
 
       <!-- 일정 등록 바로가기 -->
       <div style="padding: 12px 16px 6px;">
-        <button onclick="openRegisterModal()" style="width:100%;background:rgba(74,158,255,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:10px;padding:10px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;" onmouseover="this.style.background='rgba(232,84,58,0.25)'" onmouseout="this.style.background='rgba(74,158,255,0.15)'">
+        <button onclick="openRegisterModal(sidebarCurrentDateKey())" style="width:100%;background:rgba(74,158,255,0.15);border:1px solid rgba(232,84,58,0.3);color:var(--accent2);border-radius:10px;padding:10px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;" onmouseover="this.style.background='rgba(232,84,58,0.25)'" onmouseout="this.style.background='rgba(74,158,255,0.15)'">
           + 일정 · 연차 등록
         </button>
       </div>
@@ -1591,12 +1591,12 @@ body.pc-mode .vacation-tag {
       </div>
     </div>
 
-    <!-- 즐겨찾기 카드 -->
+    <!-- 즐겨찾기 사이트 카드 -->
     <div class="dash-card" id="bookmarkCard" style="display:flex;flex-direction:column;min-height:340px;max-height:480px;overflow:hidden;border-radius:16px;">
       <div class="dash-card-header" style="flex-shrink:0;">
         <div class="dash-card-title">
           <div class="dash-icon" style="background:rgba(255,193,7,0.15);">⭐</div>
-          즐겨찾기
+          즐겨찾기 사이트
         </div>
         <button onclick="bmOpenAddForm()" title="사이트 추가" style="background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 9px;font-size:0.68rem;font-weight:700;cursor:pointer;font-family:inherit;">＋ 추가</button>
       </div>
@@ -2772,6 +2772,15 @@ function sortByType(items) {
 // 사이드바 날짜 오프셋 (0 = 오늘, ±N = N일 이동)
 let _sidebarDayOffset = 0;
 
+// 사이드바가 현재 보여주고 있는 날짜의 키(YYYY-MM-DD)를 반환
+function sidebarCurrentDateKey() {
+  const baseObj = new Date();
+  baseObj.setDate(baseObj.getDate() + _sidebarDayOffset);
+  return baseObj.getFullYear() + '-' +
+    String(baseObj.getMonth()+1).padStart(2,'0') + '-' +
+    String(baseObj.getDate()).padStart(2,'0');
+}
+
 function sidebarMoveDay(n) {
   _sidebarDayOffset += n;
   renderSidebarSchedule();
@@ -3019,8 +3028,7 @@ function bmLoad() {
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   const defaults = [
-    { id: 'bm_' + Date.now() + '_1', name: '네이버 증권', url: 'https://finance.naver.com/', pinned: true, mobile: true },
-    { id: 'bm_' + Date.now() + '_2', name: '구글 뉴스', url: 'https://news.google.com/', pinned: false, mobile: true }
+    { id: 'bm_' + Date.now() + '_1', name: '네이버 증권', url: 'https://m.finance.naver.com/', pinned: true, mobile: true }
   ];
   bmSave(defaults);
   return defaults;
