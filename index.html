@@ -3028,7 +3028,7 @@ function bmLoad() {
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   const defaults = [
-    { id: 'bm_' + Date.now() + '_1', name: '네이버 증권', url: 'https://m.finance.naver.com/', pinned: true, mobile: true }
+    { id: 'bm_' + Date.now() + '_1', name: '네이버 증권', url: 'm.stock.naver.com', pinned: true, mobile: true }
   ];
   bmSave(defaults);
   return defaults;
