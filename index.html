@@ -433,7 +433,7 @@ body.light-mode input[type="date"] {
 .weather-hourly-temp { font-size: 0.8rem; font-weight: 800; color: var(--text); }
 .weather-hourly-pop { font-size: 0.65rem; color: var(--blue); font-weight: 600; min-height: 11px; }
 
-/* ── 즐겨찾기 사이트 카드 ── */
+/* ── 즐겨찾기 카드 ── */
 .news-list { display: flex; flex-direction: column; gap: 7px; }
 .bm-item {
   display: flex; align-items: center; gap: 10px; padding: 8px 10px;
@@ -1591,12 +1591,12 @@ body.pc-mode .vacation-tag {
       </div>
     </div>
 
-    <!-- 즐겨찾기 사이트 카드 -->
+    <!-- 즐겨찾기 카드 -->
     <div class="dash-card" id="bookmarkCard" style="display:flex;flex-direction:column;min-height:340px;max-height:480px;overflow:hidden;border-radius:16px;">
       <div class="dash-card-header" style="flex-shrink:0;">
         <div class="dash-card-title">
           <div class="dash-icon" style="background:rgba(255,193,7,0.15);">⭐</div>
-          즐겨찾기 사이트
+          즐겨찾기
         </div>
         <button onclick="bmOpenAddForm()" title="사이트 추가" style="background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 9px;font-size:0.68rem;font-weight:700;cursor:pointer;font-family:inherit;">＋ 추가</button>
       </div>
@@ -3017,7 +3017,7 @@ function renderDashboard() {
 }
 
 // ════════════════════════════════
-// 대시보드: 즐겨찾기 사이트 카드 (URL 등록 → 미리보기 / 새 창으로 열기, localStorage 저장)
+// 대시보드: 즐겨찾기 카드 (URL 등록 → 미리보기 / 새 창으로 열기, localStorage 저장)
 // ════════════════════════════════
 const BM_KEY = 'wh_bookmarks_v1';
 let _bmViewerId = null;
