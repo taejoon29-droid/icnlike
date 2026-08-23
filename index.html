@@ -433,32 +433,35 @@ body.light-mode input[type="date"] {
 .weather-hourly-temp { font-size: 0.8rem; font-weight: 800; color: var(--text); }
 .weather-hourly-pop { font-size: 0.65rem; color: var(--blue); font-weight: 600; min-height: 11px; }
 
-/* ── 오늘의 뉴스 카드 ── */
+/* ── 즐겨찾기 카드 ── */
 .news-list { display: flex; flex-direction: column; gap: 7px; }
-.news-item {
-  display: block; padding: 9px 11px; background: var(--bg3); border: 1px solid transparent;
-  border-radius: 10px; color: var(--text2); font-size: 0.82rem; font-weight: 600;
-  line-height: 1.4; text-decoration: none; transition: 0.15s;
+.bm-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  background: var(--bg3); border: 1px solid transparent; border-radius: 10px;
+  cursor: pointer; transition: 0.15s;
 }
-.news-item:hover { background: var(--bg4); color: var(--text); border-color: var(--border); }
-.news-item-time { display: block; font-size: 0.68rem; color: var(--text3); font-weight: 600; margin-top: 4px; }
+.bm-item:hover { background: var(--bg4); border-color: var(--border); }
+.bm-favicon { width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0; background: var(--bg4); object-fit: contain; }
+.bm-info { flex: 1; min-width: 0; }
+.bm-name { font-size: 0.85rem; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bm-url { font-size: 0.68rem; color: var(--text3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+.bm-actions { display: flex; gap: 2px; flex-shrink: 0; }
+.bm-action-btn {
+  background: none; border: none; color: var(--text3); font-size: 0.9rem; cursor: pointer;
+  padding: 5px 6px; border-radius: 7px; font-family: inherit; line-height: 1;
+}
+.bm-action-btn:hover { background: var(--bg2); color: var(--text); }
+.bm-action-btn.pinned { color: #ffb340; }
+.bm-empty { color: var(--text3); font-size: 0.82rem; text-align: center; padding: 24px 10px; line-height: 1.6; }
 
-/* ── 실시간 인기 검색어 ── */
-.trending-list { display: flex; flex-direction: column; gap: 3px; }
-.trending-item {
-  display: flex; align-items: center; gap: 8px; padding: 5px 6px;
-  border-radius: 8px; text-decoration: none; color: var(--text2);
-  font-size: 0.78rem; font-weight: 600; transition: 0.15s;
+.bm-pinned-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; width: 58px; cursor: pointer; }
+.bm-pinned-tile img { width: 34px; height: 34px; border-radius: 10px; background: var(--bg3); object-fit: contain; border: 1px solid var(--border); }
+.bm-pinned-tile span { font-size: 0.62rem; color: var(--text2); font-weight: 700; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+
+.bm-form-input {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+  padding: 9px 12px; font-size: 0.85rem; color: var(--text); outline: none; font-family: inherit; box-sizing: border-box;
 }
-.trending-item:hover { background: var(--bg3); color: var(--text); }
-.trending-rank {
-  flex-shrink: 0; width: 18px; text-align: center; font-size: 0.72rem; font-weight: 800;
-  color: var(--text3);
-}
-.trending-item:nth-child(1) .trending-rank { color: #ff5252; }
-.trending-item:nth-child(2) .trending-rank { color: #ff8a3d; }
-.trending-item:nth-child(3) .trending-rank { color: #ffc107; }
-.trending-keyword { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ══ 우측 사이드바: 일정+연차 분리 표시 ══ */
 .sidebar-section {
@@ -1588,26 +1591,57 @@ body.pc-mode .vacation-tag {
       </div>
     </div>
 
-    <!-- 뉴스 카드 -->
-    <div class="dash-card" id="newsCard" style="display:flex;flex-direction:column;min-height:340px;max-height:480px;overflow:hidden;border-radius:16px;">
+    <!-- 즐겨찾기 카드 -->
+    <div class="dash-card" id="bookmarkCard" style="display:flex;flex-direction:column;min-height:340px;max-height:480px;overflow:hidden;border-radius:16px;">
       <div class="dash-card-header" style="flex-shrink:0;">
         <div class="dash-card-title">
-          <div class="dash-icon" style="background:rgba(255,193,7,0.15);">📰</div>
-          오늘의 뉴스
+          <div class="dash-icon" style="background:rgba(255,193,7,0.15);">⭐</div>
+          즐겨찾기
         </div>
-        <button onclick="fetchNews();fetchTrending();" title="새로고침" style="background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 9px;font-size:0.68rem;font-weight:700;cursor:pointer;font-family:inherit;">↺</button>
+        <button onclick="bmOpenAddForm()" title="사이트 추가" style="background:var(--bg3);border:1px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 9px;font-size:0.68rem;font-weight:700;cursor:pointer;font-family:inherit;">＋ 추가</button>
       </div>
-      <div id="trendingSection" style="padding:10px 14px 8px;flex-shrink:0;border-bottom:1px solid var(--border);">
-        <div style="font-size:0.7rem;font-weight:800;color:var(--text3);letter-spacing:0.03em;margin-bottom:6px;">🔥 실시간 인기 검색어</div>
-        <div id="trendingList" class="trending-list">
-          <div class="dash-loading" style="padding:4px 0;">불러오는 중...</div>
+
+      <!-- 상단 고정 즐겨찾기 -->
+      <div id="bmPinnedSection" style="padding:10px 14px 8px;flex-shrink:0;border-bottom:1px solid var(--border);display:none;">
+        <div id="bmPinnedList" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;"></div>
+      </div>
+
+      <!-- 사이트 미리보기 -->
+      <div id="bmViewerWrap" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 10px 8px 14px;border-bottom:1px solid var(--border);flex-shrink:0;">
+          <button onclick="bmCloseViewer()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:0.75rem;color:var(--text2);cursor:pointer;font-family:inherit;font-weight:600;flex-shrink:0;">← 목록</button>
+          <span id="bmViewerTitle" style="flex:1;font-size:0.82rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+          <button id="bmModeToggle" onclick="bmToggleMobileMode()" title="모바일/PC 화면 전환" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 9px;font-size:0.82rem;cursor:pointer;font-family:inherit;flex-shrink:0;">📱</button>
+          <a id="bmViewerOpenNew" href="#" target="_blank" rel="noopener" style="background:rgba(74,158,255,0.15);border:1px solid rgba(74,158,255,0.3);color:var(--blue);border-radius:8px;padding:4px 10px;font-size:0.75rem;font-weight:700;text-decoration:none;flex-shrink:0;white-space:nowrap;">↗ 새 창</a>
         </div>
+        <div id="bmFrameOuter" style="flex:1;display:flex;justify-content:center;position:relative;background:var(--bg3);min-height:0;overflow:auto;">
+          <div id="bmFrameInner" style="width:100%;height:100%;flex-shrink:0;transition:width 0.2s ease;">
+            <iframe id="bmIframe" src="" style="width:100%;height:100%;border:none;display:block;background:#fff;"></iframe>
+          </div>
+        </div>
+        <div style="padding:6px 12px;font-size:0.66rem;color:var(--text3);background:var(--bg2);border-top:1px solid var(--border);text-align:center;flex-shrink:0;">일부 사이트는 보안 정책상 미리보기가 표시되지 않을 수 있어요. 그럴 땐 '새 창' 버튼을 이용하세요.</div>
       </div>
-      <div class="dash-card-body" id="newsCardBody" style="flex:1;overflow-y:auto;">
-        <div class="dash-loading">뉴스 불러오는 중...</div>
-      </div>
-      <div style="padding:0 14px 12px;flex-shrink:0;">
-        <a href="https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko" target="_blank" class="dash-link-btn">🔗 구글 뉴스 더보기</a>
+
+      <!-- 목록 -->
+      <div class="dash-card-body" id="bmListBody" style="flex:1;overflow-y:auto;"></div>
+
+      <!-- 추가 폼 -->
+      <div id="bmAddForm" style="display:none;flex-direction:column;gap:8px;padding:12px 14px;border-top:1px solid var(--border);flex-shrink:0;">
+        <input id="bmInputName" type="text" placeholder="이름 (예: 네이버 증권)" maxlength="30" class="bm-form-input">
+        <div style="display:flex;gap:6px;">
+          <input id="bmInputUrl" type="text" placeholder="https:// 로 시작하는 주소" class="bm-form-input" style="flex:1;">
+          <button onclick="bmApplyMobileUrl()" title="가능하면 m. 모바일 주소로 자동 변환" style="flex-shrink:0;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:0 12px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">m.변환</button>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text2);cursor:pointer;">
+          <input id="bmInputMobile" type="checkbox" checked style="width:15px;height:15px;cursor:pointer;"> 모바일 화면으로 보기
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text2);cursor:pointer;">
+          <input id="bmInputPinned" type="checkbox" style="width:15px;height:15px;cursor:pointer;"> 상단에 고정
+        </label>
+        <div style="display:flex;gap:8px;">
+          <button onclick="bmSaveNew()" style="flex:1;background:var(--accent);color:white;border:none;border-radius:10px;padding:9px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">저장</button>
+          <button onclick="bmCloseAddForm()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:9px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">취소</button>
+        </div>
       </div>
     </div>
 
@@ -2968,72 +3002,193 @@ async function fetchWeather() {
 
 function renderDashboard() {
   fetchWeather();
-  fetchNews();
-  fetchTrending();
+  renderBookmarkCard();
   renderSidebarSchedule();
   renderDashBoardInline();
 }
 
 // ════════════════════════════════
-// 대시보드: 오늘의 뉴스 (구글 뉴스 RSS · CORS 프록시 경유)
+// 대시보드: 즐겨찾기 사이트 카드 (URL 등록 → 미리보기 / 새 창으로 열기, localStorage 저장)
 // ════════════════════════════════
-async function fetchNews() {
-  const body = document.getElementById('newsCardBody');
-  if (!body) return;
-  body.innerHTML = '<div class="dash-loading">⏳ 뉴스 불러오는 중...</div>';
-  const feedUrl = 'https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko';
-  const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feedUrl);
+const BM_KEY = 'wh_bookmarks_v1';
+let _bmViewerId = null;
+
+function bmLoad() {
   try {
-    const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error('네트워크 오류');
-    const text = await res.text();
-    const xml = new DOMParser().parseFromString(text, 'text/xml');
-    if (xml.querySelector('parsererror')) throw new Error('파싱 오류');
-    const items = Array.from(xml.querySelectorAll('item')).slice(0, 10);
-    if (!items.length) throw new Error('뉴스 없음');
-    body.innerHTML = '<div class="news-list">' + items.map(it => {
-      const rawTitle = (it.querySelector('title')?.textContent || '').trim();
-      const link = (it.querySelector('link')?.textContent || '#').trim();
-      const pubDate = it.querySelector('pubDate')?.textContent || '';
-      let timeLabel = '';
-      if (pubDate) {
-        const d = new Date(pubDate);
-        if (!isNaN(d.getTime())) {
-          timeLabel = (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-        }
-      }
-      return `<a class="news-item" href="${escHtml(link)}" target="_blank" rel="noopener">${escHtml(rawTitle)}${timeLabel ? `<span class="news-item-time">🕐 ${timeLabel}</span>` : ''}</a>`;
-    }).join('') + '</div>';
-  } catch (e) {
-    body.innerHTML = '<div class="dash-loading">뉴스를 불러올 수 없습니다<br><small>네트워크를 확인해주세요</small></div>';
-  }
+    const raw = localStorage.getItem(BM_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  const defaults = [
+    { id: 'bm_' + Date.now() + '_1', name: '네이버 증권', url: 'https://finance.naver.com/', pinned: true, mobile: true },
+    { id: 'bm_' + Date.now() + '_2', name: '구글 뉴스', url: 'https://news.google.com/', pinned: false, mobile: true }
+  ];
+  bmSave(defaults);
+  return defaults;
+}
+function bmSave(list) {
+  try { localStorage.setItem(BM_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function bmFavicon(url) {
+  try {
+    const u = new URL(url);
+    return `https://www.google.com/s2/favicons?sz=64&domain=${u.hostname}`;
+  } catch (e) { return ''; }
+}
+function bmDomain(url) {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return url; }
 }
 
-// ════════════════════════════════
-// 대시보드: 실시간 인기 검색어 (구글 트렌드 일일 급상승 검색어 · KR · CORS 프록시 경유)
-// ════════════════════════════════
-async function fetchTrending() {
-  const list = document.getElementById('trendingList');
-  if (!list) return;
-  list.innerHTML = '<div class="dash-loading" style="padding:4px 0;">⏳ 불러오는 중...</div>';
-  const feedUrl = 'https://trends.google.com/trends/trendingsearches/daily/rss?geo=KR';
-  const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(feedUrl);
-  try {
-    const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error('네트워크 오류');
-    const text = await res.text();
-    const xml = new DOMParser().parseFromString(text, 'text/xml');
-    if (xml.querySelector('parsererror')) throw new Error('파싱 오류');
-    const items = Array.from(xml.querySelectorAll('item')).slice(0, 10);
-    if (!items.length) throw new Error('검색어 없음');
-    list.innerHTML = items.map((it, i) => {
-      const keyword = (it.querySelector('title')?.textContent || '').trim();
-      const searchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(keyword);
-      return `<a class="trending-item" href="${escHtml(searchUrl)}" target="_blank" rel="noopener"><span class="trending-rank">${i + 1}</span><span class="trending-keyword">${escHtml(keyword)}</span></a>`;
-    }).join('');
-  } catch (e) {
-    list.innerHTML = '<div class="dash-loading" style="padding:4px 0;">인기 검색어를 불러올 수 없습니다</div>';
+function renderBookmarkCard() {
+  const list = bmLoad();
+
+  const pinnedWrap = document.getElementById('bmPinnedSection');
+  const pinnedList = document.getElementById('bmPinnedList');
+  if (pinnedWrap && pinnedList) {
+    const pinned = list.filter(b => b.pinned);
+    if (pinned.length && _bmViewerId === null) {
+      pinnedWrap.style.display = 'block';
+      pinnedList.innerHTML = pinned.map(b => `
+        <div class="bm-pinned-tile" onclick="bmOpenViewer('${b.id}')" title="${escHtml(b.name)}">
+          <img src="${escHtml(bmFavicon(b.url))}" onerror="this.style.opacity=0.25">
+          <span>${escHtml(b.name)}</span>
+        </div>`).join('');
+    } else {
+      pinnedWrap.style.display = 'none';
+      pinnedList.innerHTML = '';
+    }
   }
+
+  const body = document.getElementById('bmListBody');
+  if (!body) return;
+  if (_bmViewerId !== null) { body.style.display = 'none'; return; }
+  body.style.display = '';
+  if (!list.length) {
+    body.innerHTML = '<div class="bm-empty">아직 등록된 사이트가 없어요.<br>상단 "＋ 추가" 버튼으로 자주 가는 사이트를 등록해보세요.</div>';
+    return;
+  }
+  body.innerHTML = '<div class="news-list">' + list.map(b => `
+    <div class="bm-item" onclick="bmOpenViewer('${b.id}')">
+      <img class="bm-favicon" src="${escHtml(bmFavicon(b.url))}" onerror="this.style.visibility='hidden'">
+      <div class="bm-info">
+        <div class="bm-name">${escHtml(b.name)}</div>
+        <div class="bm-url">${escHtml(bmDomain(b.url))}</div>
+      </div>
+      <div class="bm-actions">
+        <button class="bm-action-btn ${b.pinned ? 'pinned' : ''}" onclick="event.stopPropagation();bmTogglePin('${b.id}')" title="상단 고정">★</button>
+        <button class="bm-action-btn" onclick="event.stopPropagation();bmDelete('${b.id}')" title="삭제">✕</button>
+      </div>
+    </div>`).join('') + '</div>';
+}
+
+function bmTogglePin(id) {
+  const list = bmLoad();
+  const item = list.find(b => b.id === id);
+  if (item) item.pinned = !item.pinned;
+  bmSave(list);
+  renderBookmarkCard();
+}
+function bmDelete(id) {
+  let list = bmLoad();
+  list = list.filter(b => b.id !== id);
+  bmSave(list);
+  if (_bmViewerId === id) bmCloseViewer();
+  else renderBookmarkCard();
+}
+function bmApplyFrameMode(mobile) {
+  const inner = document.getElementById('bmFrameInner');
+  const toggle = document.getElementById('bmModeToggle');
+  if (!inner || !toggle) return;
+  if (mobile) {
+    inner.style.width = '390px';
+    inner.style.maxWidth = '100%';
+    inner.style.boxShadow = '0 0 0 1px var(--border)';
+    toggle.textContent = '📱';
+    toggle.title = 'PC 화면으로 전환';
+  } else {
+    inner.style.width = '100%';
+    inner.style.boxShadow = 'none';
+    toggle.textContent = '🖥️';
+    toggle.title = '모바일 화면으로 전환';
+  }
+}
+function bmOpenViewer(id) {
+  const list = bmLoad();
+  const item = list.find(b => b.id === id);
+  if (!item) return;
+  _bmViewerId = id;
+  document.getElementById('bmViewerWrap').style.display = 'flex';
+  document.getElementById('bmViewerTitle').textContent = item.name;
+  document.getElementById('bmViewerOpenNew').href = item.url;
+  document.getElementById('bmIframe').src = item.url;
+  bmApplyFrameMode(item.mobile !== false);
+  renderBookmarkCard();
+}
+function bmToggleMobileMode() {
+  if (_bmViewerId === null) return;
+  const list = bmLoad();
+  const item = list.find(b => b.id === _bmViewerId);
+  if (!item) return;
+  item.mobile = !(item.mobile !== false);
+  bmSave(list);
+  bmApplyFrameMode(item.mobile);
+}
+function bmCloseViewer() {
+  _bmViewerId = null;
+  document.getElementById('bmViewerWrap').style.display = 'none';
+  document.getElementById('bmIframe').src = 'about:blank';
+  renderBookmarkCard();
+}
+function bmOpenAddForm() {
+  document.getElementById('bmAddForm').style.display = 'flex';
+  document.getElementById('bmInputName').value = '';
+  document.getElementById('bmInputUrl').value = '';
+  document.getElementById('bmInputPinned').checked = false;
+  document.getElementById('bmInputMobile').checked = true;
+  document.getElementById('bmInputName').focus();
+}
+function bmCloseAddForm() {
+  document.getElementById('bmAddForm').style.display = 'none';
+}
+function bmToMobileHost(url) {
+  const u = new URL(url);
+  const known = {
+    'naver.com': 'm.naver.com', 'finance.naver.com': 'm.stock.naver.com', 'stock.naver.com': 'm.stock.naver.com',
+    'news.naver.com': 'm.news.naver.com', 'blog.naver.com': 'm.blog.naver.com', 'cafe.naver.com': 'm.cafe.naver.com',
+    'map.naver.com': 'm.map.naver.com', 'weather.naver.com': 'm.weather.naver.com',
+    'daum.net': 'm.daum.net', 'news.daum.net': 'm.news.daum.net',
+    'facebook.com': 'm.facebook.com', 'youtube.com': 'm.youtube.com', 'wikipedia.org': 'en.m.wikipedia.org',
+    'namu.wiki': 'namu.wiki'
+  };
+  let host = u.hostname.replace(/^www\./, '');
+  if (known[host]) { u.hostname = known[host]; return u.toString(); }
+  if (/^m\.|^mobile\./.test(host)) return u.toString();
+  u.hostname = 'm.' + host;
+  return u.toString();
+}
+function bmApplyMobileUrl() {
+  const input = document.getElementById('bmInputUrl');
+  let url = input.value.trim();
+  if (!url) { alert('먼저 URL을 입력해주세요.'); return; }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  try {
+    input.value = bmToMobileHost(url);
+  } catch (e) {
+    alert('올바른 URL 형식이 아니에요.');
+  }
+}
+function bmSaveNew() {
+  const name = document.getElementById('bmInputName').value.trim();
+  let url = document.getElementById('bmInputUrl').value.trim();
+  if (!url) { alert('URL을 입력해주세요.'); return; }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  try { new URL(url); } catch (e) { alert('올바른 URL 형식이 아니에요.'); return; }
+  const pinned = document.getElementById('bmInputPinned').checked;
+  const mobile = document.getElementById('bmInputMobile').checked;
+  const list = bmLoad();
+  list.push({ id: 'bm_' + Date.now(), name: name || bmDomain(url), url, pinned, mobile });
+  bmSave(list);
+  bmCloseAddForm();
+  renderBookmarkCard();
 }
 
 // ════════════════════════════════
