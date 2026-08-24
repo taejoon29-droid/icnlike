@@ -6187,77 +6187,89 @@ function startFooterClock() {
 
     // 고정 공휴일 / 기념일
     const fixed = {
-      '1-1':   { label: '신정', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '3-1':   { label: '삼일절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '3-8':   { label: '세계여성의날', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)' },
-      '4-5':   { label: '식목일', color: '#34c975', bg: 'rgba(52,201,117,0.15)' },
-      '5-1':   { label: '노동절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '5-5':   { label: '어린이날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '5-8':   { label: '어버이날', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)' },
-      '5-15':  { label: '스승의날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '5-18':  { label: '5·18민주화운동기념일', color: '#888', bg: 'rgba(136,136,136,0.15)' },
-      '6-6':   { label: '현충일', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '6-25':  { label: '6·25전쟁일', color: '#888', bg: 'rgba(136,136,136,0.15)' },
-      '7-17':  { label: '제헌절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '8-15':  { label: '광복절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '10-3':  { label: '개천절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '10-9':  { label: '한글날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '10-31': { label: '할로윈', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
-      '11-11': { label: '빼빼로데이', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)' },
-      '12-25': { label: '크리스마스', color: '#34c975', bg: 'rgba(52,201,117,0.15)' },
-      '12-31': { label: '연말', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '1-1':   { label: '신정', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '새해 첫날' },
+      '3-1':   { label: '삼일절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '1919년 3·1 독립운동을 기념하는 날' },
+      '3-8':   { label: '세계여성의날', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)', desc: '여성의 정치·사회적 권리 신장을 기념하는 날' },
+      '4-5':   { label: '식목일', color: '#34c975', bg: 'rgba(52,201,117,0.15)', desc: '나무를 심고 가꾸는 날' },
+      '5-1':   { label: '노동절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '근로자의 노고를 기리는 날' },
+      '5-5':   { label: '어린이날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '어린이의 인격을 존중하고 행복을 도모하는 날' },
+      '5-8':   { label: '어버이날', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)', desc: '부모님의 은혜에 감사하는 날' },
+      '5-15':  { label: '스승의날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '스승의 은혜에 감사하는 날' },
+      '5-18':  { label: '5·18민주화운동기념일', color: '#888', bg: 'rgba(136,136,136,0.15)', desc: '1980년 광주 민주화운동을 기리는 날' },
+      '6-6':   { label: '현충일', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '나라를 위해 희생한 분들을 추모하는 날' },
+      '6-25':  { label: '6·25전쟁일', color: '#888', bg: 'rgba(136,136,136,0.15)', desc: '1950년 한국전쟁 발발을 기억하는 날' },
+      '7-17':  { label: '제헌절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '대한민국 헌법 제정을 기념하는 날' },
+      '8-15':  { label: '광복절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '1945년 일제로부터의 광복을 기념하는 날' },
+      '10-3':  { label: '개천절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '단군왕검의 고조선 건국을 기념하는 날' },
+      '10-9':  { label: '한글날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '훈민정음 반포를 기념하는 날' },
+      '10-31': { label: '할로윈', color: '#f97316', bg: 'rgba(249,115,22,0.15)', desc: '서양의 유령 분장 축제일' },
+      '11-11': { label: '빼빼로데이', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)', desc: '빼빼로 과자를 주고받는 기념일' },
+      '12-25': { label: '크리스마스', color: '#34c975', bg: 'rgba(52,201,117,0.15)', desc: '예수 그리스도의 탄생을 기념하는 날' },
+      '12-31': { label: '연말', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '한 해를 마무리하는 시기' },
     };
 
     const key = `${m}-${d}`;
     if (fixed[key]) return fixed[key];
 
-    // 24절기 (매년 1~2일 변동, 주요 절기만 근사값으로 수록)
-    // 실제 절기는 태양황경 기반이나 평균값으로 충분히 정확
-    const solarTerms = [
-      // [월, 일범위, 이름, color, bg]
-      [1,  [5,7],   '소한', '#4a9eff', 'rgba(74,158,255,0.15)'],
-      [1,  [19,21], '대한', '#4a9eff', 'rgba(74,158,255,0.15)'],
-      [2,  [3,5],   '입춘', '#34c975', 'rgba(52,201,117,0.15)'],
-      [2,  [18,20], '우수', '#34c975', 'rgba(52,201,117,0.15)'],
-      [3,  [5,7],   '경칩', '#34c975', 'rgba(52,201,117,0.15)'],
-      [3,  [20,22], '춘분', '#34c975', 'rgba(52,201,117,0.15)'],
-      [4,  [4,6],   '청명', '#34c975', 'rgba(52,201,117,0.15)'],
-      [4,  [19,21], '곡우', '#34c975', 'rgba(52,201,117,0.15)'],
-      [5,  [5,7],   '입하', '#f97316', 'rgba(249,115,22,0.15)'],
-      [5,  [20,22], '소만', '#f97316', 'rgba(249,115,22,0.15)'],
-      [6,  [5,7],   '망종', '#f97316', 'rgba(249,115,22,0.15)'],
-      [6,  [20,22], '하지', '#f97316', 'rgba(249,115,22,0.15)'],
-      [7,  [6,8],   '소서', '#4a9eff', 'rgba(74,158,255,0.15)'],
-      [7,  [22,24], '대서', '#4a9eff', 'rgba(74,158,255,0.15)'],
-      [8,  [7,8],   '입추', '#c76dd0', 'rgba(199,109,208,0.15)'],
-      [8,  [22,24], '처서', '#c76dd0', 'rgba(199,109,208,0.15)'],
-      [9,  [7,9],   '백로', '#c76dd0', 'rgba(199,109,208,0.15)'],
-      [9,  [22,24], '추분', '#c76dd0', 'rgba(199,109,208,0.15)'],
-      [10, [7,9],   '한로', '#4a9eff', 'rgba(74,158,255,0.15)'],
-      [10, [22,24], '상강', '#4a9eff', 'rgba(74,158,255,0.15)'],
-      [11, [7,8],   '입동', '#4a9eff', 'rgba(74,158,255,0.15)'],
-      [11, [21,23], '소설', '#4a9eff', 'rgba(74,158,255,0.15)'],
-      [12, [6,8],   '대설', '#4a9eff', 'rgba(74,158,255,0.15)'],
-      [12, [21,23], '동지', '#4a9eff', 'rgba(74,158,255,0.15)'],
+    // 24절기 (태양황경 기반 정밀 계산, 1900~2100년 유효)
+    // n=0(소한)~23(동지), 매 절기는 태양황경 15°마다 위치 — 근사 범위가 아닌 정확한 날짜로 판정
+    const termMeta = [
+      ['소한', '#4a9eff', 'rgba(74,158,255,0.15)', '한 해 중 가장 추운 시기의 시작을 알리는 절기'],
+      ['대한', '#4a9eff', 'rgba(74,158,255,0.15)', '겨울 추위가 절정에 이르는 시기'],
+      ['입춘', '#34c975', 'rgba(52,201,117,0.15)', '봄의 시작을 알리는 절기'],
+      ['우수', '#34c975', 'rgba(52,201,117,0.15)', '눈이 녹아 비가 되고 봄기운이 완연해지는 시기'],
+      ['경칩', '#34c975', 'rgba(52,201,117,0.15)', '겨울잠 자던 벌레들이 깨어나는 시기'],
+      ['춘분', '#34c975', 'rgba(52,201,117,0.15)', '낮과 밤의 길이가 같아지는 봄의 중간'],
+      ['청명', '#34c975', 'rgba(52,201,117,0.15)', '하늘이 맑고 밝아지며 봄 농사를 준비하는 시기'],
+      ['곡우', '#34c975', 'rgba(52,201,117,0.15)', '봄비가 내려 곡식 파종을 돕는 시기'],
+      ['입하', '#f97316', 'rgba(249,115,22,0.15)', '여름의 시작을 알리는 절기'],
+      ['소만', '#f97316', 'rgba(249,115,22,0.15)', '만물이 점차 자라 가득 차기 시작하는 시기'],
+      ['망종', '#f97316', 'rgba(249,115,22,0.15)', '씨 뿌리기 좋은 시기, 보리 수확과 모내기 철'],
+      ['하지', '#f97316', 'rgba(249,115,22,0.15)', '낮이 가장 긴 날, 여름의 중심'],
+      ['소서', '#4a9eff', 'rgba(74,158,255,0.15)', '본격적인 더위가 시작되는 시기'],
+      ['대서', '#4a9eff', 'rgba(74,158,255,0.15)', '한 해 중 가장 더운 시기'],
+      ['입추', '#c76dd0', 'rgba(199,109,208,0.15)', '가을의 시작을 알리는 절기'],
+      ['처서', '#c76dd0', 'rgba(199,109,208,0.15)', '더위가 한풀 꺾이고 아침저녁으로 선선해지는 시기'],
+      ['백로', '#c76dd0', 'rgba(199,109,208,0.15)', '이슬이 맺히기 시작하며 가을 기운이 완연해지는 시기'],
+      ['추분', '#c76dd0', 'rgba(199,109,208,0.15)', '낮과 밤의 길이가 같아지는 가을의 중간'],
+      ['한로', '#4a9eff', 'rgba(74,158,255,0.15)', '찬 이슬이 맺히며 가을이 깊어가는 시기'],
+      ['상강', '#4a9eff', 'rgba(74,158,255,0.15)', '서리가 내리기 시작하는 시기'],
+      ['입동', '#4a9eff', 'rgba(74,158,255,0.15)', '겨울의 시작을 알리는 절기'],
+      ['소설', '#4a9eff', 'rgba(74,158,255,0.15)', '눈이 조금씩 내리기 시작하는 시기'],
+      ['대설', '#4a9eff', 'rgba(74,158,255,0.15)', '눈이 많이 내리는 시기'],
+      ['동지', '#4a9eff', 'rgba(74,158,255,0.15)', '밤이 가장 긴 날, 한 해 중 음기가 가장 강한 날'],
     ];
-    for (const [sm, [s, e], label, color, bg] of solarTerms) {
-      if (m === sm && d >= s && d <= e) return { label, color, bg };
+    function calcTermDay(year, n) {
+      // 1900~2100년 유효한 정밀 절기 계산 공식(태양황경 기반)
+      const sTermInfo = [0,21208,42467,63836,85337,107014,128867,150921,173149,195551,218072,240693,263343,285989,308563,331033,353350,375494,397447,419210,440795,462224,483532,504758];
+      const off = new Date((31556925974.7 * (year - 1900) + sTermInfo[n] * 60000) + Date.UTC(1900, 0, 6, 2, 5, 0));
+      return off.getUTCDate();
+    }
+    for (let n = 0; n < 24; n++) {
+      const tm = Math.floor(n / 2) + 1;
+      if (m !== tm) continue;
+      const td = calcTermDay(y, n);
+      if (d === td) {
+        const [label, color, bg, desc] = termMeta[n];
+        return { label, color, bg, desc };
+      }
+      break;
     }
 
     // 삼복 (초복·중복·말복: 하지 후 셋째·넷째 경일, 입추 후 첫 경일)
     // 근사값: 초복 7/11~7/19, 중복 7/21~7/29, 말복 8/7~8/16
     const bokMap = [
-      [7, [11,19], '초복', '#4a9eff', 'rgba(74,158,255,0.15)'],
-      [7, [21,29], '중복', '#4a9eff', 'rgba(74,158,255,0.15)'],
-      [8, [7,16],  '말복', '#4a9eff', 'rgba(74,158,255,0.15)'],
+      [7, [11,19], '초복', '#4a9eff', 'rgba(74,158,255,0.15)', '본격적인 삼복더위가 시작되는 첫째 날'],
+      [7, [21,29], '중복', '#4a9eff', 'rgba(74,158,255,0.15)', '삼복더위 중 두 번째로 더운 날'],
+      [8, [7,16],  '말복', '#4a9eff', 'rgba(74,158,255,0.15)', '삼복더위의 마지막 날'],
     ];
-    for (const [bm, [s, e], label, color, bg] of bokMap) {
+    for (const [bm, [s, e], label, color, bg, desc] of bokMap) {
       if (m === bm && d >= s && d <= e) {
         // 실제 경일(庚日)인지 확인 (경일 = 천간이 경인 날, 10일 주기)
         // 기준: 2024-07-15 초복 = 경일. dayIndex로 확인
         const ref = new Date(2024, 6, 15); // 2024년 초복
         const diff = Math.round((new Date(y, m-1, d) - ref) / 86400000);
-        if (diff % 10 === 0) return { label, color, bg };
+        if (diff % 10 === 0) return { label, color, bg, desc };
       }
     }
 
@@ -6267,34 +6279,67 @@ function startFooterClock() {
     // 음력→양력 변환 테이블 (2023~2030)
     const lunarHolidays = {
       // 설날 (음력 1/1)
-      '2024-2-10': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '2025-1-29': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '2026-2-17': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '2027-2-6':  { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '2028-1-26': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '2024-2-10': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '음력 새해 첫날, 민족 최대 명절' },
+      '2025-1-29': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '음력 새해 첫날, 민족 최대 명절' },
+      '2026-2-17': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '음력 새해 첫날, 민족 최대 명절' },
+      '2027-2-6':  { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '음력 새해 첫날, 민족 최대 명절' },
+      '2028-1-26': { label: '설날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '음력 새해 첫날, 민족 최대 명절' },
       // 추석 (음력 8/15)
-      '2024-9-17': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '2025-10-6': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '2026-9-25': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '2027-9-15': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
-      '2028-10-3': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)' },
+      '2024-9-17': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '한 해 농사의 결실을 감사하는 한가위' },
+      '2025-10-6': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '한 해 농사의 결실을 감사하는 한가위' },
+      '2026-9-25': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '한 해 농사의 결실을 감사하는 한가위' },
+      '2027-9-15': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '한 해 농사의 결실을 감사하는 한가위' },
+      '2028-10-3': { label: '추석', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '한 해 농사의 결실을 감사하는 한가위' },
       // 정월대보름 (음력 1/15)
-      '2025-2-12': { label: '정월대보름', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
-      '2026-3-4':  { label: '정월대보름', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
-      '2027-2-21': { label: '정월대보름', color: '#f97316', bg: 'rgba(249,115,22,0.15)' },
+      '2025-2-12': { label: '정월대보름', color: '#f97316', bg: 'rgba(249,115,22,0.15)', desc: '한 해의 첫 보름달을 보며 소원을 비는 날' },
+      '2026-3-4':  { label: '정월대보름', color: '#f97316', bg: 'rgba(249,115,22,0.15)', desc: '한 해의 첫 보름달을 보며 소원을 비는 날' },
+      '2027-2-21': { label: '정월대보름', color: '#f97316', bg: 'rgba(249,115,22,0.15)', desc: '한 해의 첫 보름달을 보며 소원을 비는 날' },
       // 단오 (음력 5/5)
-      '2025-5-31': { label: '단오', color: '#34c975', bg: 'rgba(52,201,117,0.15)' },
-      '2026-6-19': { label: '단오', color: '#34c975', bg: 'rgba(52,201,117,0.15)' },
-      '2027-6-9':  { label: '단오', color: '#34c975', bg: 'rgba(52,201,117,0.15)' },
+      '2025-5-31': { label: '단오', color: '#34c975', bg: 'rgba(52,201,117,0.15)', desc: '풍년과 안녕을 기원하는 명절' },
+      '2026-6-19': { label: '단오', color: '#34c975', bg: 'rgba(52,201,117,0.15)', desc: '풍년과 안녕을 기원하는 명절' },
+      '2027-6-9':  { label: '단오', color: '#34c975', bg: 'rgba(52,201,117,0.15)', desc: '풍년과 안녕을 기원하는 명절' },
       // 칠석 (음력 7/7)
-      '2025-7-31': { label: '칠월칠석', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)' },
-      '2026-8-20': { label: '칠월칠석', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)' },
+      '2025-7-31': { label: '칠월칠석', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)', desc: '견우와 직녀가 만난다는 음력 7월 7일' },
+      '2026-8-20': { label: '칠월칠석', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)', desc: '견우와 직녀가 만난다는 음력 7월 7일' },
     };
     const lunarKey = `${y}-${m}-${d}`;
     if (lunarHolidays[lunarKey]) return lunarHolidays[lunarKey];
 
     return null;
   }
+
+  // ── 특별한 날 배지 클릭 시 간단 설명 팝업 ──
+  function showSpecialDayTip(anchorEl, info) {
+    const existing = document.getElementById('specialDayTip');
+    if (existing) {
+      const wasSame = existing.dataset.label === info.label;
+      existing.remove();
+      if (wasSame) return;
+    }
+    const tip = document.createElement('div');
+    tip.id = 'specialDayTip';
+    tip.dataset.label = info.label;
+    tip.style.cssText = `position:fixed;z-index:9999;max-width:240px;padding:10px 14px;border-radius:10px;font-size:0.8rem;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,0.35);color:#fff;background:${info.color || '#333'};border:1px solid rgba(255,255,255,0.25);`;
+    tip.innerHTML = `<div style="font-weight:800;margin-bottom:4px;">${info.label}</div><div style="opacity:0.92;">${info.desc || ''}</div>`;
+    document.body.appendChild(tip);
+    const r = anchorEl.getBoundingClientRect();
+    let top = r.bottom + 8;
+    let left = r.left;
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    if (left + tw > window.innerWidth - 8) left = window.innerWidth - tw - 8;
+    if (left < 8) left = 8;
+    if (top + th > window.innerHeight - 8) top = r.top - th - 8;
+    tip.style.top = top + 'px';
+    tip.style.left = left + 'px';
+    const closeOnOutside = (ev) => {
+      if (!tip.contains(ev.target) && ev.target !== anchorEl) {
+        tip.remove();
+        document.removeEventListener('click', closeOnOutside);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeOnOutside), 0);
+  }
+
 
   if (_clockTimer) return;
 
@@ -6356,8 +6401,14 @@ function startFooterClock() {
         specialEl.style.color = special.color;
         specialEl.style.background = special.bg;
         specialEl.style.border = `1px solid ${special.color}40`;
+        specialEl.style.cursor = 'pointer';
+        specialEl.onclick = function(e) {
+          e.stopPropagation();
+          showSpecialDayTip(specialEl, special);
+        };
       } else {
         specialEl.style.display = 'none';
+        specialEl.onclick = null;
       }
     }
   }
