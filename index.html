@@ -854,6 +854,7 @@ body.pc-mode .calendar-grid {
   .item-list { display: none !important; }
   .img-thumb { display: none !important; }
   .holiday-name { font-size: 0.54rem; }
+  .special-day-name { font-size: 0.54rem; }
   .event-dot-wrap { display: flex; }
 }
 .event-dot {
@@ -975,6 +976,12 @@ body.light-mode .ddp-duty-value.v-비 { color: #157a40; }
   margin-bottom: 2px; line-height: 1.2;
 }
 body.light-mode .holiday-name { color: #c0392b; }
+.special-day-name {
+  font-size: 0.58rem; font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  margin-bottom: 2px; line-height: 1.2; cursor: pointer;
+}
+.special-day-name:hover { text-decoration: underline; }
 /* 테마 토글 버튼 (인라인) */
 #themeModeBtn {
   background: var(--bg3);
@@ -2591,6 +2598,9 @@ window.renderCalendar = function renderCalendar() {
     const holidayName = KR_HOLIDAYS[dateKey];
     if (holidayName) cell.classList.add('is-holiday');
 
+    // 특별한 날(절기/기념일) 체크 — 이미 공휴일로 표시되는 날은 중복 표시하지 않음
+    const specialInfo = (!holidayName && typeof getSpecialDay === 'function') ? getSpecialDay(dateObj) : null;
+
     if (isAddMode) { cell.classList.add('add-mode'); cell.onclick = () => onCellClick(dateKey); }
     else {
       cell.onclick = () => {
@@ -2638,6 +2648,19 @@ window.renderCalendar = function renderCalendar() {
       const hn = document.createElement('div');
       hn.className = 'holiday-name'; hn.textContent = holidayName;
       cell.appendChild(hn);
+    }
+
+    // 특별한 날 배지 표시 (클릭 시 간단 설명 팝업)
+    if (specialInfo) {
+      const sd = document.createElement('div');
+      sd.className = 'special-day-name';
+      sd.textContent = '✦ ' + specialInfo.label;
+      sd.style.color = specialInfo.color;
+      sd.onclick = (e) => {
+        e.stopPropagation();
+        showSpecialDayTip(sd, specialInfo);
+      };
+      cell.appendChild(sd);
     }
 
     const dutyBox = document.createElement('div');
@@ -6175,12 +6198,8 @@ function scrollToWeather() {
     setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
   }
 }
-let _clockTimer = null;
-function startFooterClock() {
-  if (_clockTimer) return;
-
-  // ── 한국 절기·기념일 데이터 ──
-  function getSpecialDay(date) {
+// ── 한국 절기·기념일 데이터 (달력 셀 + 상단 배지 공용) ──
+function getSpecialDay(date) {
     const y = date.getFullYear();
     const m = date.getMonth() + 1; // 1~12
     const d = date.getDate();
@@ -6203,6 +6222,12 @@ function startFooterClock() {
       '10-3':  { label: '개천절', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '단군왕검의 고조선 건국을 기념하는 날' },
       '10-9':  { label: '한글날', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '훈민정음 반포를 기념하는 날' },
       '10-31': { label: '할로윈', color: '#f97316', bg: 'rgba(249,115,22,0.15)', desc: '서양의 유령 분장 축제일' },
+      '2-14':  { label: '발렌타인데이', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)', desc: '연인이나 좋아하는 사람에게 초콜릿을 주는 날' },
+      '3-3':   { label: '삼겹살데이', color: '#f97316', bg: 'rgba(249,115,22,0.15)', desc: '숫자 3이 겹치는 날, 삼겹살을 먹는 날' },
+      '3-14':  { label: '화이트데이', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)', desc: '발렌타인데이에 대한 답례로 사탕을 주는 날' },
+      '4-14':  { label: '블랙데이', color: '#888', bg: 'rgba(136,136,136,0.15)', desc: '짝이 없는 사람들이 짜장면을 먹는 날' },
+      '5-14':  { label: '로즈데이', color: '#e8543a', bg: 'rgba(232,84,58,0.15)', desc: '연인에게 장미를 선물하는 날' },
+      '9-9':   { label: '구구데이', color: '#f97316', bg: 'rgba(249,115,22,0.15)', desc: '숫자 9가 겹치는 날, 치킨을 먹는 날' },
       '11-11': { label: '빼빼로데이', color: '#c76dd0', bg: 'rgba(199,109,208,0.15)', desc: '빼빼로 과자를 주고받는 기념일' },
       '12-25': { label: '크리스마스', color: '#34c975', bg: 'rgba(52,201,117,0.15)', desc: '예수 그리스도의 탄생을 기념하는 날' },
       '12-31': { label: '연말', color: '#4a9eff', bg: 'rgba(74,158,255,0.15)', desc: '한 해를 마무리하는 시기' },
@@ -6338,9 +6363,10 @@ function startFooterClock() {
       }
     };
     setTimeout(() => document.addEventListener('click', closeOnOutside), 0);
-  }
+}
 
-
+let _clockTimer = null;
+function startFooterClock() {
   if (_clockTimer) return;
 
   // ── 플립 클락(split-flap) 빌드 & 업데이트 ──
