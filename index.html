@@ -1961,6 +1961,7 @@ body.pc-mode #pcDashboard > div:first-child > span { display: none !important; }
         <a class="pc-quick-link" href="#" onclick="openAiScan(); return false;" style="background:rgba(74,158,255,0.12);border-color:rgba(74,158,255,0.3);color:var(--blue);">🤖 AI등록</a>
         <a class="pc-quick-link" href="#" onclick="openMonthlyOverview(); return false;" style="background:rgba(255,193,7,0.12);border-color:rgba(255,193,7,0.3);color:var(--amber);">📊 이달현황</a>
         <a class="pc-quick-link" href="#" onclick="openTongsinsil(); return false;" style="background:rgba(191,90,242,0.12);border-color:rgba(191,90,242,0.3);color:var(--purple);">📡 통신실</a>
+        <a class="pc-quick-link" href="#" onclick="openMonthlyOverview(true); return false;" style="background:rgba(74,158,255,0.12);border-color:rgba(74,158,255,0.3);color:var(--blue);">🔍 검색</a>
 
         <!-- ── AI 검색 버튼 ── -->
         <div class="ai-search-wrap" id="aiSearchWrap">
@@ -2053,7 +2054,10 @@ body.pc-mode #pcDashboard > div:first-child > span { display: none !important; }
       <div class="sidebar-section">
         <div class="sidebar-section-title vac-title">
           <span id="sidebarVacTitle">🏖️ 오늘 연차 · 휴가</span>
-          <span class="sidebar-count-badge" id="sidebarVacCount">0건</span>
+          <span style="display:flex;align-items:center;gap:6px;">
+            <button onclick="openRegisterModal(sidebarCurrentDateKey())" title="연차 추가" style="background:rgba(52,201,117,0.12);border:1px solid rgba(52,201,117,0.3);color:var(--green);border-radius:8px;padding:2px 9px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:inherit;">＋ 추가</button>
+            <span class="sidebar-count-badge" id="sidebarVacCount">0건</span>
+          </span>
         </div>
         <div id="sidebarVacList">
           <div class="sidebar-empty">오늘 연차가 없습니다</div>
@@ -2276,6 +2280,7 @@ body.pc-mode #pcDashboard > div:first-child > span { display: none !important; }
   <a href="#" onclick="openAiScan(); return false;">🤖<span class="ql">AI등록</span></a>
   <a href="#" onclick="openMonthlyOverview(); return false;">📊<span class="ql">이달현황</span></a>
   <a href="#" onclick="openTongsinsil(); return false;">📡<span class="ql">통신실</span></a>
+  <a href="#" onclick="openMonthlyOverview(true); return false;">🔍<span class="ql">검색</span></a>
 </div>
 
 <button class="add-btn" id="mainAddBtn" onclick="openRegisterModal()">+</button>
@@ -2663,7 +2668,20 @@ body.pc-mode #pcDashboard > div:first-child > span { display: none !important; }
       <button class="mo-filter-btn" data-mo-filter="annual" onclick="moSetFilter('annual')">🔴 연간점검</button>
       <button class="mo-filter-btn" data-mo-filter="vac" onclick="moSetFilter('vac')">🏖️ 연차</button>
     </div>
+    <div class="mo-search-bar" style="padding:10px 18px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;">
+      <input id="moSearchInput" type="search" placeholder="🔍 일정·점검·연차 검색 (이름, 종류, 메모, 날짜 예: 5/12)" autocomplete="off" oninput="moSearchRender()"
+        style="flex:1;min-width:0;box-sizing:border-box;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:16px;font-family:inherit;outline:none;">
+      <button class="mo-cat-add-btn" style="flex-shrink:0;padding:9px 12px;background:rgba(74,158,255,0.12);border-color:rgba(74,158,255,0.3);color:var(--blue);" onclick="moOpenAddModal('sched')" title="새 일정 추가">➕ 일정</button>
+      <button class="mo-cat-add-btn" style="flex-shrink:0;padding:9px 12px;" onclick="moOpenAddModal('vac')" title="새 연차 추가">➕ 연차</button>
+    </div>
     <div class="mo-body">
+      <div id="moSectionSearch" style="display:none;">
+        <div class="mo-section-header">
+          <span class="mo-section-title">🔍 검색 결과 <span class="mo-count-badge" id="moSearchCount">0건</span></span>
+          <span style="font-size:0.68rem;color:var(--text3);">전체 기간 · 위 분류 필터 적용</span>
+        </div>
+        <div id="moSearchList"></div>
+      </div>
       <div id="moSectionAll">
         <div class="mo-section-header">
           <span class="mo-section-title">📅 이달 전체 일정 <span class="mo-count-badge" id="moAllCount">0건</span></span>
@@ -6350,13 +6368,18 @@ async function _doBulkDelete(dateKeys) {
 // ════════════════════════════════
 let _moYear = null, _moMonth = null, _moFilter = 'all';
 
-function openMonthlyOverview() {
+function openMonthlyOverview(focusSearch) {
   _moYear = current.getFullYear();
   _moMonth = current.getMonth() + 1;
   _moFilter = 'all';
+  const _si = document.getElementById('moSearchInput');
+  if (_si) _si.value = '';
   document.getElementById('monthlyOverviewModal').style.display = 'flex';
+  const _bar = document.getElementById('moFilterBar');
+  if (_bar) _bar.querySelectorAll('.mo-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.moFilter === 'all'));
   renderMonthlyOverview();
-  _moScrollToToday();
+  if (focusSearch && _si) setTimeout(() => _si.focus(), 60);
+  else _moScrollToToday();
 }
 function closeMonthlyOverview() {
   document.getElementById('monthlyOverviewModal').style.display = 'none';
@@ -6378,8 +6401,8 @@ function moSetFilter(filterKey) {
       btn.classList.toggle('active', btn.dataset.moFilter === filterKey);
     });
   }
-  _moApplyFilterVisibility();
-  if (filterKey === 'all') _moScrollToToday();
+  if (_moSearchQuery()) moSearchRender(); else _moApplyFilterVisibility();
+  if (filterKey === 'all' && !_moSearchQuery()) _moScrollToToday();
 }
 function moJumpToday() {
   const t = new Date();
@@ -6388,8 +6411,21 @@ function moJumpToday() {
   if (_moFilter !== 'all') moSetFilter('all'); else renderMonthlyOverview();
   _moScrollToToday();
 }
+function _moSearchQuery() {
+  const el = document.getElementById('moSearchInput');
+  return el ? el.value.trim() : '';
+}
 function _moApplyFilterVisibility() {
   const catMap = { quart: 'moSectionQuart', annual: 'moSectionAnnual', vac: 'moSectionVac' };
+  const searching = !!_moSearchQuery();
+  const searchEl = document.getElementById('moSectionSearch');
+  if (searchEl) searchEl.style.display = searching ? '' : 'none';
+  if (searching) {
+    ['moSectionAll', 'moSectionQuart', 'moSectionAnnual', 'moSectionVac'].forEach(id => {
+      const e = document.getElementById(id); if (e) e.style.display = 'none';
+    });
+    return;
+  }
   const allEl = document.getElementById('moSectionAll');
   if (allEl) allEl.style.display = (_moFilter === 'all') ? '' : 'none';
   Object.keys(catMap).forEach(catKey => {
@@ -6450,6 +6486,59 @@ function renderMonthlyOverview() {
   _moRenderSection('moQuartList', 'moQuartCount', _moCollectItems(_moCategoryPredicate('quart')));
   _moRenderSection('moAnnualList', 'moAnnualCount', _moCollectItems(_moCategoryPredicate('annual')));
   _moRenderSection('moVacList', 'moVacCount', _moCollectItems(_moCategoryPredicate('vac')));
+  moSearchRender();
+}
+// 전체 기간 검색: 이름·종류·메모·날짜(2026-05-12 / 5/12 / 5월12일) 대상, 공백으로 구분한 단어는 모두 일치(AND)
+function moSearchRender() {
+  const q = _moSearchQuery();
+  const list = document.getElementById('moSearchList');
+  const countEl = document.getElementById('moSearchCount');
+  if (!q || !list) { _moApplyFilterVisibility(); return; }
+  const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const data = window._vacationData || {};
+  const pred = _moFilter === 'all' ? () => true : _moCategoryPredicate(_moFilter);
+  const hits = [];
+  Object.keys(data).forEach(key => {
+    const [y, m, d] = key.split('-').map(Number);
+    const dateStr = [key, m + '/' + d, m + '.' + d, m + '월' + d + '일', m + '월 ' + d + '일'].join(' ');
+    (data[key] || []).forEach((item, idx) => {
+      if (!item || !item.name || !pred(item)) return;
+      const hay = (item.name + ' ' + (item.type || '') + ' ' + (item.memo || '') + ' ' + dateStr + ' ' + (isItemVac(item) ? '연차 휴가' : '일정')).toLowerCase();
+      if (terms.every(t => hay.includes(t))) hits.push({ key, idx, item });
+    });
+  });
+  hits.sort((a, b) => b.key.localeCompare(a.key)); // 최신 날짜가 위로
+  if (countEl) countEl.textContent = hits.length + '건';
+  if (hits.length === 0) {
+    list.innerHTML = '<div class="mo-empty">검색 결과가 없습니다</div>';
+  } else {
+    const LIMIT = 200;
+    const hl = t => {
+      let h = escHtml(t);
+      terms.forEach(term => {
+        const re = new RegExp(escHtml(term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        h = h.replace(re, mm => '<mark style="background:#ffe27a;color:#222;border-radius:3px;">' + mm + '</mark>');
+      });
+      return h;
+    };
+    list.innerHTML = hits.slice(0, LIMIT).map(({ key, idx, item }) => {
+      const [y, m, d] = key.split('-');
+      const fsId = item._firestoreId || '';
+      const memo = item.memo ? `<div class="mo-item-memo">${hl(item.memo)}</div>` : '';
+      return `
+        <div class="mo-item-row">
+          <div class="mo-item-date" style="min-width:64px;">${y.slice(2)}.${m}.${d}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="mo-item-name">${hl(item.name)}${item.type ? ` <span style="color:${_moTypeColor(item)};font-weight:700;">· ${hl(item.type)}</span>` : ''}</div>
+            ${memo}
+          </div>
+          <div class="mo-item-actions">
+            <button class="mo-item-edit" title="수정" onclick="moEditItem('${key}',${idx})">✏️</button>
+            <button class="mo-item-del" title="삭제" onclick="moDeleteSingle('${key}',${idx},'${fsId}')">✕</button>
+          </div>
+        </div>`;
+    }).join('') + (hits.length > LIMIT ? `<div class="mo-empty">상위 ${LIMIT}건만 표시됩니다. 검색어를 더 구체적으로 입력해 보세요</div>` : '');
+  }
   _moApplyFilterVisibility();
 }
 function _moRenderAllSection() {
@@ -6557,7 +6646,9 @@ function moOpenAddModal(catKey) {
   const dateKey = (todayKey.slice(0, 7) === viewedPrefix) ? todayKey : (viewedPrefix + '-01');
   openRegisterModal(dateKey);
 
-  if (catKey === 'quart' || catKey === 'annual') {
+  if (catKey === 'sched') {
+    switchRegTab('schedule');
+  } else if (catKey === 'quart' || catKey === 'annual') {
     switchRegTab('schedule');
     const typeLabel = catKey === 'quart' ? '분기점검' : '연간점검';
     const btn = Array.from(document.querySelectorAll('#schedTypeButtons .type-sel-btn'))
