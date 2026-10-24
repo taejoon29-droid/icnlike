@@ -1399,6 +1399,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--blue) !important
 
 /* ── 3. 상단 바 (유리 + 알약 메뉴) ── */
 .pc-top-quickbar {
+  position: relative;
+  z-index: 60; /* AI검색 엔진 메뉴가 아래쪽 라이트/다크·월 이동 버튼 위로 펼쳐지도록 */
   background: var(--bg2);
   -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
   border: 1px solid var(--border);
