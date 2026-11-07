@@ -1903,21 +1903,14 @@ body.mh-editing #mhEditBar {
 }
 .mh-zone.hot { color: #14151a; background: #ffd45e; border-color: #ffd45e; transform: scale(1.04); }
 
-/* 편집 중: 패드가 흔들리며 끌어서 이동 */
-body.mh-editing #mhDeck { padding: 10px 8px 14px; }
-body.mh-editing .mh-grid { grid-template-columns: repeat(4, 1fr); gap: 9px 7px; }
+/* 편집 중: 현재 배열(크기·간격·개수) 그대로 두고 패드만 흔들리며 끌어서 이동 */
 body.mh-editing .mh-tile {
-  min-height: 66px; padding: 6px 2px; gap: 4px; border-radius: 10px;
   cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
   animation: mhWiggle .35s ease-in-out infinite alternate;
 }
-body.mh-editing .mh-tile::before { inset: 2px; border-radius: 8px; }
-body.mh-editing .mh-ico { font-size: 1.2rem; }
-body.mh-editing .mh-lbl { font-size: .6rem; letter-spacing: .02em; }
 body.mh-editing .mh-tile.mh-dragging { opacity: .25; animation: none; }
 @keyframes mhWiggle { from { transform: rotate(-1.3deg); } to { transform: rotate(1.3deg); } }
 .mh-ghost { position: fixed; z-index: 9999; pointer-events: none; opacity: .95; margin: 0; transform: scale(1.12); animation: none !important; }
-@media (min-width: 601px) { body.mh-editing .mh-grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); } }
 @media (max-width: 600px) { .mh-tile { min-height: calc(84px * var(--mh-s, 1)); padding: 10px 2px; } .mh-lbl { font-size: calc(.68rem * var(--mh-s, 1)); letter-spacing: 0; } }
 @media (prefers-reduced-motion: reduce) { .mh-tile { animation: none; } }
 
