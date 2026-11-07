@@ -1808,15 +1808,14 @@ body.mh-sorting, body.mh-sorting * { cursor: grabbing !important; user-select: n
   position: relative; max-width: 640px; margin: 0 auto; padding: 16px 14px 20px;
   background: none; border: none; box-shadow: none;
 }
-.mh-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 12px; min-height: 56px; }
-@media (min-width: 601px) { .mh-grid { grid-template-columns: repeat(4, 1fr); gap: 16px 14px; } }
+.mh-grid { display: grid; grid-template-columns: repeat(var(--mh-cols, 4), 1fr); gap: var(--mh-gap, 14px); min-height: 56px; }
 
 .mh-tile {
   --neon: #43e0a0;
   --neon-soft: color-mix(in srgb, var(--neon) 55%, #fff);
   position: relative; min-width: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
-  min-height: 92px; padding: 10px 4px;
+  min-height: calc(92px * var(--mh-s, 1)); padding: 10px 4px;
   color: var(--neon-soft); font-family: inherit; text-decoration: none; cursor: pointer;
   border-radius: 12px;
   border: 1.5px solid color-mix(in srgb, var(--neon) 60%, #000);
@@ -1850,12 +1849,12 @@ body.mh-sorting, body.mh-sorting * { cursor: grabbing !important; user-select: n
 }
 .mh-ico {
   position: relative; display: flex; align-items: center; justify-content: center;
-  width: auto; height: auto; font-size: 1.75rem; line-height: 1; background: none; box-shadow: none;
+  width: auto; height: auto; font-size: calc(1.75rem * var(--mh-s, 1)); line-height: 1; background: none; box-shadow: none;
   filter: drop-shadow(0 0 5px var(--neon)) drop-shadow(0 0 12px color-mix(in srgb, var(--neon) 60%, transparent));
 }
 .mh-lbl {
   position: relative; max-width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  font-size: .78rem; font-weight: 800; letter-spacing: .05em; line-height: 1.2; color: var(--neon-soft);
+  font-size: calc(.78rem * var(--mh-s, 1)); font-weight: 800; letter-spacing: .05em; line-height: 1.2; color: var(--neon-soft);
   text-shadow: 0 0 4px var(--neon), 0 0 10px color-mix(in srgb, var(--neon) 70%, transparent), 0 0 18px color-mix(in srgb, var(--neon) 45%, transparent);
 }
 
@@ -1879,6 +1878,7 @@ body.mh-sorting, body.mh-sorting * { cursor: grabbing !important; user-select: n
 .mh-tile[data-tile="bg"]      { --neon:#ff4fd8; }
 .mh-tile[data-tile="theme"]   { --neon:#fff27a; }
 .mh-tile[data-tile="edit"], .mh-tile[data-tile="reset"] { --neon:#b8bdd0; }
+.mh-tile[data-tile="layout"]  { --neon:#4dffb8; }
 .mh-tile[data-tile="mode"]    { --neon:#ff4d6a; }
 
 /* ── 순서 편집 ── */
@@ -1918,8 +1918,35 @@ body.mh-editing .mh-tile.mh-dragging { opacity: .25; animation: none; }
 @keyframes mhWiggle { from { transform: rotate(-1.3deg); } to { transform: rotate(1.3deg); } }
 .mh-ghost { position: fixed; z-index: 9999; pointer-events: none; opacity: .95; margin: 0; transform: scale(1.12); animation: none !important; }
 @media (min-width: 601px) { body.mh-editing .mh-grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); } }
-@media (max-width: 400px) { .mh-tile { min-height: 86px; } .mh-lbl { font-size: .72rem; } }
+@media (max-width: 600px) { .mh-tile { min-height: calc(84px * var(--mh-s, 1)); padding: 10px 2px; } .mh-lbl { font-size: calc(.68rem * var(--mh-s, 1)); letter-spacing: 0; } }
 @media (prefers-reduced-motion: reduce) { .mh-tile { animation: none; } }
+
+/* ── 크기·배열 조절 패널 ── */
+#mhLayoutPanel { display: none; }
+body.menu-mode.mh-layouting:not(.mv-cal):not(.mv-dash) #mhLayoutPanel {
+  display: block; position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%);
+  width: min(94vw, 460px); z-index: 80; padding: 14px 16px 16px; border-radius: 18px;
+  background: rgba(18,19,23,.95); border: 1px solid rgba(255,255,255,.14); color: #e9ecf4;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  box-shadow: 0 14px 40px rgba(0,0,0,.6), 0 0 18px rgba(74,168,255,.25);
+}
+.mhl-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: .86rem; font-weight: 800; }
+.mhl-head button, .mhl-foot button {
+  border: none; border-radius: 999px; padding: 7px 16px; font: 800 .76rem inherit; font-family: inherit; cursor: pointer; color: #fff;
+  background: linear-gradient(135deg, #ff6a3d, #ff3d77);
+}
+.mhl-foot { display: flex; justify-content: flex-end; margin-top: 12px; }
+.mhl-foot button { background: rgba(255,255,255,.12); }
+.mhl-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: .78rem; font-weight: 700; }
+.mhl-row > span:first-child { flex: 0 0 52px; color: #aeb4c6; }
+.mhl-row output { flex: 0 0 40px; text-align: right; font-variant-numeric: tabular-nums; color: #ffd45e; }
+.mhl-row input[type=range] { flex: 1; min-width: 0; accent-color: #ff6a3d; }
+.mhl-cols { display: flex; flex: 1; gap: 6px; flex-wrap: wrap; }
+.mhl-cols button {
+  flex: 1 1 0; min-width: 38px; padding: 7px 0; border-radius: 9px; cursor: pointer; font: 800 .76rem inherit; font-family: inherit;
+  color: #aeb4c6; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16);
+}
+.mhl-cols button.on { color: #14151a; background: #ffd45e; border-color: #ffd45e; }
 </style>
 </head>
 <body class="pc-mode">
@@ -2245,11 +2272,21 @@ body.mh-editing .mh-tile.mh-dragging { opacity: .25; animation: none; }
       <a data-tile="handy" class="mh-tile" href="https://gw.airportmc.co.kr/" target="_blank" rel="noopener noreferrer"><span class="mh-ico">📟</span><span class="mh-lbl">핸디</span></a>
       <button data-tile="bg" class="mh-tile" onclick="openWallpaperModal()"><span class="mh-ico">🖼️</span><span class="mh-lbl">배경</span></button>
       <button data-tile="theme" class="mh-tile" onclick="toggleTheme()"><span class="mh-ico">🌗</span><span class="mh-lbl">라이트/다크</span></button>
+      <button data-tile="layout" class="mh-tile" onclick="toggleMenuLayout(true)"><span class="mh-ico">🎛️</span><span class="mh-lbl">크기·배열</span></button>
       <button data-tile="edit" class="mh-tile" onclick="toggleMenuEdit(true)"><span class="mh-ico">↕️</span><span class="mh-lbl">순서 편집</span></button>
       <button data-tile="reset" class="mh-tile" onclick="resetMenuOrder()"><span class="mh-ico">↕️</span><span class="mh-lbl">순서 초기화</span></button>
       <button data-tile="mode" class="mh-tile mh-mode" onclick="setHomeMode('default')"><span class="mh-ico">🏠</span><span class="mh-lbl">기본모드로</span></button>
     </div>
   </div>
+</div>
+
+<!-- ══ 메뉴 버튼 크기·배열 조절 패널 ══ -->
+<div id="mhLayoutPanel">
+  <div class="mhl-head"><span>🎛️ 버튼 크기·배열</span><button onclick="toggleMenuLayout(false)">완료</button></div>
+  <div class="mhl-row"><span>크기</span><input type="range" id="mhlSize" min="60" max="150" step="5"><output id="mhlSizeV"></output></div>
+  <div class="mhl-row"><span>간격</span><input type="range" id="mhlGap" min="4" max="32" step="2"><output id="mhlGapV"></output></div>
+  <div class="mhl-row"><span>한 줄</span><div class="mhl-cols" id="mhlCols"></div></div>
+  <div class="mhl-foot"><button onclick="resetMenuLayout()">↺ 기본값으로</button></div>
 </div>
 
 <!-- ══ PC 모드 하단 대시보드 (날씨만) ══ -->
@@ -7561,6 +7598,51 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
 
   // 마지막으로 쓴 모드 복원
   try { if (localStorage.getItem(KEY) === 'menu') setHomeMode('menu'); } catch (e) {}
+})();
+
+// ══════════════════════════════════════════
+// 메뉴 버튼 크기·간격·한 줄 개수 조절
+// ══════════════════════════════════════════
+(function () {
+  'use strict';
+  const KEY = 'workhub_menu_layout_v1';
+  const DEF = { s: 100, g: 14, c: 4 };           // c: 한 줄 버튼 개수(기본 4)
+  const deck = document.getElementById('mhDeck');
+  const size = document.getElementById('mhlSize'), gap = document.getElementById('mhlGap');
+  const sizeV = document.getElementById('mhlSizeV'), gapV = document.getElementById('mhlGapV');
+  const colBox = document.getElementById('mhlCols');
+  if (!deck || !size) return;
+  let st = Object.assign({}, DEF);
+  try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); if (v && typeof v === 'object') st = Object.assign(st, v); } catch (e) {}
+
+  [['2', 2], ['3', 3], ['4', 4], ['5', 5], ['6', 6]].forEach(([t, n]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = t; b.dataset.c = n;
+    b.onclick = () => { st.c = n; apply(true); };
+    colBox.appendChild(b);
+  });
+
+  function apply(save) {
+    deck.style.setProperty('--mh-s', (st.s / 100).toFixed(2));
+    deck.style.setProperty('--mh-gap', st.g + 'px');
+    if (st.c >= 2) deck.style.setProperty('--mh-cols', st.c); else deck.style.removeProperty('--mh-cols');
+    size.value = st.s; gap.value = st.g; sizeV.textContent = st.s + '%'; gapV.textContent = st.g + 'px';
+    colBox.querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.c === st.c));
+    if (save) { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+  }
+  size.oninput = () => { st.s = +size.value; apply(true); };
+  gap.oninput = () => { st.g = +gap.value; apply(true); };
+
+  window.toggleMenuLayout = function (on) {
+    if (on && typeof window.toggleMenuEdit === 'function') window.toggleMenuEdit(false);
+    document.body.classList.toggle('mh-layouting', !!on);
+    if (on) window.scrollTo(0, 0);
+  };
+  window.resetMenuLayout = function () {
+    st = Object.assign({}, DEF);
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    apply(false);
+  };
+  apply(false);
 })();
 </script>
 </body>
