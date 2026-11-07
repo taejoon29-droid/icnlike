@@ -1786,10 +1786,13 @@ button,[role=button],a,select,summary{touch-action:manipulation}
 #menuBackBtn { display: none; }
 
 body.menu-mode:not(.mv-cal):not(.mv-dash) #menuHome {
+  display: flex; flex-direction: column; gap: 14px;
+  margin-top: 14px;
+}
+.mh-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
   gap: 12px;
-  margin-top: 14px;
 }
 /* 홈: 상단 시계·날씨 바만 남기고 달력/사이드바/대시보드 숨김 */
 body.menu-mode:not(.mv-cal) .pc-cal-col > :not(.pc-top-quickbar) { display: none !important; }
@@ -1803,12 +1806,8 @@ body.menu-mode .pc-quickbar-row2 > :not(.ai-search-wrap):not(.menu-keep) { displ
 body.menu-mode.mv-cal #menuBackBtn,
 body.menu-mode.mv-dash #menuBackBtn { display: flex; }
 
-.mh-sec {
-  grid-column: 1 / -1;
-  font-size: .72rem; font-weight: 800; letter-spacing: .12em;
-  color: var(--text3); margin: 10px 4px 0;
-}
-.mh-sec:first-child { margin-top: 0; }
+
+body.mh-sorting, body.mh-sorting * { cursor: grabbing !important; user-select: none !important; }
 .mh-tile {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   min-height: 104px; padding: 14px 6px;
@@ -1823,11 +1822,28 @@ body.menu-mode.mv-dash #menuBackBtn { display: flex; }
 .mh-tile:active { transform: scale(.95); }
 .mh-ico { font-size: 1.9rem; line-height: 1; }
 .mh-lbl { font-size: .82rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+.mh-grid { min-height: 56px; }
+#mhEditBar { display: none; }
+body.mh-editing #mhEditBar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  position: sticky; top: 8px; z-index: 20;
+  padding: 10px 14px; border-radius: 14px;
+  background: var(--glass-solid, var(--bg2)); border: 1px solid rgba(255,106,61,.5);
+  box-shadow: var(--shadow-md); font-size: .8rem; font-weight: 700; color: var(--text);
+}
+#mhEditBar button {
+  flex-shrink: 0; border: none; border-radius: 999px; padding: 8px 16px;
+  background: var(--grad-accent, var(--accent)); color: #fff; font-weight: 800; font-size: .8rem; cursor: pointer; font-family: inherit;
+}
+body.mh-editing .mh-tile { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; animation: mhWiggle .35s ease-in-out infinite alternate; }
+body.mh-editing .mh-tile.mh-dragging { opacity: .25; animation: none; }
+@keyframes mhWiggle { from { transform: rotate(-1.2deg); } to { transform: rotate(1.2deg); } }
+.mh-ghost { position: fixed; z-index: 9999; pointer-events: none; opacity: .92; transform: scale(1.06); box-shadow: 0 18px 40px rgba(0,0,0,.5); margin: 0; }
 .mh-tile.mh-main { border-color: rgba(255,106,61,.45); background: linear-gradient(160deg, rgba(255,90,60,.14), rgba(255,61,119,.06)), var(--bg2); }
 .mh-tile.mh-sched { border-color: rgba(74,158,255,.35); }
 .mh-tile.mh-mode { border-style: dashed; }
 @media (max-width: 600px) {
-  body.menu-mode:not(.mv-cal):not(.mv-dash) #menuHome { grid-template-columns: repeat(3, 1fr); gap: 9px; }
+  .mh-grid { grid-template-columns: repeat(3, 1fr); gap: 9px; }
   .mh-tile { min-height: 96px; }
 }
 </style>
@@ -2131,32 +2147,30 @@ body.menu-mode.mv-dash #menuBackBtn { display: flex; }
 
 <!-- ══ 메뉴 모드 홈 (버튼 런처) ══ -->
 <div id="menuHome">
-  <div class="mh-sec">화면 보기</div>
-  <button class="mh-tile mh-main" onclick="menuShowView('cal')"><span class="mh-ico">🗓️</span><span class="mh-lbl">달력</span></button>
-  <button class="mh-tile mh-main" onclick="menuShowView('dash')"><span class="mh-ico">📊</span><span class="mh-lbl">대시보드</span></button>
-  <button class="mh-tile" onclick="scrollToWeather()"><span class="mh-ico">🌤️</span><span class="mh-lbl">날씨</span></button>
-  <button class="mh-tile" onclick="openBoard()"><span class="mh-ico">📋</span><span class="mh-lbl">게시판</span></button>
-
-  <div class="mh-sec">일정 · 연차</div>
-  <button class="mh-tile mh-sched" onclick="openRegisterModal()"><span class="mh-ico">✏️</span><span class="mh-lbl">일정등록</span></button>
-  <button class="mh-tile mh-sched" onclick="openAiScan()"><span class="mh-ico">🤖</span><span class="mh-lbl">AI등록</span></button>
-  <button class="mh-tile mh-sched" onclick="openMonthlyOverview()"><span class="mh-ico">📈</span><span class="mh-lbl">이달현황</span></button>
-  <button class="mh-tile mh-sched" onclick="openMonthlyOverview(true)"><span class="mh-ico">🔍</span><span class="mh-lbl">검색</span></button>
-  <button class="mh-tile mh-sched" onclick="openTongsinsil()"><span class="mh-ico">📡</span><span class="mh-lbl">통신실</span></button>
-
-  <div class="mh-sec">바로가기</div>
-  <a class="mh-tile" href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank" rel="noopener noreferrer"><span class="mh-ico">🗺️</span><span class="mh-lbl">지도</span></a>
-  <a class="mh-tile" href="https://news.naver.com/main/home.naver" target="_blank" rel="noopener noreferrer"><span class="mh-ico">📰</span><span class="mh-lbl">뉴스</span></a>
-  <a class="mh-tile" href="https://kko.to/qwL9J1z6gN" target="_blank" rel="noopener noreferrer"><span class="mh-ico">🚌</span><span class="mh-lbl">버스</span></a>
-  <a class="mh-tile" href="https://place.map.kakao.com/SES3133#timeTableSection" target="_blank" rel="noopener noreferrer"><span class="mh-ico">🚇</span><span class="mh-lbl">지하철</span></a>
-  <a class="mh-tile" href="https://icn-cafeteria.web.app/" target="_blank" rel="noopener noreferrer"><span class="mh-ico">🍴</span><span class="mh-lbl">식당</span></a>
-  <a class="mh-tile" href="https://weberp.airportmc.co.kr:8443/" target="_blank" rel="noopener noreferrer"><span class="mh-ico">🕐</span><span class="mh-lbl">근태</span></a>
-  <a class="mh-tile" href="https://gw.airportmc.co.kr/" target="_blank" rel="noopener noreferrer"><span class="mh-ico">📟</span><span class="mh-lbl">핸디</span></a>
-
-  <div class="mh-sec">설정</div>
-  <button class="mh-tile" onclick="openWallpaperModal()"><span class="mh-ico">🖼️</span><span class="mh-lbl">배경</span></button>
-  <button class="mh-tile" onclick="toggleTheme()"><span class="mh-ico">🌗</span><span class="mh-lbl">라이트/다크</span></button>
-  <button class="mh-tile mh-mode" onclick="setHomeMode('default')"><span class="mh-ico">🏠</span><span class="mh-lbl">기본모드로</span></button>
+  <div id="mhEditBar"><span>↕ 순서 편집 중 — 버튼을 끌어 원하는 위치로 옮기세요</span><button onclick="toggleMenuEdit(false)">완료</button></div>
+  <div class="mh-grid" id="mhGrid">
+    <button data-tile="cal" class="mh-tile mh-main" onclick="menuShowView('cal')"><span class="mh-ico">🗓️</span><span class="mh-lbl">달력</span></button>
+    <button data-tile="dash" class="mh-tile mh-main" onclick="menuShowView('dash')"><span class="mh-ico">📊</span><span class="mh-lbl">대시보드</span></button>
+    <button data-tile="weather" class="mh-tile" onclick="scrollToWeather()"><span class="mh-ico">🌤️</span><span class="mh-lbl">날씨</span></button>
+    <button data-tile="board" class="mh-tile" onclick="openBoard()"><span class="mh-ico">📋</span><span class="mh-lbl">게시판</span></button>
+    <button data-tile="reg" class="mh-tile mh-sched" onclick="openRegisterModal()"><span class="mh-ico">✏️</span><span class="mh-lbl">일정등록</span></button>
+    <button data-tile="ai" class="mh-tile mh-sched" onclick="openAiScan()"><span class="mh-ico">🤖</span><span class="mh-lbl">AI등록</span></button>
+    <button data-tile="month" class="mh-tile mh-sched" onclick="openMonthlyOverview()"><span class="mh-ico">📈</span><span class="mh-lbl">이달현황</span></button>
+    <button data-tile="search" class="mh-tile mh-sched" onclick="openMonthlyOverview(true)"><span class="mh-ico">🔍</span><span class="mh-lbl">검색</span></button>
+    <button data-tile="tong" class="mh-tile mh-sched" onclick="openTongsinsil()"><span class="mh-ico">📡</span><span class="mh-lbl">통신실</span></button>
+    <a data-tile="map" class="mh-tile" href="https://www.airport.kr/geomap/ap_ko/view.do?type=2&tmnlId=P01" target="_blank" rel="noopener noreferrer"><span class="mh-ico">🗺️</span><span class="mh-lbl">지도</span></a>
+    <a data-tile="news" class="mh-tile" href="https://news.naver.com/main/home.naver" target="_blank" rel="noopener noreferrer"><span class="mh-ico">📰</span><span class="mh-lbl">뉴스</span></a>
+    <a data-tile="bus" class="mh-tile" href="https://kko.to/qwL9J1z6gN" target="_blank" rel="noopener noreferrer"><span class="mh-ico">🚌</span><span class="mh-lbl">버스</span></a>
+    <a data-tile="subway" class="mh-tile" href="https://place.map.kakao.com/SES3133#timeTableSection" target="_blank" rel="noopener noreferrer"><span class="mh-ico">🚇</span><span class="mh-lbl">지하철</span></a>
+    <a data-tile="food" class="mh-tile" href="https://icn-cafeteria.web.app/" target="_blank" rel="noopener noreferrer"><span class="mh-ico">🍴</span><span class="mh-lbl">식당</span></a>
+    <a data-tile="att" class="mh-tile" href="https://weberp.airportmc.co.kr:8443/" target="_blank" rel="noopener noreferrer"><span class="mh-ico">🕐</span><span class="mh-lbl">근태</span></a>
+    <a data-tile="handy" class="mh-tile" href="https://gw.airportmc.co.kr/" target="_blank" rel="noopener noreferrer"><span class="mh-ico">📟</span><span class="mh-lbl">핸디</span></a>
+    <button data-tile="bg" class="mh-tile" onclick="openWallpaperModal()"><span class="mh-ico">🖼️</span><span class="mh-lbl">배경</span></button>
+    <button data-tile="theme" class="mh-tile" onclick="toggleTheme()"><span class="mh-ico">🌗</span><span class="mh-lbl">라이트/다크</span></button>
+    <button data-tile="edit" class="mh-tile" onclick="toggleMenuEdit(true)"><span class="mh-ico">↕️</span><span class="mh-lbl">순서 편집</span></button>
+    <button data-tile="reset" class="mh-tile" onclick="resetMenuOrder()"><span class="mh-ico">↕️</span><span class="mh-lbl">순서 초기화</span></button>
+    <button data-tile="mode" class="mh-tile mh-mode" onclick="setHomeMode('default')"><span class="mh-ico">🏠</span><span class="mh-lbl">기본모드로</span></button>
+  </div>
 </div>
 
 <!-- ══ PC 모드 하단 대시보드 (날씨만) ══ -->
@@ -7281,20 +7295,32 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
 </script>
 <script>
 // ══════════════════════════════════════════
-// 홈 화면 모드: 기본모드(달력·대시보드) / 메뉴모드(버튼 런처)
+// 홈 화면 모드: 기본모드(달력·대시보드) / 메뉴모드(버튼 런처, 순서 자유 편집)
 // ══════════════════════════════════════════
 (function () {
   'use strict';
   const KEY = 'workhub_home_mode';
+  const TILE_KEY = 'workhub_menu_tiles_v2';   // 버튼 순서(id 배열)
+  const OLD_TILE = 'workhub_menu_tiles', OLD_ORDER = 'workhub_menu_order'; // 카테고리 시절 저장값(이전용)
   const B = document.body;
+  const home = document.getElementById('menuHome');
+  const grid = document.getElementById('mhGrid');
+  const tiles = () => Array.from(grid.querySelectorAll('.mh-tile'));
+  const defaultOrder = tiles().map(t => t.dataset.tile);
 
+  // ── 화면 전환 ──
   function setView(v) {
     B.classList.toggle('mv-cal', v === 'cal');
     B.classList.toggle('mv-dash', v === 'dash');
   }
   function inMenuMode() { return B.classList.contains('menu-mode'); }
 
+  window.toggleMenuEdit = function (on) {
+    B.classList.toggle('mh-editing', !!on);
+    if (on) window.scrollTo(0, 0);
+  };
   window.menuShowView = function (v) {
+    toggleMenuEdit(false);
     setView(v);
     window.scrollTo(0, 0);
     if (v === 'cal' && typeof window.renderCalendar === 'function') window.renderCalendar();
@@ -7304,6 +7330,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
     window.scrollTo(0, 0);
   };
   window.setHomeMode = function (mode) {
+    toggleMenuEdit(false);
     try { localStorage.setItem(KEY, mode); } catch (e) {}
     if (mode === 'menu') {
       B.classList.add('menu-mode');
@@ -7330,6 +7357,99 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
       return origWeather.apply(this, arguments);
     };
   }
+
+  // ── 버튼 순서 저장/복원 ──
+  function applyOrder(ids) {
+    const map = {}; tiles().forEach(t => { map[t.dataset.tile] = t; });
+    ids.forEach(id => { if (map[id]) { grid.appendChild(map[id]); delete map[id]; } });
+    Object.keys(map).forEach(id => grid.appendChild(map[id])); // 저장 목록에 없는 새 버튼은 맨 뒤로
+  }
+  function saveOrder() {
+    try { localStorage.setItem(TILE_KEY, JSON.stringify(tiles().map(t => t.dataset.tile))); } catch (e) {}
+  }
+  function loadOrder() {
+    try {
+      const v2 = JSON.parse(localStorage.getItem(TILE_KEY) || 'null');
+      if (Array.isArray(v2)) return v2;
+      // 카테고리 시절 저장값 → 한 줄 순서로 이전
+      const layout = JSON.parse(localStorage.getItem(OLD_TILE) || 'null');
+      if (layout && typeof layout === 'object') {
+        let gorder = JSON.parse(localStorage.getItem(OLD_ORDER) || 'null');
+        if (!Array.isArray(gorder)) gorder = ['view', 'sched', 'links', 'set'];
+        ['view', 'sched', 'links', 'set'].forEach(k => { if (!gorder.includes(k)) gorder.push(k); });
+        const flat = [];
+        gorder.forEach(k => { if (Array.isArray(layout[k])) flat.push(...layout[k]); });
+        localStorage.setItem(TILE_KEY, JSON.stringify(flat));
+        localStorage.removeItem(OLD_TILE); localStorage.removeItem(OLD_ORDER);
+        return flat;
+      }
+    } catch (e) {}
+    return null;
+  }
+  const saved = loadOrder();
+  if (saved) applyOrder(saved);
+
+  window.resetMenuOrder = function () {
+    try { localStorage.removeItem(TILE_KEY); localStorage.removeItem(OLD_TILE); localStorage.removeItem(OLD_ORDER); } catch (e) {}
+    applyOrder(defaultOrder);
+  };
+
+  // ── 순서 편집: 버튼을 끌어서 이동 (마우스·터치 공용) ──
+  home.addEventListener('click', function (e) {   // 편집 중에는 버튼 실행/링크 이동 차단
+    if (B.classList.contains('mh-editing') && e.target.closest('.mh-tile')) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+
+  let td = null; // { tile, ghost, dx, dy }
+  function onMove(e) {
+    if (!td) return;
+    td.ghost.style.left = (e.clientX - td.dx) + 'px';
+    td.ghost.style.top = (e.clientY - td.dy) + 'px';
+    const x = e.clientX, y = e.clientY;
+    const hit = r => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    let moved = false;
+    for (const t of tiles()) {
+      if (t === td.tile) continue;
+      const r = t.getBoundingClientRect();
+      if (!hit(r)) continue;
+      if (x < r.left + r.width / 2) grid.insertBefore(td.tile, t);
+      else grid.insertBefore(td.tile, t.nextSibling);
+      moved = true; break;
+    }
+    if (!moved && hit(grid.getBoundingClientRect()) && grid.lastElementChild !== td.tile) {
+      // 버튼 사이가 아닌 빈 공간(마지막 줄 오른쪽 등)에 놓으면 맨 뒤로
+      const last = tiles().filter(t => t !== td.tile).pop();
+      if (last) { const lr = last.getBoundingClientRect(); if (y > lr.bottom || (y >= lr.top && x > lr.right)) grid.appendChild(td.tile); }
+    }
+    if (y < 80) window.scrollBy(0, -14);
+    else if (y > window.innerHeight - 80) window.scrollBy(0, 14);
+    e.preventDefault();
+  }
+  function onUp() {
+    if (!td) return;
+    td.ghost.remove(); td.tile.classList.remove('mh-dragging'); B.classList.remove('mh-sorting');
+    td = null;
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onUp);
+    saveOrder();
+  }
+  home.addEventListener('pointerdown', function (e) {
+    if (!B.classList.contains('mh-editing')) return;
+    const tile = e.target.closest('.mh-tile');
+    if (!tile || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    e.preventDefault();
+    const r = tile.getBoundingClientRect();
+    const ghost = tile.cloneNode(true);
+    ghost.classList.add('mh-ghost'); ghost.removeAttribute('onclick'); ghost.removeAttribute('href');
+    ghost.style.width = r.width + 'px'; ghost.style.height = r.height + 'px';
+    ghost.style.left = r.left + 'px'; ghost.style.top = r.top + 'px';
+    document.body.appendChild(ghost);
+    td = { tile, ghost, dx: e.clientX - r.left, dy: e.clientY - r.top };
+    tile.classList.add('mh-dragging'); B.classList.add('mh-sorting');
+    document.addEventListener('pointermove', onMove, { passive: false });
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+  });
 
   // 마지막으로 쓴 모드 복원
   try { if (localStorage.getItem(KEY) === 'menu') setHomeMode('menu'); } catch (e) {}
