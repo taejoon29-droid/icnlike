@@ -1803,96 +1803,83 @@ body.menu-mode.mv-dash #menuBackBtn { display: flex; }
 
 body.mh-sorting, body.mh-sorting * { cursor: grabbing !important; user-select: none !important; }
 
-/* ── 믹서 본체(데크) ── */
+/* ── 네온 패드 버튼 스타일 (하드웨어 컨트롤러 느낌) ── */
 #mhDeck {
-  --led: #43e0a0;
-  position: relative;
-  padding: 14px 16px 18px;
-  border-radius: 24px;
-  border: 1px solid #000;
-  background:
-    radial-gradient(circle at 13px 13px, #8a90a3 0 2px, #2a2d36 2.5px 4.5px, transparent 5px),
-    radial-gradient(circle at calc(100% - 13px) 13px, #8a90a3 0 2px, #2a2d36 2.5px 4.5px, transparent 5px),
-    radial-gradient(circle at 13px calc(100% - 13px), #8a90a3 0 2px, #2a2d36 2.5px 4.5px, transparent 5px),
-    radial-gradient(circle at calc(100% - 13px) calc(100% - 13px), #8a90a3 0 2px, #2a2d36 2.5px 4.5px, transparent 5px),
-    repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, #2b2e37 0%, #1a1c22 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), inset 0 -2px 0 rgba(0,0,0,.5), 0 18px 40px rgba(0,0,0,.45);
+  position: relative; max-width: 640px; margin: 0 auto; padding: 16px 14px 20px;
+  background: none; border: none; box-shadow: none;
 }
-.mh-deckhead { display: flex; align-items: center; justify-content: space-between; padding: 2px 22px 12px; }
-.mh-brand { font: 800 .72rem/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; letter-spacing: .28em; color: #aeb4c6; }
-.mh-brand b { margin-left: 8px; padding: 2px 7px; border-radius: 4px; background: #ff5a3c; color: #14151a; letter-spacing: .12em; }
-.mh-vu { display: flex; align-items: flex-end; gap: 3px; height: 16px; }
-.mh-vu i {
-  width: 5px; height: 100%; border-radius: 2px; transform-origin: bottom;
-  background: linear-gradient(180deg, #ff4d6a 0 22%, #ffd45e 22% 48%, #43e0a0 48%);
-  animation: mhVu 1s ease-in-out infinite alternate;
-}
-.mh-vu i:nth-child(1){animation-delay:-.1s} .mh-vu i:nth-child(2){animation-delay:-.45s} .mh-vu i:nth-child(3){animation-delay:-.2s}
-.mh-vu i:nth-child(4){animation-delay:-.7s} .mh-vu i:nth-child(5){animation-delay:-.35s} .mh-vu i:nth-child(6){animation-delay:-.6s}
-.mh-vu i:nth-child(7){animation-delay:-.05s} .mh-vu i:nth-child(8){animation-delay:-.5s}
-@keyframes mhVu { from { transform: scaleY(.2); } to { transform: scaleY(1); } }
+.mh-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 12px; min-height: 56px; }
+@media (min-width: 601px) { .mh-grid { grid-template-columns: repeat(4, 1fr); gap: 16px 14px; } }
 
-.mh-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
-  gap: 14px;
-  counter-reset: mhn;
-  min-height: 56px;
-}
-
-/* ── 패드 버튼 ── */
 .mh-tile {
-  --led: #43e0a0;
-  position: relative;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-  min-height: 112px; padding: 18px 6px 12px;
-  color: #e9ecf4; font-family: inherit; text-decoration: none; cursor: pointer;
-  border: 1px solid #07080a; border-radius: 14px;
-  background: linear-gradient(180deg, #343843 0%, #23262e 48%, #1a1c22 100%);
+  --neon: #43e0a0;
+  --neon-soft: color-mix(in srgb, var(--neon) 55%, #fff);
+  position: relative; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
+  min-height: 92px; padding: 10px 4px;
+  color: var(--neon-soft); font-family: inherit; text-decoration: none; cursor: pointer;
+  border-radius: 12px;
+  border: 1.5px solid color-mix(in srgb, var(--neon) 60%, #000);
+  background: linear-gradient(180deg, #2c2e35 0%, #1a1b20 55%, #141519 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.18),
-    inset 0 -3px 0 rgba(0,0,0,.4),
-    0 5px 0 #08090c,
-    0 10px 16px rgba(0,0,0,.5);
-  transition: transform .09s ease, box-shadow .09s ease, border-color .2s ease;
-  counter-increment: mhn;
+    inset 0 1px 0 rgba(255,255,255,.16),
+    inset 0 0 14px color-mix(in srgb, var(--neon) 24%, transparent),
+    0 0 9px color-mix(in srgb, var(--neon) 42%, transparent),
+    0 4px 0 #050506, 0 9px 14px rgba(0,0,0,.55);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .09s ease, box-shadow .15s ease, border-color .15s ease;
+  animation: mhGlow 3.2s ease-in-out infinite alternate;
 }
-/* LED 스트립 */
+/* 안쪽 테두리(러버 패드 느낌) */
 .mh-tile::before {
-  content: ''; position: absolute; top: 7px; left: 50%; width: 38%; height: 4px; transform: translateX(-50%);
-  border-radius: 3px; background: var(--led);
-  box-shadow: 0 0 5px var(--led), 0 0 14px var(--led);
-  opacity: .8; transition: opacity .15s ease;
+  content: ''; position: absolute; inset: 3px; border-radius: 9px; pointer-events: none;
+  border: 1px solid rgba(255,255,255,.07);
+  background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--neon) 14%, transparent), transparent 70%);
 }
-/* 채널 번호 */
-.mh-tile::after {
-  content: counter(mhn, decimal-leading-zero);
-  position: absolute; top: 5px; left: 9px;
-  font: 700 .56rem/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; letter-spacing: .08em;
-  color: rgba(255,255,255,.32);
+.mh-tile:nth-child(3n)   { animation-delay: -1.1s; }
+.mh-tile:nth-child(3n+1) { animation-delay: -2.1s; }
+@keyframes mhGlow {
+  from { box-shadow: inset 0 1px 0 rgba(255,255,255,.16), inset 0 0 12px color-mix(in srgb, var(--neon) 18%, transparent), 0 0 6px color-mix(in srgb, var(--neon) 30%, transparent), 0 4px 0 #050506, 0 9px 14px rgba(0,0,0,.55); }
+  to   { box-shadow: inset 0 1px 0 rgba(255,255,255,.16), inset 0 0 18px color-mix(in srgb, var(--neon) 32%, transparent), 0 0 14px color-mix(in srgb, var(--neon) 55%, transparent), 0 4px 0 #050506, 0 9px 14px rgba(0,0,0,.55); }
 }
-.mh-tile:hover { border-color: var(--led); box-shadow: inset 0 1px 0 rgba(255,255,255,.2), inset 0 -3px 0 rgba(0,0,0,.4), 0 5px 0 #08090c, 0 10px 16px rgba(0,0,0,.5), 0 0 18px color-mix(in srgb, var(--led) 38%, transparent); }
-.mh-tile:hover::before { opacity: 1; }
+.mh-tile:hover { border-color: var(--neon); }
 .mh-tile:active {
-  transform: translateY(4px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), inset 0 -1px 0 rgba(0,0,0,.4), 0 1px 0 #08090c, 0 3px 6px rgba(0,0,0,.5), 0 0 22px color-mix(in srgb, var(--led) 55%, transparent);
+  animation: none; transform: translateY(3px);
+  border-color: var(--neon);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), inset 0 0 22px color-mix(in srgb, var(--neon) 45%, transparent), 0 0 20px color-mix(in srgb, var(--neon) 75%, transparent), 0 1px 0 #050506, 0 3px 6px rgba(0,0,0,.55);
 }
-.mh-tile:active::before { opacity: 1; width: 52%; }
-/* 노브(아이콘 자리) */
 .mh-ico {
-  display: flex; align-items: center; justify-content: center;
-  width: 46px; height: 46px; border-radius: 50%; font-size: 1.5rem; line-height: 1;
-  background: radial-gradient(circle at 50% 30%, #2c2f39, #101216);
-  box-shadow: inset 0 2px 5px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.1);
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: auto; height: auto; font-size: 1.75rem; line-height: 1; background: none; box-shadow: none;
+  filter: drop-shadow(0 0 5px var(--neon)) drop-shadow(0 0 12px color-mix(in srgb, var(--neon) 60%, transparent));
 }
-.mh-lbl { font-size: .78rem; font-weight: 800; color: #dfe3ee; letter-spacing: .01em; }
+.mh-lbl {
+  position: relative; max-width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: .78rem; font-weight: 800; letter-spacing: .05em; line-height: 1.2; color: var(--neon-soft);
+  text-shadow: 0 0 4px var(--neon), 0 0 10px color-mix(in srgb, var(--neon) 70%, transparent), 0 0 18px color-mix(in srgb, var(--neon) 45%, transparent);
+}
 
-/* 버튼별 LED 색 */
-.mh-tile[data-tile="cal"], .mh-tile[data-tile="dash"], .mh-tile[data-tile="weather"], .mh-tile[data-tile="board"] { --led: #ff6a3d; }
-.mh-tile[data-tile="reg"], .mh-tile[data-tile="ai"], .mh-tile[data-tile="month"], .mh-tile[data-tile="search"], .mh-tile[data-tile="tong"] { --led: #4aa8ff; }
-.mh-tile[data-tile="bg"], .mh-tile[data-tile="theme"], .mh-tile[data-tile="edit"], .mh-tile[data-tile="reset"] { --led: #b99bff; }
-.mh-tile[data-tile="mode"] { --led: #ff4d6a; }
+/* 버튼별 네온 색 */
+.mh-tile[data-tile="cal"]     { --neon:#ff6a3d; }
+.mh-tile[data-tile="dash"]    { --neon:#4aa8ff; }
+.mh-tile[data-tile="weather"] { --neon:#56ccf2; }
+.mh-tile[data-tile="board"]   { --neon:#ffd45e; }
+.mh-tile[data-tile="reg"]     { --neon:#43e0a0; }
+.mh-tile[data-tile="ai"]      { --neon:#b99bff; }
+.mh-tile[data-tile="month"]   { --neon:#ff5d8f; }
+.mh-tile[data-tile="search"]  { --neon:#5ac8fa; }
+.mh-tile[data-tile="tong"]    { --neon:#3d7bff; }
+.mh-tile[data-tile="map"]     { --neon:#7dff6a; }
+.mh-tile[data-tile="news"]    { --neon:#d9deee; }
+.mh-tile[data-tile="bus"]     { --neon:#3dffe0; }
+.mh-tile[data-tile="subway"]  { --neon:#8a7dff; }
+.mh-tile[data-tile="food"]    { --neon:#ff8a3d; }
+.mh-tile[data-tile="att"]     { --neon:#c28bff; }
+.mh-tile[data-tile="handy"]   { --neon:#6c8cff; }
+.mh-tile[data-tile="bg"]      { --neon:#ff4fd8; }
+.mh-tile[data-tile="theme"]   { --neon:#fff27a; }
+.mh-tile[data-tile="edit"], .mh-tile[data-tile="reset"] { --neon:#b8bdd0; }
+.mh-tile[data-tile="mode"]    { --neon:#ff4d6a; }
 
 /* ── 순서 편집 ── */
 #mhEditBar { display: none; }
@@ -1916,35 +1903,23 @@ body.mh-editing #mhEditBar {
 }
 .mh-zone.hot { color: #14151a; background: #ffd45e; border-color: #ffd45e; transform: scale(1.04); }
 
-/* 편집 중에는 한 화면에 다 들어오도록 작게 */
-body.mh-editing .mh-grid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; }
-body.mh-editing #mhDeck { padding: 10px 10px 14px; }
-body.mh-editing .mh-deckhead { display: none; }
+/* 편집 중: 패드가 흔들리며 끌어서 이동 */
+body.mh-editing #mhDeck { padding: 10px 8px 14px; }
+body.mh-editing .mh-grid { grid-template-columns: repeat(4, 1fr); gap: 9px 7px; }
 body.mh-editing .mh-tile {
-  min-height: 66px; padding: 13px 2px 6px; gap: 3px; border-radius: 11px;
+  min-height: 66px; padding: 6px 2px; gap: 4px; border-radius: 10px;
   cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), inset 0 -2px 0 rgba(0,0,0,.4), 0 3px 0 #08090c;
   animation: mhWiggle .35s ease-in-out infinite alternate;
 }
-body.mh-editing .mh-tile::before { top: 5px; height: 3px; }
-body.mh-editing .mh-tile::after { top: 4px; left: 6px; font-size: .5rem; }
-body.mh-editing .mh-ico { width: 28px; height: 28px; font-size: 1rem; }
-body.mh-editing .mh-lbl { font-size: .6rem; }
+body.mh-editing .mh-tile::before { inset: 2px; border-radius: 8px; }
+body.mh-editing .mh-ico { font-size: 1.2rem; }
+body.mh-editing .mh-lbl { font-size: .6rem; letter-spacing: .02em; }
 body.mh-editing .mh-tile.mh-dragging { opacity: .25; animation: none; }
-@keyframes mhWiggle { from { transform: rotate(-1.1deg); } to { transform: rotate(1.1deg); } }
-.mh-ghost { position: fixed; z-index: 9999; pointer-events: none; opacity: .95; margin: 0; transform: scale(1.1); }
-.mh-ghost::after { display: none; }
-body.mh-editing .mh-ghost { animation: none; }
-
-@media (max-width: 600px) {
-  #mhDeck { padding: 12px 10px 16px; border-radius: 20px; }
-  .mh-deckhead { padding: 2px 16px 10px; }
-  .mh-grid { grid-template-columns: repeat(3, 1fr); gap: 11px; }
-  .mh-tile { min-height: 100px; padding: 17px 4px 10px; }
-  .mh-ico { width: 42px; height: 42px; font-size: 1.35rem; }
-  body.mh-editing .mh-grid { grid-template-columns: repeat(4, 1fr); gap: 7px; }
-  body.mh-editing .mh-ico { width: 28px; height: 28px; font-size: 1rem; }
-}
+@keyframes mhWiggle { from { transform: rotate(-1.3deg); } to { transform: rotate(1.3deg); } }
+.mh-ghost { position: fixed; z-index: 9999; pointer-events: none; opacity: .95; margin: 0; transform: scale(1.12); animation: none !important; }
+@media (min-width: 601px) { body.mh-editing .mh-grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); } }
+@media (max-width: 400px) { .mh-tile { min-height: 86px; } .mh-lbl { font-size: .72rem; } }
+@media (prefers-reduced-motion: reduce) { .mh-tile { animation: none; } }
 </style>
 </head>
 <body class="pc-mode">
@@ -2251,7 +2226,6 @@ body.mh-editing .mh-ghost { animation: none; }
     <div class="mh-eb-zones"><span id="mhDropTop" class="mh-zone">⤒ 여기에 놓으면 맨 위로</span><span id="mhDropEnd" class="mh-zone">⤓ 여기에 놓으면 맨 아래로</span></div>
   </div>
   <div id="mhDeck">
-    <div class="mh-deckhead"><span class="mh-brand">WORKHUB<b>MIXER</b></span><span class="mh-vu"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
     <div class="mh-grid" id="mhGrid">
       <button data-tile="cal" class="mh-tile mh-main" onclick="menuShowView('cal')"><span class="mh-ico">🗓️</span><span class="mh-lbl">달력</span></button>
       <button data-tile="dash" class="mh-tile mh-main" onclick="menuShowView('dash')"><span class="mh-ico">📊</span><span class="mh-lbl">대시보드</span></button>
