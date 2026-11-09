@@ -2230,8 +2230,15 @@ body.menu-mode.mh-layouting:not(.mv-cal):not(.mv-dash) #mhLayoutPanel {
             <span id="bulkDeleteArrow" style="font-size:0.7rem;transition:transform 0.2s;">▼</span>
           </button>
           <div id="bulkDeleteBody" style="display:none;padding:0 10px 10px;display:none;">
+            <div id="bulkCatChips" style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px;">
+              <button data-bulkcat="vac" onclick="setBulkCat('vac')">🏖️ 연차</button>
+              <button data-bulkcat="sched" onclick="setBulkCat('sched')">📅 일정</button>
+              <button data-bulkcat="quart" onclick="setBulkCat('quart')">🟡 분기점검</button>
+              <button data-bulkcat="annual" onclick="setBulkCat('annual')">🔴 연간점검</button>
+              <button data-bulkcat="all" onclick="setBulkCat('all')">전체</button>
+            </div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px;" id="bulkMonthBtns"></div>
-            <button onclick="bulkDeleteAll()" style="width:100%;background:rgba(232,84,58,0.12);border:1px solid rgba(232,84,58,0.3);color:#ff8a76;border-radius:8px;padding:7px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ 전체 연도 삭제</button>
+            <button id="bulkAllBtn" onclick="bulkDeleteAll()" style="width:100%;background:rgba(232,84,58,0.12);border:1px solid rgba(232,84,58,0.3);color:#ff8a76;border-radius:8px;padding:7px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ 전체 연도 삭제</button>
           </div>
         </div>
       </div>
@@ -6152,6 +6159,28 @@ async function _checkPassword() {
       setTimeout(() => { alert(`✅ ${catLabel} ${count}건 삭제 완료`); }, 400);
       return;
     }
+    if (key && key.startsWith('bulk_mcat:')) {
+      document.getElementById('deletePwModal').style.display = 'none';
+      const parts = key.split(':');
+      const cat = parts[1], ym = parts[2];
+      const count = await _doBulkDeleteFiltered(ym, _bulkPredicate(cat));
+      setTimeout(() => { alert(`✅ ${ym.replace('-', '년 ')}월 ${_BULK_CAT_LABEL[cat]} ${count}건 삭제 완료`); }, 400);
+      return;
+    }
+    if (key && key.startsWith('bulk_acat:')) {
+      document.getElementById('deletePwModal').style.display = 'none';
+      const cat = key.split(':')[1];
+      const pred = _bulkPredicate(cat);
+      const data = window._vacationData || {};
+      const years = [...new Set(Object.keys(data).map(k => k.slice(0, 4)))];
+      let count = 0;
+      for (const y of years) {
+        const months = [...new Set(Object.keys(data).filter(k => k.startsWith(y + '-')).map(k => k.slice(0, 7)))];
+        for (const ym of months) count += await _doBulkDeleteFiltered(ym, pred);
+      }
+      setTimeout(() => { alert(`✅ 전체 ${_BULK_CAT_LABEL[cat]} ${count}건 삭제 완료`); }, 400);
+      return;
+    }
     if (key === 'bulk_all') {
       document.getElementById('deletePwModal').style.display = 'none';
       const data = window._vacationData || {};
@@ -6356,29 +6385,53 @@ function toggleBulkDelete() {
   }
 }
 
+let _bulkCat = 'vac';
+const _BULK_CAT_LABEL = { vac: '연차', sched: '일정', quart: '분기점검', annual: '연간점검', all: '전체' };
+function _bulkPredicate(cat) {
+  if (cat === 'vac')   return it => isItemVac(it);
+  if (cat === 'quart') return it => it.type === '분기점검';
+  if (cat === 'annual') return it => it.type === '연간점검';
+  if (cat === 'sched') return it => !isItemVac(it) && it.type !== '분기점검' && it.type !== '연간점검';
+  return () => true;
+}
+function setBulkCat(cat) {
+  _bulkCat = cat;
+  _renderBulkMonthBtns();
+}
 function _renderBulkMonthBtns() {
   const container = document.getElementById('bulkMonthBtns');
   if (!container) return;
+  // 카테고리 칩 스타일
+  document.querySelectorAll('#bulkCatChips button').forEach(c => {
+    const on = c.dataset.bulkcat === _bulkCat;
+    c.style.cssText = 'border-radius:8px;padding:6px 4px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;' +
+      (on ? 'background:rgba(232,84,58,0.2);color:#ff8a76;border:1px solid rgba(232,84,58,0.5);'
+          : 'background:var(--bg4);color:var(--text2);border:1px solid var(--border);');
+  });
+  const allBtn = document.getElementById('bulkAllBtn');
+  if (allBtn) allBtn.textContent = '🗑️ 전체 연도 ' + _BULK_CAT_LABEL[_bulkCat] + ' 삭제';
+  const pred = _bulkPredicate(_bulkCat);
   const data = window._vacationData || {};
-  // 데이터가 있는 연·월 집합
-  const monthSet = new Set();
+  // 선택한 카테고리 항목이 있는 연·월별 건수
+  const monthCount = {};
   Object.keys(data).forEach(k => {
-    if ((data[k] || []).some(i => i.name)) {
+    const n = (data[k] || []).filter(i => i && i.name && pred(i)).length;
+    if (n > 0) {
       const [y, m] = k.split('-');
-      monthSet.add(y + '-' + m);
+      monthCount[y + '-' + m] = (monthCount[y + '-' + m] || 0) + n;
     }
   });
-  const sorted = [...monthSet].sort();
+  const sorted = Object.keys(monthCount).sort();
   container.innerHTML = '';
   if (sorted.length === 0) {
-    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text3);font-size:0.75rem;padding:6px 0;">삭제할 데이터가 없습니다</div>';
+    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text3);font-size:0.75rem;padding:6px 0;">삭제할 ' + _BULK_CAT_LABEL[_bulkCat] + ' 데이터가 없습니다</div>';
     return;
   }
   sorted.forEach(ym => {
     const [y, m] = ym.split('-');
     const btn = document.createElement('button');
-    btn.textContent = m + '월';
-    btn.title = y + '년 ' + m + '월 전체 삭제';
+    btn.textContent = m + '월 (' + monthCount[ym] + ')';
+    btn.title = y + '년 ' + m + '월 ' + _BULK_CAT_LABEL[_bulkCat] + ' 삭제';
     btn.style.cssText = 'background:var(--bg4);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:6px 4px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;transition:0.15s;';
     btn.onmouseover = () => { btn.style.background = 'rgba(232,84,58,0.2)'; btn.style.color = '#ff8a76'; btn.style.borderColor = 'rgba(232,84,58,0.4)'; };
     btn.onmouseout  = () => { btn.style.background = 'var(--bg4)'; btn.style.color = 'var(--text2)'; btn.style.borderColor = 'var(--border)'; };
@@ -6389,21 +6442,21 @@ function _renderBulkMonthBtns() {
 
 async function bulkDeleteMonth(year, month) {
   const data = window._vacationData || {};
-  const targets = Object.keys(data).filter(k => {
+  const pred = _bulkPredicate(_bulkCat);
+  const has = Object.keys(data).some(k => {
     const [y, m] = k.split('-');
-    return y === year && m === month && (data[k] || []).some(i => i.name);
+    return y === year && m === month && (data[k] || []).some(i => i && i.name && pred(i));
   });
-  if (targets.length === 0) { alert('해당 월에 삭제할 데이터가 없습니다.'); return; }
-  const total = targets.reduce((s, k) => s + (data[k] || []).length, 0);
-  showDeletePwModal('bulk_month:' + year + '-' + month, 'bulk_month', null);
+  if (!has) { alert('해당 월에 삭제할 ' + _BULK_CAT_LABEL[_bulkCat] + ' 데이터가 없습니다.'); return; }
+  showDeletePwModal('bulk_mcat:' + _bulkCat + ':' + year + '-' + month, 'bulk_mcat', null);
 }
 
 async function bulkDeleteAll() {
   const data = window._vacationData || {};
-  const targets = Object.keys(data).filter(k => (data[k] || []).some(i => i.name));
-  if (targets.length === 0) { alert('삭제할 데이터가 없습니다.'); return; }
-  const total = targets.reduce((s, k) => s + (data[k] || []).length, 0);
-  showDeletePwModal('bulk_all', 'bulk_all', null);
+  const pred = _bulkPredicate(_bulkCat);
+  const has = Object.keys(data).some(k => (data[k] || []).some(i => i && i.name && pred(i)));
+  if (!has) { alert('삭제할 ' + _BULK_CAT_LABEL[_bulkCat] + ' 데이터가 없습니다.'); return; }
+  showDeletePwModal('bulk_acat:' + _bulkCat, 'bulk_acat', null);
 }
 
 async function _doBulkDelete(dateKeys) {
