@@ -1808,7 +1808,7 @@ body.mh-sorting, body.mh-sorting * { cursor: grabbing !important; user-select: n
   position: relative; max-width: 640px; margin: 0 auto; padding: 16px 14px 20px;
   background: none; border: none; box-shadow: none;
 }
-.mh-grid { display: grid; grid-template-columns: repeat(var(--mh-cols, 4), 1fr); gap: var(--mh-gap, 14px); min-height: 56px; }
+.mh-grid { display: grid; grid-template-columns: repeat(var(--mh-cols, 5), 1fr); gap: var(--mh-gap, 14px); min-height: 56px; }
 
 .mh-tile {
   --neon: #43e0a0;
@@ -2238,6 +2238,7 @@ body.menu-mode.mh-layouting:not(.mv-cal):not(.mv-dash) #mhLayoutPanel {
               <button data-bulkcat="all" onclick="setBulkCat('all')">전체</button>
             </div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px;" id="bulkMonthBtns"></div>
+            <button id="bulkUndoBtn" onclick="undoLastDelete()" style="display:none;width:100%;margin-bottom:8px;background:rgba(74,158,255,0.12);border:1px solid rgba(74,158,255,0.35);color:#4a9eff;border-radius:8px;padding:7px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;"></button>
             <button id="bulkAllBtn" onclick="bulkDeleteAll()" style="width:100%;background:rgba(232,84,58,0.12);border:1px solid rgba(232,84,58,0.3);color:#ff8a76;border-radius:8px;padding:7px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ 전체 연도 삭제</button>
           </div>
         </div>
@@ -4514,6 +4515,13 @@ async function deleteItem(key, idx) {
 
 async function _doDeleteItem(key, idx, fsId) {
   await waitForVacationAPI(3000);
+  _undoReset();
+  const _it = (window._vacationData[key] || []).find(x => fsId && x._firestoreId === fsId) || (window._vacationData[key] || [])[idx];
+  _undoCapture(key, _it);
+  await _doDeleteItemRaw(key, idx, fsId);
+  _undoCommit((_it && _it.name ? '"' + _it.name + '"' : '항목') + ' 삭제됨');
+}
+async function _doDeleteItemRaw(key, idx, fsId) {
   if (window._vacationAPI) {
     try { await window._vacationAPI.removeVacation(key, idx, fsId); }
     catch(e) { alert('삭제 실패: ' + e.message); }
@@ -6155,16 +6163,18 @@ async function _checkPassword() {
       const ymPrefix = rest.slice(sep + 1);
       const predicate = _moCategoryPredicate(catKey);
       const catLabel = catKey === 'quart' ? '분기점검' : catKey === 'annual' ? '연간점검' : '연차';
+      _undoReset();
       const count = await _doBulkDeleteFiltered(ymPrefix, predicate);
-      setTimeout(() => { alert(`✅ ${catLabel} ${count}건 삭제 완료`); }, 400);
+      _undoCommit(`${ymPrefix.replace('-', '년 ')}월 ${catLabel} ${count}건 삭제됨`);
       return;
     }
     if (key && key.startsWith('bulk_mcat:')) {
       document.getElementById('deletePwModal').style.display = 'none';
       const parts = key.split(':');
       const cat = parts[1], ym = parts[2];
+      _undoReset();
       const count = await _doBulkDeleteFiltered(ym, _bulkPredicate(cat));
-      setTimeout(() => { alert(`✅ ${ym.replace('-', '년 ')}월 ${_BULK_CAT_LABEL[cat]} ${count}건 삭제 완료`); }, 400);
+      _undoCommit(`${ym.replace('-', '년 ')}월 ${_BULK_CAT_LABEL[cat]} ${count}건 삭제됨`);
       return;
     }
     if (key && key.startsWith('bulk_acat:')) {
@@ -6174,11 +6184,12 @@ async function _checkPassword() {
       const data = window._vacationData || {};
       const years = [...new Set(Object.keys(data).map(k => k.slice(0, 4)))];
       let count = 0;
+      _undoReset();
       for (const y of years) {
         const months = [...new Set(Object.keys(data).filter(k => k.startsWith(y + '-')).map(k => k.slice(0, 7)))];
         for (const ym of months) count += await _doBulkDeleteFiltered(ym, pred);
       }
-      setTimeout(() => { alert(`✅ 전체 ${_BULK_CAT_LABEL[cat]} ${count}건 삭제 완료`); }, 400);
+      _undoCommit(`전체 ${_BULK_CAT_LABEL[cat]} ${count}건 삭제됨`);
       return;
     }
     if (key === 'bulk_all') {
@@ -6186,8 +6197,9 @@ async function _checkPassword() {
       const data = window._vacationData || {};
       const targets = Object.keys(data).filter(k => (data[k] || []).some(i => i.name));
       const total = targets.reduce((s, k) => s + (data[k] || []).length, 0);
+      _undoReset();
       await _doBulkDelete(targets);
-      setTimeout(() => { alert(`✅ 전체 ${total}건 삭제 완료`); }, 400);
+      _undoCommit(`전체 ${total}건 삭제됨`);
       return;
     }
     if (key && key.startsWith('bulk_month:')) {
@@ -6200,8 +6212,9 @@ async function _checkPassword() {
         return y === year && m === month && (data[k] || []).some(i => i.name);
       });
       const total = targets.reduce((s, k) => s + (data[k] || []).length, 0);
+      _undoReset();
       await _doBulkDelete(targets);
-      setTimeout(() => { alert(`✅ ${year}년 ${month}월 ${total}건 삭제 완료`); }, 400);
+      _undoCommit(`${year}년 ${month}월 ${total}건 삭제됨`);
       return;
     }
     if (idx === 'bulk_day') {
@@ -6210,9 +6223,10 @@ async function _checkPassword() {
       const items = data[key] || [];
       const valid = items.filter(i => i.name || i.type);
       const [y, mo, d] = key.split('-');
+      _undoReset();
       await _doBulkDelete([key]);
       closeDayDetailDirect();
-      setTimeout(() => { alert(`✅ ${mo}월 ${d}일 ${valid.length}건 삭제 완료`); }, 400);
+      _undoCommit(`${mo}월 ${d}일 ${valid.length}건 삭제됨`);
       return;
     }
 
@@ -6408,6 +6422,7 @@ function _renderBulkMonthBtns() {
       (on ? 'background:rgba(232,84,58,0.2);color:#ff8a76;border:1px solid rgba(232,84,58,0.5);'
           : 'background:var(--bg4);color:var(--text2);border:1px solid var(--border);');
   });
+  _updateUndoBtn();
   const allBtn = document.getElementById('bulkAllBtn');
   if (allBtn) allBtn.textContent = '🗑️ 전체 연도 ' + _BULK_CAT_LABEL[_bulkCat] + ' 삭제';
   const pred = _bulkPredicate(_bulkCat);
@@ -6459,12 +6474,83 @@ async function bulkDeleteAll() {
   showDeletePwModal('bulk_acat:' + _bulkCat, 'bulk_acat', null);
 }
 
+// ════════════════════════════════
+// ↩ 삭제 되돌리기 (최근 10건의 삭제 작업 보관)
+// ════════════════════════════════
+const _undoStack = [];
+let _undoPending = [];
+let _undoToastTimer = null;
+function _undoReset() { _undoPending = []; }
+function _undoCapture(key, item) {
+  if (!item) return;
+  const copy = JSON.parse(JSON.stringify(item));
+  delete copy._firestoreId;
+  _undoPending.push({ key, item: copy });
+}
+function _undoCommit(msg) {
+  if (_undoPending.length === 0) return;
+  _undoStack.push({ msg, entries: _undoPending });
+  if (_undoStack.length > 10) _undoStack.shift();
+  _undoPending = [];
+  _showUndoToast(msg);
+  _updateUndoBtn();
+}
+function _updateUndoBtn() {
+  const btn = document.getElementById('bulkUndoBtn');
+  if (!btn) return;
+  const last = _undoStack[_undoStack.length - 1];
+  btn.style.display = last ? 'block' : 'none';
+  if (last) btn.textContent = '↩ 되돌리기 — ' + last.msg;
+}
+function _showUndoToast(msg) {
+  let t = document.getElementById('undoToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'undoToast';
+    t.style.cssText = 'position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:99999;background:var(--bg2,#222);color:var(--text,#fff);border:1px solid var(--border,#444);border-radius:12px;padding:10px 14px;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,0.45);max-width:92vw;';
+    document.body.appendChild(t);
+  }
+  t.innerHTML = '<span>✅ ' + escHtml(msg) + '</span>' +
+    '<button onclick="undoLastDelete()" style="background:rgba(74,158,255,0.15);border:1px solid rgba(74,158,255,0.4);color:#4a9eff;border-radius:8px;padding:5px 10px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">↩ 되돌리기</button>' +
+    '<button onclick="_hideUndoToast()" style="background:none;border:none;color:var(--text3,#999);cursor:pointer;font-size:1rem;">✕</button>';
+  t.style.display = 'flex';
+  clearTimeout(_undoToastTimer);
+  _undoToastTimer = setTimeout(_hideUndoToast, 12000);
+}
+function _hideUndoToast() {
+  const t = document.getElementById('undoToast');
+  if (t) t.style.display = 'none';
+  clearTimeout(_undoToastTimer);
+}
+async function undoLastDelete() {
+  const last = _undoStack.pop();
+  if (!last) { _hideUndoToast(); _updateUndoBtn(); return; }
+  _hideUndoToast();
+  await waitForVacationAPI(5000);
+  let ok = 0, fail = 0;
+  for (const { key, item } of last.entries) {
+    try {
+      if (!window._vacationAPI) throw new Error('API 없음');
+      await window._vacationAPI.saveVacation(key, JSON.parse(JSON.stringify(item)));
+      ok++;
+    } catch (e) { console.warn('복원 실패:', key, e); fail++; }
+  }
+  if (typeof window.renderCalendar === 'function') window.renderCalendar();
+  if (typeof renderSidebarSchedule === 'function') renderSidebarSchedule();
+  if (typeof _renderBulkMonthBtns === 'function') _renderBulkMonthBtns();
+  const moModal = document.getElementById('monthlyOverviewModal');
+  if (moModal && moModal.style.display === 'flex' && typeof renderMonthlyOverview === 'function') renderMonthlyOverview();
+  _updateUndoBtn();
+  alert(fail ? `↩ ${ok}건 복원, ${fail}건 실패` : `↩ ${ok}건 복원 완료`);
+}
+
 async function _doBulkDelete(dateKeys) {
   await waitForVacationAPI(5000);
   for (const key of dateKeys) {
     const items = [...(window._vacationData[key] || [])];
     for (let i = items.length - 1; i >= 0; i--) {
       const fsId = items[i]._firestoreId || null;
+      _undoCapture(key, items[i]);
       try {
         if (window._vacationAPI) await window._vacationAPI.removeVacation(key, i, fsId);
       } catch(e) { console.warn('삭제 실패:', key, i, e); }
@@ -6796,6 +6882,7 @@ async function _doBulkDeleteFiltered(ymPrefix, predicate) {
       const it = items[i];
       if (!it || !it.name || !predicate(it)) continue;
       const fsId = it._firestoreId || null;
+      _undoCapture(key, it);
       try {
         if (window._vacationAPI) await window._vacationAPI.removeVacation(key, i, fsId);
         count++;
@@ -7652,7 +7739,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
 (function () {
   'use strict';
   const KEY = 'workhub_menu_layout_v1';
-  const DEF = { s: 100, g: 14, c: 4 };           // c: 한 줄 버튼 개수(기본 4)
+  const DEF = { s: 100, g: 14, c: 5 };           // c: 한 줄 버튼 개수(기본 5)
   const deck = document.getElementById('mhDeck');
   const size = document.getElementById('mhlSize'), gap = document.getElementById('mhlGap');
   const sizeV = document.getElementById('mhlSizeV'), gapV = document.getElementById('mhlGapV');
