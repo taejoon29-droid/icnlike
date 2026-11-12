@@ -2655,14 +2655,14 @@ requestAnimationFrame(loop);
 </html>
 </script>
 
-<!-- ══ 달빛 타로 (메뉴모드) ══ -->
-<div id="tarotOverlay"><iframe id="tarotFrame" title="달빛 타로"></iframe><button id="tarotCloseBtn" onclick="closeTarot()">✕ 메뉴로</button></div>
+<!-- ══ 타로 라운지 (메뉴모드) ══ -->
+<div id="tarotOverlay"><iframe id="tarotFrame" title="타로 라운지"></iframe><button id="tarotCloseBtn" onclick="closeTarot()">✕ 메뉴로</button></div>
 <script type="text/plain" id="tarotSrc"><!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>달빛 타로</title>
+<title>타로 라운지</title>
 <style>
 :root{--bg:#0c0b24;--bg2:#1a1740;--ink:#efe3c8;--mute:#a9b8b4;--acc:#e8795f;--gold:#d9b46a;--line:#3d3a6e;color-scheme:dark;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -2738,7 +2738,7 @@ h1{text-shadow:0 0 22px rgba(217,180,106,.5)}
 <body>
 <canvas id="sky" aria-hidden="true"></canvas><div class="ringbox"><svg id="ring" viewBox="-200 -200 400 400" aria-hidden="true"></svg></div>
 <main>
-<h1>달빛 타로</h1>
+<h1>타로 라운지 ✈️</h1>
 <p class="sub">고민을 적고 카드를 뽑아 보세요. 카드마다 뜻과 이름을 알려 드리고, 마지막에 종합 점괘를 풀어 드려요.</p>
 
 <fieldset><legend>궁금한 영역</legend>
@@ -8538,7 +8538,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
 })();
 </script>
 <script>
-// 🔮 달빛 타로: 항아리와 같은 방식(격리 iframe). 닫으면 언로드
+// 🔮 타로 라운지: 항아리와 같은 방식(격리 iframe). 닫으면 언로드
 (function () {
   'use strict';
   const ov = document.getElementById('tarotOverlay'), fr = document.getElementById('tarotFrame');
