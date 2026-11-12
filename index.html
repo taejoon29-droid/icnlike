@@ -1984,6 +1984,14 @@ body.menu-mode.mh-layouting:not(.mv-cal):not(.mv-dash) #mhLayoutPanel {
 @media (max-width:520px){#modePick .mp-row{flex-direction:column}#modePick .mp-tile{min-height:150px;flex-direction:row;justify-content:flex-start;gap:16px;padding:18px 20px;text-align:left}#modePick .mp-ico{font-size:3rem}#modePick .mp-txt{display:flex;flex-direction:column;gap:4px;align-items:flex-start}#modePick .mp-desc{text-align:left}}
 @media (prefers-reduced-motion:reduce){#modePick,#modePick .mp-tile{transition:none}}
 </style>
+<style id="wh-voice">
+#vMic{position:fixed;z-index:9990;width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);background:#2a2d45;color:#fff;font-size:17px;line-height:1;display:none;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.45);-webkit-tap-highlight-color:transparent}
+#vMic.show{display:flex}
+#vMic.on{background:#e5484d;border-color:#ff9a9d;animation:vmPulse 1.1s ease-in-out infinite}
+@keyframes vmPulse{0%,100%{box-shadow:0 0 0 0 rgba(229,72,77,.6)}50%{box-shadow:0 0 0 9px rgba(229,72,77,0)}}
+#vMicToast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9995;max-width:88vw;padding:10px 16px;border-radius:12px;background:rgba(20,20,30,.94);color:#fff;font-size:.85rem;line-height:1.4;text-align:center;display:none;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+@media (prefers-reduced-motion:reduce){#vMic.on{animation:none}}
+</style>
 </head>
 <body class="pc-mode">
 <div id="modePick" role="dialog" aria-modal="true" aria-label="모드 선택">
@@ -2682,7 +2690,7 @@ requestAnimationFrame(loop);
 </script>
 
 <!-- ══ 타로 라운지 (메뉴모드) ══ -->
-<div id="tarotOverlay"><iframe id="tarotFrame" title="타로 라운지"></iframe><button id="tarotCloseBtn" onclick="closeTarot()">✕ 메뉴로</button></div>
+<div id="tarotOverlay"><iframe id="tarotFrame" title="타로 라운지" allow="microphone"></iframe><button id="tarotCloseBtn" onclick="closeTarot()">✕ 메뉴로</button></div>
 <script type="text/plain" id="tarotSrc"><!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -2759,6 +2767,11 @@ body{background:transparent}
 .desc{margin:8px 0 0;font-size:.9rem;color:var(--mute);min-height:1.5em}
 h1{text-shadow:0 0 22px rgba(217,180,106,.5)}
 #result{border:3px double var(--gold)!important;background:rgba(20,18,56,.8)!important;box-shadow:0 0 34px rgba(217,180,106,.16)}
+.vwrap{position:relative}.vwrap textarea{padding-right:52px}
+.vm{position:absolute;right:8px;top:8px;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--bg2);color:var(--ink);font-size:18px;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+.vm.on{background:#e5484d;border-color:#ff9a9d;color:#fff;animation:vmp 1.1s ease-in-out infinite}
+@keyframes vmp{0%,100%{box-shadow:0 0 0 0 rgba(229,72,77,.6)}50%{box-shadow:0 0 0 9px rgba(229,72,77,0)}}
+.vmsg{min-height:1.2em;margin:6px 2px 0;font-size:.82rem;opacity:.85}
 </style>
 </head>
 <body>
@@ -2772,7 +2785,7 @@ h1{text-shadow:0 0 22px rgba(217,180,106,.5)}
 <fieldset><legend>카드 배열</legend>
 <div class="chips" id="spr"></div><p class="desc" id="sprDesc"></p></fieldset>
 <fieldset><legend>고민이나 궁금한 점 (자유)</legend>
-<textarea id="q"></textarea></fieldset>
+<div class="vwrap"><textarea id="q"></textarea><button type="button" id="vm" class="vm" aria-label="음성으로 입력" title="음성으로 입력">🎤</button></div><p class="vmsg" id="vmsg" aria-live="polite"></p></fieldset>
 <button class="go" id="draw">카드 뽑기</button>
 
 <section id="table" aria-live="polite"></section>
@@ -3027,6 +3040,26 @@ function final(){
  $("result").innerHTML=`<h2>최종 점괘</h2>${ctx.q?`<p>질문: “${ctx.q.replace(/</g,"&lt;")}”</p>`:""}<ul>${list}</ul><p>${story}</p><p>${pk(OP[ctx.cat])} ${t}${ex}</p><p><b>조언</b> ${adv.main}</p>${adv.focus?`<p><b>눈에 띄는 카드</b> ${adv.focus}</p>`:""}<p><b>이렇게 해 보세요</b> ${adv.act}</p><p><b>한마디 더</b> ${adv.more}</p><p><b>마무리</b> ${pk(CL[ctx.cat])}</p><p class="note">타로는 미래를 확정하는 도구가 아니라 상황을 다른 각도로 돌아보게 돕는 참고 자료예요. 건강, 법률, 투자 같은 중요한 결정은 전문가와 상의하세요.</p>`;
  $("result").scrollIntoView({behavior:"smooth"});
 }
+<\/script>
+<script>
+// 🎤 질문칸 음성 입력
+(function(){
+ var b=document.getElementById("vm"),q=document.getElementById("q"),msg=document.getElementById("vmsg");
+ var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!b||!q)return; if(!SR){b.style.display="none";return}
+ var rec=null,on=false;
+ function say(t){msg.textContent=t}
+ b.onclick=function(){
+  if(on){try{rec.stop()}catch(e){}return}
+  var base=q.value,sep=base&&!/\s$/.test(base)?" ":"";
+  rec=new SR();rec.lang="ko-KR";rec.interimResults=true;rec.continuous=false;
+  rec.onstart=function(){on=true;b.classList.add("on");b.textContent="⏹";say("듣고 있어요. 고민을 말씀해 주세요 🎤")};
+  rec.onresult=function(e){var t="";for(var i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;q.value=base+sep+t};
+  rec.onerror=function(e){var m={"not-allowed":"마이크 사용이 막혀 있어요. 브라우저 설정에서 마이크를 허용해 주세요.","service-not-allowed":"이 화면에서는 음성 인식을 쓸 수 없어요. https 주소로 열어 보세요.","no-speech":"말씀이 잘 안 들렸어요. 다시 눌러 주세요.","audio-capture":"마이크를 찾지 못했어요.","network":"인터넷 연결을 확인해 주세요."}[e.error];if(m)say(m)};
+  rec.onend=function(){on=false;rec=null;b.classList.remove("on");b.textContent="🎤";if(/듣고 있어요/.test(msg.textContent))say("")};
+  try{rec.start()}catch(e){say("음성 인식을 시작하지 못했어요. 잠시 후 다시 눌러 주세요.")}
+ };
+})();
 <\/script>
 </body>
 </html>
@@ -8608,6 +8641,71 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
   }
   box.querySelectorAll('.mp-tile').forEach(function (b) { b.addEventListener('click', function () { choose(b.dataset.mode); }); });
   var f = box.querySelector(last === 'menu' ? '.mp-menu' : '.mp-basic'); if (f) f.focus();
+})();
+</script>
+<script>
+// 🎤 음성 입력: 대상 입력칸을 누르면 마이크 버튼이 나타나요 (브라우저 음성 인식, 한국어)
+(function () {
+  'use strict';
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;                       // 지원 안 하는 브라우저는 버튼을 만들지 않음
+  var IDS = ['aiSearchInput','moSearchInput','tgQ','iamEditSchedTitle','iamEditMemo','regSchedTitle','regSchedMemo',
+             'writeTitle','writeBody','dashWriteTitle','dashWriteBody','aiSchedInput','aiAnnualInput','aiQuartInput','aiVacInput'];
+  var btn = document.createElement('button');
+  btn.id = 'vMic'; btn.type = 'button'; btn.textContent = '🎤';
+  btn.setAttribute('aria-label', '음성으로 입력'); btn.title = '음성으로 입력';
+  var toast = document.createElement('div'); toast.id = 'vMicToast'; toast.setAttribute('role', 'status');
+  document.body.appendChild(btn); document.body.appendChild(toast);
+  var cur = null, rec = null, listening = false, tt = 0, raf = 0;
+
+  function say(m) { toast.textContent = m; toast.style.display = 'block'; clearTimeout(tt); tt = setTimeout(function () { toast.style.display = 'none'; }, 3500); }
+  function isTarget(el) { return el && (IDS.indexOf(el.id) >= 0 || (el.tagName === 'INPUT' && el.type === 'search')); }
+  function place() {
+    raf = 0; if (!cur) return;
+    var r = cur.getBoundingClientRect();
+    if (r.width < 40 || r.bottom < 0 || r.top > window.innerHeight || cur.disabled || cur.readOnly) { btn.classList.remove('show'); }
+    else {
+      btn.classList.add('show');
+      var ta = cur.tagName === 'TEXTAREA';
+      btn.style.left = Math.max(4, r.right - 40) + 'px';
+      btn.style.top = (ta ? r.top + 6 : r.top + (r.height - 34) / 2) + 'px';
+    }
+    raf = requestAnimationFrame(place);
+  }
+  function stop() { if (rec) { try { rec.stop(); } catch (e) {} } }
+  function start() {
+    if (!cur) return;
+    var el = cur, base = el.value, sep = base && !/\s$/.test(base) ? ' ' : '';
+    rec = new SR(); rec.lang = 'ko-KR'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+    rec.onstart = function () { listening = true; btn.classList.add('on'); btn.textContent = '⏹'; say('듣고 있어요. 말씀해 주세요 🎤'); };
+    rec.onresult = function (e) {
+      var t = ''; for (var i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+      el.value = base + sep + t;
+      el.dispatchEvent(new Event('input', { bubbles: true }));   // 검색 등 입력 이벤트가 바로 반응하도록
+    };
+    rec.onerror = function (e) {
+      var m = { 'not-allowed': '마이크 사용이 막혀 있어요. 주소창 옆 설정에서 마이크를 허용해 주세요.',
+                'service-not-allowed': '이 화면에서는 음성 인식을 쓸 수 없어요. https 주소로 열어 보세요.',
+                'no-speech': '말씀이 잘 안 들렸어요. 다시 눌러 주세요.',
+                'audio-capture': '마이크를 찾지 못했어요.',
+                'network': '인터넷 연결을 확인해 주세요.' }[e.error];
+      if (m) say(m);
+    };
+    rec.onend = function () { listening = false; rec = null; btn.classList.remove('on'); btn.textContent = '🎤'; toast.style.display = 'none'; };
+    try { rec.start(); } catch (e) { say('음성 인식을 시작하지 못했어요. 잠시 후 다시 눌러 주세요.'); }
+  }
+  btn.addEventListener('pointerdown', function (e) { e.preventDefault(); });   // 입력칸 포커스 유지
+  btn.addEventListener('click', function () { if (listening) stop(); else start(); });
+  document.addEventListener('focusin', function (e) {
+    if (!isTarget(e.target)) return;
+    cur = e.target;
+    if (parseFloat(getComputedStyle(cur).paddingRight) < 42) cur.style.paddingRight = '44px';
+    if (!raf) raf = requestAnimationFrame(place);
+  });
+  document.addEventListener('focusout', function (e) {
+    if (e.target !== cur || listening) return;
+    setTimeout(function () { if (!listening && document.activeElement !== cur) { btn.classList.remove('show'); cur = null; cancelAnimationFrame(raf); raf = 0; } }, 150);
+  });
 })();
 </script>
 </body>
