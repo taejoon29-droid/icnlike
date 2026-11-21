@@ -1968,21 +1968,42 @@ body.menu-mode.mh-layouting:not(.mv-cal):not(.mv-dash) #mhLayoutPanel {
 #tarotCloseBtn:active { transform:scale(.95); }
 </style>
 <style id="wh-mode-picker">
-#modePick{position:fixed;inset:0;z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px calc(20px + env(safe-area-inset-right,0px)) 24px calc(20px + env(safe-area-inset-left,0px));background:radial-gradient(ellipse at 50% 0%,#262a44 0%,#12131c 70%);color:#eef0ff;font-family:inherit;overflow-y:auto;transition:opacity .25s ease}
+/* ═══ 시작 화면 (따뜻한 파스텔 × 글래스 오로라) ═══ */
+#modePick{--tx:#4a3426;--tx2:#8a6f5d;--chev:rgba(74,52,38,.35);--pill:rgba(74,52,38,.1);
+  position:fixed;inset:0;z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  padding:24px calc(20px + env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) calc(20px + env(safe-area-inset-left,0px));
+  background:linear-gradient(160deg,#fff3e2 0%,#ffe9f0 55%,#f1e8ff 100%);color:var(--tx);overflow:hidden auto;transition:opacity .3s ease;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+/* 오로라: 천천히 흐르는 파스텔 빛 덩어리 */
+#modePick::before,#modePick::after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(55px);pointer-events:none}
+#modePick::before{width:75vmax;height:75vmax;left:-28vmax;top:-30vmax;background:radial-gradient(circle,#ffb877 0%,rgba(255,184,119,0) 68%);opacity:.75;animation:mpA 14s ease-in-out infinite alternate}
+#modePick::after{width:70vmax;height:70vmax;right:-28vmax;bottom:-28vmax;background:radial-gradient(circle,#b79cff 0%,rgba(183,156,255,0) 68%);opacity:.7;animation:mpB 17s ease-in-out infinite alternate}
+#modePick .mp-row::before{content:"";position:absolute;z-index:-1;width:60vmin;height:60vmin;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(120,220,200,.55),rgba(120,220,200,0) 68%);filter:blur(45px);pointer-events:none}
 #modePick.out{opacity:0;pointer-events:none}
-#modePick .mp-title{font-size:1.5rem;font-weight:800;letter-spacing:.02em;text-align:center;margin:0}
-#modePick .mp-sub{font-size:.95rem;color:#aab0cf;text-align:center;margin:-10px 0 0}
-#modePick .mp-row{display:flex;gap:18px;width:100%;max-width:620px}
-#modePick .mp-tile{--c:#4aa8ff;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:230px;padding:22px 12px;border-radius:22px;border:2px solid color-mix(in srgb,var(--c) 65%,#000);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 18%,#171826),#171826);color:#fff;font-family:inherit;cursor:pointer;position:relative;box-shadow:0 0 18px color-mix(in srgb,var(--c) 40%,transparent),inset 0 0 22px color-mix(in srgb,var(--c) 14%,transparent);transition:transform .15s,box-shadow .15s}
-#modePick .mp-tile:hover,#modePick .mp-tile:focus-visible{transform:translateY(-3px);outline:none;border-color:var(--c);box-shadow:0 0 28px color-mix(in srgb,var(--c) 70%,transparent),inset 0 0 26px color-mix(in srgb,var(--c) 25%,transparent)}
-#modePick .mp-tile:active{transform:scale(.97)}
-#modePick .mp-menu{--c:#c77dff}
-#modePick .mp-ico{font-size:3.6rem;line-height:1;filter:drop-shadow(0 0 10px var(--c))}
-#modePick .mp-name{font-size:1.4rem;font-weight:800;color:color-mix(in srgb,var(--c) 45%,#fff)}
-#modePick .mp-desc{font-size:.88rem;line-height:1.45;color:#c4c9e4;text-align:center}
-#modePick .mp-last{position:absolute;top:10px;right:10px;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--c);color:#12131c}
-@media (max-width:520px){#modePick .mp-row{flex-direction:column}#modePick .mp-tile{min-height:150px;flex-direction:row;justify-content:flex-start;gap:16px;padding:18px 20px;text-align:left}#modePick .mp-ico{font-size:3rem}#modePick .mp-txt{display:flex;flex-direction:column;gap:4px;align-items:flex-start}#modePick .mp-desc{text-align:left}}
-@media (prefers-reduced-motion:reduce){#modePick,#modePick .mp-tile{transition:none}}
+#modePick .mp-title{font-size:1.95rem;font-weight:800;letter-spacing:-.025em;line-height:1.2;text-align:center;margin:0;color:var(--tx);animation:mpUp .6s cubic-bezier(.2,.8,.2,1) both}
+#modePick .mp-sub{font-size:1rem;color:var(--tx2);text-align:center;margin:0 0 22px;animation:mpUp .6s .06s cubic-bezier(.2,.8,.2,1) both}
+#modePick .mp-row{position:relative;display:flex;flex-direction:column;gap:16px;width:100%;max-width:440px}
+#modePick .mp-tile{--t:rgba(255,196,140,.5);position:relative;display:flex;align-items:center;gap:16px;width:100%;min-height:104px;padding:18px 46px 18px 18px;border-radius:32px;
+  border:1.5px solid rgba(255,255,255,.85);background:linear-gradient(145deg,rgba(255,255,255,.72),var(--t));
+  -webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);color:var(--tx);font-family:inherit;text-align:left;cursor:pointer;
+  box-shadow:0 10px 28px rgba(120,80,50,.16),inset 0 1.5px 0 rgba(255,255,255,.9),inset 0 -2px 0 rgba(255,255,255,.25);
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s ease;animation:mpUp .65s .12s cubic-bezier(.2,.8,.2,1) both}
+#modePick .mp-menu{--t:rgba(196,170,255,.5);animation-delay:.2s}
+#modePick .mp-tile::after{content:"";position:absolute;right:20px;top:50%;width:9px;height:9px;border-top:3px solid var(--chev);border-right:3px solid var(--chev);border-radius:2px;transform:translateY(-50%) rotate(45deg)}
+#modePick .mp-tile:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(120,80,50,.22),inset 0 1.5px 0 rgba(255,255,255,.9),inset 0 -2px 0 rgba(255,255,255,.25)}
+#modePick .mp-tile:active{transform:translateY(2px) scale(.98);box-shadow:0 4px 12px rgba(120,80,50,.16),inset 0 1.5px 0 rgba(255,255,255,.9);transition-duration:.1s}
+#modePick .mp-tile:focus-visible{outline:3px solid #8f6bff;outline-offset:3px}
+#modePick .mp-ico{flex:none;width:68px;height:68px;display:grid;place-items:center;font-size:2.15rem;line-height:1;border-radius:50%;filter:none;
+  background:radial-gradient(circle at 30% 25%,#fff,rgba(255,255,255,.55));border:1.5px solid rgba(255,255,255,.95);box-shadow:0 6px 14px rgba(120,80,50,.15),inset 0 -3px 6px rgba(255,255,255,.5)}
+#modePick .mp-txt{display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:0}
+#modePick .mp-name{font-size:1.25rem;font-weight:800;letter-spacing:-.02em;color:var(--tx)}
+#modePick .mp-desc{font-size:.9rem;line-height:1.42;color:var(--tx2);text-align:left}
+#modePick .mp-last{position:absolute;top:12px;right:40px;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.95);color:var(--tx2)}
+@keyframes mpUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes mpA{to{transform:translate(14vmax,10vmax) scale(1.12)}}
+@keyframes mpB{to{transform:translate(-12vmax,-10vmax) scale(1.1)}}
+@media (min-width:521px){#modePick .mp-title{font-size:2.3rem}}
+@media (prefers-reduced-motion:reduce){#modePick,#modePick .mp-tile,#modePick .mp-title,#modePick .mp-sub,#modePick::before,#modePick::after{transition:none;animation:none}}
 </style>
 <style id="wh-voice">
 #vMic{position:fixed;z-index:9990;width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);background:#2a2d45;color:#fff;font-size:17px;line-height:1;display:none;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.45);-webkit-tap-highlight-color:transparent}
@@ -8706,204 +8727,6 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
     if (e.target !== cur || listening) return;
     setTimeout(function () { if (!listening && document.activeElement !== cur) { btn.classList.remove('show'); cur = null; cancelAnimationFrame(raf); raf = 0; } }, 150);
   });
-})();
-</script>
-<style id="wh-menu-swipe">
-/* ═══ 메뉴모드 스와이프 이동 — 이 블록과 아래 스크립트를 지우면 원복 ═══ */
-#swNav{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);z-index:9990;
-  display:flex;flex-direction:column;align-items:center;gap:7px;padding:9px 18px;border-radius:999px;
-  background:rgba(20,22,28,.9);color:#e9ecf4;border:1px solid rgba(255,255,255,.16);
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 6px 22px rgba(0,0,0,.5);
-  opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;font-family:inherit}
-#swNav.on{opacity:1;transform:translate(-50%,0)}
-#swNav .sw-row{display:flex;align-items:center;gap:12px;font-size:.8rem;font-weight:800;white-space:nowrap}
-#swNav .sw-arr{font-size:1.1rem;line-height:1;color:var(--sw,#ff6a3d);transition:opacity .15s}
-#swNav .sw-arr.off{opacity:.2}
-#swNav .sw-dots{display:flex;gap:5px}
-#swNav .sw-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.28);transition:width .2s,background .2s}
-#swNav .sw-dots i.c{width:18px;border-radius:3px;background:var(--sw,#ff6a3d)}
-@media (prefers-reduced-motion:reduce){#swNav{transition:none}}
-</style>
-<script>
-// ══════════════════════════════════════════
-// 메뉴모드: 열려 있는 메뉴에서 좌우로 밀면 버튼 순서대로 이전/다음 메뉴로 이동 (안드로이드 홈 화면처럼)
-// - 순서는 메뉴 버튼의 현재 배열(순서 편집 결과)을 그대로 따릅니다
-// - 손가락을 따라 화면이 움직이고, 손을 떼면 슬라이드로 전환됩니다
-// - 외부 링크·설정 버튼·게임(항아리/타로)은 제외. 제외/포함은 SKIP 목록으로 조정하세요
-// ══════════════════════════════════════════
-(function () {
-  'use strict';
-  const SKIP = ['pot', 'tarot'];          // 스와이프 순서에서 뺄 버튼 id (예: 'bg' 를 넣으면 배경도 제외)
-  const MIN_DX = 60, EDGE = 16;           // 최소 이동 거리(px) / 화면 가장자리(시스템 뒤로가기 제스처 영역) 무시 폭
-  const B = document.body;
-  const grid = document.getElementById('mhGrid');
-  if (!grid) return;
-
-  const VIEW = { cal: 1, dash: 1, weather: 1, board: 1 };           // 화면 전환형
-  const MODAL = { reg: 'registerModal', ai: 'aiScanModal', month: 'monthlyOverviewModal',
-                  search: 'monthlyOverviewModal', tong: 'tgModal', bg: 'wallpaperModal' };   // 모달형
-  const call = f => { try { if (typeof window[f] === 'function') window[f](); } catch (e) {} };
-  const shown = id => { const e = document.getElementById(id); return !!e && getComputedStyle(e).display !== 'none'; };
-
-  // 스와이프 대상 버튼들 (현재 배열 순서, <button> 만 — 외부 링크 <a> 는 제외)
-  const ring = () => Array.from(grid.querySelectorAll('button.mh-tile'))
-    .filter(t => (VIEW[t.dataset.tile] || MODAL[t.dataset.tile]) && SKIP.indexOf(t.dataset.tile) < 0);
-
-  let cur = null;                          // 지금 열려 있는 메뉴 id
-
-  function isOpen(id) {
-    if (!id) return false;
-    if (id === 'cal') return B.classList.contains('mv-cal');
-    if (VIEW[id]) return B.classList.contains('mv-dash');
-    if (id === 'tong') return shown('tgModal') || shown('deletePwModal');
-    return shown(MODAL[id]);
-  }
-  // 버튼이 아닌 경로로 열린 경우까지 현재 화면 추정
-  function detect() {
-    if (isOpen(cur)) return cur;
-    if (B.classList.contains('mv-cal')) return (cur = 'cal');
-    if (B.classList.contains('mv-dash')) return (cur = 'dash');
-    for (const id of ['reg', 'ai', 'month', 'bg', 'tong']) if (shown(MODAL[id])) return (cur = id);
-    return (cur = null);
-  }
-  function closeModals() {
-    if (shown('registerModal')) call('closeRegisterModal');
-    if (shown('aiScanModal')) call('closeAiScan');
-    if (shown('monthlyOverviewModal')) call('closeMonthlyOverview');
-    if (shown('tgModal')) call('closeTongsinsil');
-    if (shown('wallpaperModal')) call('closeWallpaperModal');
-    if (shown('deletePwModal') && cur === 'tong') call('closeDeletePwModalDirect');
-  }
-
-  // ── 하단 위치 표시 (점 + 이름) ──
-  let bar, hideT = 0;
-  function flash(tile) {
-    const list = ring(), i = list.indexOf(tile);
-    if (i < 0) return;
-    if (!bar) {
-      bar = document.createElement('div'); bar.id = 'swNav'; bar.setAttribute('aria-hidden', 'true');
-      B.appendChild(bar);
-    }
-    const ico = tile.querySelector('.mh-ico'), lbl = tile.querySelector('.mh-lbl');
-    bar.style.setProperty('--sw', getComputedStyle(tile).getPropertyValue('--neon').trim() || '#ff6a3d');
-    bar.innerHTML = '<div class="sw-row"><span class="sw-arr' + (i === 0 ? ' off' : '') + '">‹</span><span>' +
-      (ico ? ico.textContent : '') + ' ' + (lbl ? lbl.textContent : '') + '</span><span class="sw-arr' +
-      (i === list.length - 1 ? ' off' : '') + '">›</span></div><div class="sw-dots">' +
-      list.map((_, k) => '<i' + (k === i ? ' class="c"' : '') + '></i>').join('') + '</div>';
-    bar.classList.add('on');
-    clearTimeout(hideT); hideT = setTimeout(() => bar.classList.remove('on'), 1600);
-  }
-
-  // 메뉴 버튼으로 들어갈 때(직접 탭·스와이프 공통) 현재 메뉴 기록 + 위치 표시
-  grid.addEventListener('click', function (e) {
-    if (B.classList.contains('mh-editing')) return;
-    const t = e.target.closest('button.mh-tile');
-    if (!t || ring().indexOf(t) < 0) return;
-    cur = t.dataset.tile;
-    flash(t);
-  }, true);
-
-  // ── 전환 모션: 떠나는 화면이 밀려 나가고 → 다음 화면이 반대쪽에서 슬라이드 인 ──
-  const W = () => window.innerWidth;
-  const EASE_IN = 'cubic-bezier(.5,0,.9,.5)', EASE_OUT = 'cubic-bezier(.22,.8,.24,1)';
-  const root = document.documentElement;
-  let busy = false;
-  function elFor(id) {
-    let el = id === 'cal' ? document.querySelector('.pc-cal-col')
-           : VIEW[id] ? document.getElementById('pcDashboard')
-           : document.getElementById(id === 'tong' && !shown('tgModal') ? 'deletePwModal' : MODAL[id]);
-    if (el && MODAL[id] && el.firstElementChild) el = el.firstElementChild;   // 모달은 안쪽 패널만 움직임(배경은 그대로)
-    return el;
-  }
-  function go(dir, off) {
-    const list = ring(), i = list.findIndex(t => t.dataset.tile === cur);
-    if (i < 0 || busy) return;
-    const n = i + dir;
-    if (n < 0 || n >= list.length) { flash(list[i]); return; }      // 맨 앞/맨 뒤: 표시만
-    const next = list[n], id = next.dataset.tile, old = elFor(cur);
-    const swap = () => {
-      closeModals();
-      if (!VIEW[id] && (B.classList.contains('mv-cal') || B.classList.contains('mv-dash'))) call('menuGoHome');
-      next.click();                                                  // 버튼 본래 동작 그대로 (비밀번호창 등 포함)
-    };
-    if (!old || !old.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) { swap(); return; }
-    busy = true; root.style.overflowX = 'hidden';
-    const done = () => { busy = false; root.style.overflowX = ''; };
-    setTimeout(done, 900);                                          // 안전장치
-    const out = old.animate(
-      [{ transform: 'translateX(' + (off || 0) + 'px)', opacity: old.style.opacity || 1 },
-       { transform: 'translateX(' + (-dir * W() * .6) + 'px)', opacity: 0 }],
-      { duration: 200, easing: EASE_IN, fill: 'forwards' });
-    out.onfinish = () => {
-      old.style.transform = ''; old.style.opacity = '';
-      swap(); out.cancel();                                         // 같은 프레임 안에서 교체 → 깜빡임 없음
-      const nw = elFor(id);
-      if (!nw || !nw.animate) return done();
-      nw.animate([{ transform: 'translateX(' + dir * W() * .6 + 'px)', opacity: 0 }, { transform: 'none', opacity: 1 }],
-                 { duration: 280, easing: EASE_OUT }).onfinish = done;
-    };
-  }
-
-  // ── 터치 제스처 ──
-  const NO_TOUCH = '[id*="Handle" i],[id*="Resize" i],[class*="resize" i],[class*="handle" i],#mhEditBar,#swNav';
-  function blocked(el) {
-    for (let n = el; n && n !== document.body; n = n.parentElement) {
-      const tg = n.tagName;
-      if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT' || n.isContentEditable) return true;
-      if (n.matches && n.matches(NO_TOUCH)) return true;
-      const ox = getComputedStyle(n).overflowX;                       // 가로로 스크롤되는 영역(시간별 날씨 등)은 양보
-      if ((ox === 'auto' || ox === 'scroll') && n.scrollWidth > n.clientWidth + 4) return true;
-    }
-    return false;
-  }
-  let sx = 0, sy = 0, ok = false, drag = false, dEl = null, canPrev = false, canNext = false, off = 0;
-  function reset(animate) {                                         // 끌던 화면을 원위치로
-    if (dEl) {
-      const from = off, op = dEl.style.opacity || 1;
-      dEl.style.transform = ''; dEl.style.opacity = ''; dEl.style.willChange = '';
-      if (animate && drag && dEl.animate) dEl.animate([{ transform: 'translateX(' + from + 'px)', opacity: op }, { transform: 'none', opacity: 1 }],
-                                                      { duration: 220, easing: EASE_OUT });
-    }
-    drag = false; off = 0; dEl = null;
-  }
-  document.addEventListener('touchstart', function (e) {
-    ok = false; reset(false);
-    if (busy || e.touches.length !== 1 || !B.classList.contains('menu-mode')) return;
-    if (B.classList.contains('mh-editing') || B.classList.contains('mh-layouting') || document.getElementById('modePick')) return;
-    if (document.querySelector('#dayDetailOverlay.show,#itemActionModal.show')) return;   // 자체 스와이프/액션창이 열려 있으면 양보
-    if (shown('deletePwModal') && cur !== 'tong') return;
-    if (!detect() || blocked(e.target)) return;
-    const t = e.touches[0];
-    if (t.clientX < EDGE || t.clientX > window.innerWidth - EDGE) return;
-    const list = ring(), i = list.findIndex(x => x.dataset.tile === cur);
-    if (i < 0) return;
-    canPrev = i > 0; canNext = i < list.length - 1;
-    sx = t.clientX; sy = t.clientY; dEl = elFor(cur); ok = true;
-  }, { passive: true });
-  document.addEventListener('touchmove', function (e) {
-    if (!ok) return;
-    if (e.touches.length > 1) { ok = false; reset(true); return; }
-    const t = e.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-    if (!drag) {
-      if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy) * 1.5) return;      // 세로 스크롤이면 건드리지 않음
-      if (String(window.getSelection && window.getSelection()).length) { ok = false; return; }
-      drag = true; if (dEl) dEl.style.willChange = 'transform, opacity';
-    }
-    if (e.cancelable) e.preventDefault();                                        // 가로로 끄는 동안은 세로 스크롤 잠금
-    const can = dx < 0 ? canNext : canPrev;
-    off = dx * (can ? .9 : .25);                                                 // 끝 쪽에서는 저항감 있게
-    if (dEl) { dEl.style.transform = 'translateX(' + off + 'px)'; if (can) dEl.style.opacity = String(1 - Math.min(Math.abs(off) / W(), 1) * .55); }
-  }, { passive: false });
-  document.addEventListener('touchcancel', function () { ok = false; reset(true); }, { passive: true });
-  document.addEventListener('touchend', function (e) {
-    if (!ok) return; ok = false;
-    const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-    const dir = dx < 0 ? 1 : -1, can = dir > 0 ? canNext : canPrev;
-    if (!drag || Math.abs(dx) < MIN_DX || Math.abs(dy) > Math.abs(dx) * 0.6) { reset(true); return; }   // 기준 미달 → 제자리 복귀
-    if (!can) { reset(true); const l = ring(); flash(l.find(x => x.dataset.tile === cur)); return; }     // 맨 앞/뒤 → 튕겨 돌아옴
-    const from = off; dEl = null; drag = false; off = 0;                                                 // 현재 위치에서 이어서 밀려 나감
-    go(dir, from);
-  }, { passive: true });
 })();
 </script>
 </body>
