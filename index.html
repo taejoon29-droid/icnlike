@@ -8728,6 +8728,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
 // ══════════════════════════════════════════
 // 메뉴모드: 열려 있는 메뉴에서 좌우로 밀면 버튼 순서대로 이전/다음 메뉴로 이동 (안드로이드 홈 화면처럼)
 // - 순서는 메뉴 버튼의 현재 배열(순서 편집 결과)을 그대로 따릅니다
+// - 손가락을 따라 화면이 움직이고, 손을 떼면 슬라이드로 전환됩니다
 // - 외부 링크·설정 버튼·게임(항아리/타로)은 제외. 제외/포함은 SKIP 목록으로 조정하세요
 // ══════════════════════════════════════════
 (function () {
@@ -8802,26 +8803,45 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
     flash(t);
   }, true);
 
-  function slideIn(id, dir) {
+  // ── 전환 모션: 떠나는 화면이 밀려 나가고 → 다음 화면이 반대쪽에서 슬라이드 인 ──
+  const W = () => window.innerWidth;
+  const EASE_IN = 'cubic-bezier(.5,0,.9,.5)', EASE_OUT = 'cubic-bezier(.22,.8,.24,1)';
+  const root = document.documentElement;
+  let busy = false;
+  function elFor(id) {
     let el = id === 'cal' ? document.querySelector('.pc-cal-col')
            : VIEW[id] ? document.getElementById('pcDashboard')
-           : document.getElementById(MODAL[id]);
-    if (el && MODAL[id] && el.firstElementChild) el = el.firstElementChild;   // 모달은 안쪽 패널만 슬라이드
-    if (!el || !el.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    el.animate([{ transform: 'translateX(' + dir * 42 + 'px)', opacity: .25 }, { transform: 'none', opacity: 1 }],
-               { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)' });
+           : document.getElementById(id === 'tong' && !shown('tgModal') ? 'deletePwModal' : MODAL[id]);
+    if (el && MODAL[id] && el.firstElementChild) el = el.firstElementChild;   // 모달은 안쪽 패널만 움직임(배경은 그대로)
+    return el;
   }
-
-  function go(dir) {
+  function go(dir, off) {
     const list = ring(), i = list.findIndex(t => t.dataset.tile === cur);
-    if (i < 0) return;
+    if (i < 0 || busy) return;
     const n = i + dir;
-    if (n < 0 || n >= list.length) { flash(list[i]); return; }     // 맨 앞/맨 뒤: 표시만
-    const next = list[n], id = next.dataset.tile;
-    closeModals();
-    if (!VIEW[id] && (B.classList.contains('mv-cal') || B.classList.contains('mv-dash'))) call('menuGoHome');
-    next.click();                                                    // 버튼 본래 동작 그대로 실행 (비밀번호창 등 포함)
-    slideIn(id, dir);
+    if (n < 0 || n >= list.length) { flash(list[i]); return; }      // 맨 앞/맨 뒤: 표시만
+    const next = list[n], id = next.dataset.tile, old = elFor(cur);
+    const swap = () => {
+      closeModals();
+      if (!VIEW[id] && (B.classList.contains('mv-cal') || B.classList.contains('mv-dash'))) call('menuGoHome');
+      next.click();                                                  // 버튼 본래 동작 그대로 (비밀번호창 등 포함)
+    };
+    if (!old || !old.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) { swap(); return; }
+    busy = true; root.style.overflowX = 'hidden';
+    const done = () => { busy = false; root.style.overflowX = ''; };
+    setTimeout(done, 900);                                          // 안전장치
+    const out = old.animate(
+      [{ transform: 'translateX(' + (off || 0) + 'px)', opacity: old.style.opacity || 1 },
+       { transform: 'translateX(' + (-dir * W() * .6) + 'px)', opacity: 0 }],
+      { duration: 200, easing: EASE_IN, fill: 'forwards' });
+    out.onfinish = () => {
+      old.style.transform = ''; old.style.opacity = '';
+      swap(); out.cancel();                                         // 같은 프레임 안에서 교체 → 깜빡임 없음
+      const nw = elFor(id);
+      if (!nw || !nw.animate) return done();
+      nw.animate([{ transform: 'translateX(' + dir * W() * .6 + 'px)', opacity: 0 }, { transform: 'none', opacity: 1 }],
+                 { duration: 280, easing: EASE_OUT }).onfinish = done;
+    };
   }
 
   // ── 터치 제스처 ──
@@ -8836,27 +8856,53 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
     }
     return false;
   }
-  let sx = 0, sy = 0, st = 0, ok = false;
+  let sx = 0, sy = 0, ok = false, drag = false, dEl = null, canPrev = false, canNext = false, off = 0;
+  function reset(animate) {                                         // 끌던 화면을 원위치로
+    if (dEl) {
+      const from = off, op = dEl.style.opacity || 1;
+      dEl.style.transform = ''; dEl.style.opacity = ''; dEl.style.willChange = '';
+      if (animate && drag && dEl.animate) dEl.animate([{ transform: 'translateX(' + from + 'px)', opacity: op }, { transform: 'none', opacity: 1 }],
+                                                      { duration: 220, easing: EASE_OUT });
+    }
+    drag = false; off = 0; dEl = null;
+  }
   document.addEventListener('touchstart', function (e) {
-    ok = false;
-    if (e.touches.length !== 1 || !B.classList.contains('menu-mode')) return;
+    ok = false; reset(false);
+    if (busy || e.touches.length !== 1 || !B.classList.contains('menu-mode')) return;
     if (B.classList.contains('mh-editing') || B.classList.contains('mh-layouting') || document.getElementById('modePick')) return;
     if (document.querySelector('#dayDetailOverlay.show,#itemActionModal.show')) return;   // 자체 스와이프/액션창이 열려 있으면 양보
     if (shown('deletePwModal') && cur !== 'tong') return;
     if (!detect() || blocked(e.target)) return;
     const t = e.touches[0];
     if (t.clientX < EDGE || t.clientX > window.innerWidth - EDGE) return;
-    sx = t.clientX; sy = t.clientY; st = Date.now(); ok = true;
+    const list = ring(), i = list.findIndex(x => x.dataset.tile === cur);
+    if (i < 0) return;
+    canPrev = i > 0; canNext = i < list.length - 1;
+    sx = t.clientX; sy = t.clientY; dEl = elFor(cur); ok = true;
   }, { passive: true });
-  document.addEventListener('touchmove', function (e) { if (ok && e.touches.length > 1) ok = false; }, { passive: true });
-  document.addEventListener('touchcancel', function () { ok = false; }, { passive: true });
+  document.addEventListener('touchmove', function (e) {
+    if (!ok) return;
+    if (e.touches.length > 1) { ok = false; reset(true); return; }
+    const t = e.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (!drag) {
+      if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy) * 1.5) return;      // 세로 스크롤이면 건드리지 않음
+      if (String(window.getSelection && window.getSelection()).length) { ok = false; return; }
+      drag = true; if (dEl) dEl.style.willChange = 'transform, opacity';
+    }
+    if (e.cancelable) e.preventDefault();                                        // 가로로 끄는 동안은 세로 스크롤 잠금
+    const can = dx < 0 ? canNext : canPrev;
+    off = dx * (can ? .9 : .25);                                                 // 끝 쪽에서는 저항감 있게
+    if (dEl) { dEl.style.transform = 'translateX(' + off + 'px)'; if (can) dEl.style.opacity = String(1 - Math.min(Math.abs(off) / W(), 1) * .55); }
+  }, { passive: false });
+  document.addEventListener('touchcancel', function () { ok = false; reset(true); }, { passive: true });
   document.addEventListener('touchend', function (e) {
     if (!ok) return; ok = false;
     const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-    if (Math.abs(dx) < MIN_DX || Math.abs(dy) > Math.abs(dx) * 0.6) return;        // 가로로 확실히 민 경우만
-    if (Date.now() - st > 800 && Math.abs(dx) < MIN_DX * 2) return;                // 천천히 끌기(스크롤·선택)는 무시
-    if (String(window.getSelection && window.getSelection()).length) return;      // 글자 선택 중이면 무시
-    go(dx < 0 ? 1 : -1);                                                           // 왼쪽으로 밀면 다음, 오른쪽으로 밀면 이전
+    const dir = dx < 0 ? 1 : -1, can = dir > 0 ? canNext : canPrev;
+    if (!drag || Math.abs(dx) < MIN_DX || Math.abs(dy) > Math.abs(dx) * 0.6) { reset(true); return; }   // 기준 미달 → 제자리 복귀
+    if (!can) { reset(true); const l = ring(); flash(l.find(x => x.dataset.tile === cur)); return; }     // 맨 앞/뒤 → 튕겨 돌아옴
+    const from = off; dEl = null; drag = false; off = 0;                                                 // 현재 위치에서 이어서 밀려 나감
+    go(dir, from);
   }, { passive: true });
 })();
 </script>
