@@ -8708,5 +8708,157 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
   });
 })();
 </script>
+<style id="wh-menu-swipe">
+/* ═══ 메뉴모드 스와이프 이동 — 이 블록과 아래 스크립트를 지우면 원복 ═══ */
+#swNav{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);z-index:9990;
+  display:flex;flex-direction:column;align-items:center;gap:7px;padding:9px 18px;border-radius:999px;
+  background:rgba(20,22,28,.9);color:#e9ecf4;border:1px solid rgba(255,255,255,.16);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 6px 22px rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;font-family:inherit}
+#swNav.on{opacity:1;transform:translate(-50%,0)}
+#swNav .sw-row{display:flex;align-items:center;gap:12px;font-size:.8rem;font-weight:800;white-space:nowrap}
+#swNav .sw-arr{font-size:1.1rem;line-height:1;color:var(--sw,#ff6a3d);transition:opacity .15s}
+#swNav .sw-arr.off{opacity:.2}
+#swNav .sw-dots{display:flex;gap:5px}
+#swNav .sw-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.28);transition:width .2s,background .2s}
+#swNav .sw-dots i.c{width:18px;border-radius:3px;background:var(--sw,#ff6a3d)}
+@media (prefers-reduced-motion:reduce){#swNav{transition:none}}
+</style>
+<script>
+// ══════════════════════════════════════════
+// 메뉴모드: 열려 있는 메뉴에서 좌우로 밀면 버튼 순서대로 이전/다음 메뉴로 이동 (안드로이드 홈 화면처럼)
+// - 순서는 메뉴 버튼의 현재 배열(순서 편집 결과)을 그대로 따릅니다
+// - 외부 링크·설정 버튼·게임(항아리/타로)은 제외. 제외/포함은 SKIP 목록으로 조정하세요
+// ══════════════════════════════════════════
+(function () {
+  'use strict';
+  const SKIP = ['pot', 'tarot'];          // 스와이프 순서에서 뺄 버튼 id (예: 'bg' 를 넣으면 배경도 제외)
+  const MIN_DX = 60, EDGE = 16;           // 최소 이동 거리(px) / 화면 가장자리(시스템 뒤로가기 제스처 영역) 무시 폭
+  const B = document.body;
+  const grid = document.getElementById('mhGrid');
+  if (!grid) return;
+
+  const VIEW = { cal: 1, dash: 1, weather: 1, board: 1 };           // 화면 전환형
+  const MODAL = { reg: 'registerModal', ai: 'aiScanModal', month: 'monthlyOverviewModal',
+                  search: 'monthlyOverviewModal', tong: 'tgModal', bg: 'wallpaperModal' };   // 모달형
+  const call = f => { try { if (typeof window[f] === 'function') window[f](); } catch (e) {} };
+  const shown = id => { const e = document.getElementById(id); return !!e && getComputedStyle(e).display !== 'none'; };
+
+  // 스와이프 대상 버튼들 (현재 배열 순서, <button> 만 — 외부 링크 <a> 는 제외)
+  const ring = () => Array.from(grid.querySelectorAll('button.mh-tile'))
+    .filter(t => (VIEW[t.dataset.tile] || MODAL[t.dataset.tile]) && SKIP.indexOf(t.dataset.tile) < 0);
+
+  let cur = null;                          // 지금 열려 있는 메뉴 id
+
+  function isOpen(id) {
+    if (!id) return false;
+    if (id === 'cal') return B.classList.contains('mv-cal');
+    if (VIEW[id]) return B.classList.contains('mv-dash');
+    if (id === 'tong') return shown('tgModal') || shown('deletePwModal');
+    return shown(MODAL[id]);
+  }
+  // 버튼이 아닌 경로로 열린 경우까지 현재 화면 추정
+  function detect() {
+    if (isOpen(cur)) return cur;
+    if (B.classList.contains('mv-cal')) return (cur = 'cal');
+    if (B.classList.contains('mv-dash')) return (cur = 'dash');
+    for (const id of ['reg', 'ai', 'month', 'bg', 'tong']) if (shown(MODAL[id])) return (cur = id);
+    return (cur = null);
+  }
+  function closeModals() {
+    if (shown('registerModal')) call('closeRegisterModal');
+    if (shown('aiScanModal')) call('closeAiScan');
+    if (shown('monthlyOverviewModal')) call('closeMonthlyOverview');
+    if (shown('tgModal')) call('closeTongsinsil');
+    if (shown('wallpaperModal')) call('closeWallpaperModal');
+    if (shown('deletePwModal') && cur === 'tong') call('closeDeletePwModalDirect');
+  }
+
+  // ── 하단 위치 표시 (점 + 이름) ──
+  let bar, hideT = 0;
+  function flash(tile) {
+    const list = ring(), i = list.indexOf(tile);
+    if (i < 0) return;
+    if (!bar) {
+      bar = document.createElement('div'); bar.id = 'swNav'; bar.setAttribute('aria-hidden', 'true');
+      B.appendChild(bar);
+    }
+    const ico = tile.querySelector('.mh-ico'), lbl = tile.querySelector('.mh-lbl');
+    bar.style.setProperty('--sw', getComputedStyle(tile).getPropertyValue('--neon').trim() || '#ff6a3d');
+    bar.innerHTML = '<div class="sw-row"><span class="sw-arr' + (i === 0 ? ' off' : '') + '">‹</span><span>' +
+      (ico ? ico.textContent : '') + ' ' + (lbl ? lbl.textContent : '') + '</span><span class="sw-arr' +
+      (i === list.length - 1 ? ' off' : '') + '">›</span></div><div class="sw-dots">' +
+      list.map((_, k) => '<i' + (k === i ? ' class="c"' : '') + '></i>').join('') + '</div>';
+    bar.classList.add('on');
+    clearTimeout(hideT); hideT = setTimeout(() => bar.classList.remove('on'), 1600);
+  }
+
+  // 메뉴 버튼으로 들어갈 때(직접 탭·스와이프 공통) 현재 메뉴 기록 + 위치 표시
+  grid.addEventListener('click', function (e) {
+    if (B.classList.contains('mh-editing')) return;
+    const t = e.target.closest('button.mh-tile');
+    if (!t || ring().indexOf(t) < 0) return;
+    cur = t.dataset.tile;
+    flash(t);
+  }, true);
+
+  function slideIn(id, dir) {
+    let el = id === 'cal' ? document.querySelector('.pc-cal-col')
+           : VIEW[id] ? document.getElementById('pcDashboard')
+           : document.getElementById(MODAL[id]);
+    if (el && MODAL[id] && el.firstElementChild) el = el.firstElementChild;   // 모달은 안쪽 패널만 슬라이드
+    if (!el || !el.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    el.animate([{ transform: 'translateX(' + dir * 42 + 'px)', opacity: .25 }, { transform: 'none', opacity: 1 }],
+               { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  }
+
+  function go(dir) {
+    const list = ring(), i = list.findIndex(t => t.dataset.tile === cur);
+    if (i < 0) return;
+    const n = i + dir;
+    if (n < 0 || n >= list.length) { flash(list[i]); return; }     // 맨 앞/맨 뒤: 표시만
+    const next = list[n], id = next.dataset.tile;
+    closeModals();
+    if (!VIEW[id] && (B.classList.contains('mv-cal') || B.classList.contains('mv-dash'))) call('menuGoHome');
+    next.click();                                                    // 버튼 본래 동작 그대로 실행 (비밀번호창 등 포함)
+    slideIn(id, dir);
+  }
+
+  // ── 터치 제스처 ──
+  const NO_TOUCH = '[id*="Handle" i],[id*="Resize" i],[class*="resize" i],[class*="handle" i],#mhEditBar,#swNav';
+  function blocked(el) {
+    for (let n = el; n && n !== document.body; n = n.parentElement) {
+      const tg = n.tagName;
+      if (tg === 'INPUT' || tg === 'TEXTAREA' || tg === 'SELECT' || n.isContentEditable) return true;
+      if (n.matches && n.matches(NO_TOUCH)) return true;
+      const ox = getComputedStyle(n).overflowX;                       // 가로로 스크롤되는 영역(시간별 날씨 등)은 양보
+      if ((ox === 'auto' || ox === 'scroll') && n.scrollWidth > n.clientWidth + 4) return true;
+    }
+    return false;
+  }
+  let sx = 0, sy = 0, st = 0, ok = false;
+  document.addEventListener('touchstart', function (e) {
+    ok = false;
+    if (e.touches.length !== 1 || !B.classList.contains('menu-mode')) return;
+    if (B.classList.contains('mh-editing') || B.classList.contains('mh-layouting') || document.getElementById('modePick')) return;
+    if (document.querySelector('#dayDetailOverlay.show,#itemActionModal.show')) return;   // 자체 스와이프/액션창이 열려 있으면 양보
+    if (shown('deletePwModal') && cur !== 'tong') return;
+    if (!detect() || blocked(e.target)) return;
+    const t = e.touches[0];
+    if (t.clientX < EDGE || t.clientX > window.innerWidth - EDGE) return;
+    sx = t.clientX; sy = t.clientY; st = Date.now(); ok = true;
+  }, { passive: true });
+  document.addEventListener('touchmove', function (e) { if (ok && e.touches.length > 1) ok = false; }, { passive: true });
+  document.addEventListener('touchcancel', function () { ok = false; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (!ok) return; ok = false;
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) < MIN_DX || Math.abs(dy) > Math.abs(dx) * 0.6) return;        // 가로로 확실히 민 경우만
+    if (Date.now() - st > 800 && Math.abs(dx) < MIN_DX * 2) return;                // 천천히 끌기(스크롤·선택)는 무시
+    if (String(window.getSelection && window.getSelection()).length) return;      // 글자 선택 중이면 무시
+    go(dx < 0 ? 1 : -1);                                                           // 왼쪽으로 밀면 다음, 오른쪽으로 밀면 이전
+  }, { passive: true });
+})();
+</script>
 </body>
 </html>
