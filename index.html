@@ -1968,42 +1968,151 @@ body.menu-mode.mh-layouting:not(.mv-cal):not(.mv-dash) #mhLayoutPanel {
 #tarotCloseBtn:active { transform:scale(.95); }
 </style>
 <style id="wh-mode-picker">
-/* ═══ 시작 화면 (따뜻한 파스텔 × 글래스 오로라) ═══ */
-#modePick{--tx:#4a3426;--tx2:#8a6f5d;--chev:rgba(74,52,38,.35);--pill:rgba(74,52,38,.1);
+/* ═══ 시작 화면: 배경 프리셋 7종 (data-bg) · 기본 = 오로라 ═══ */
+#modePick{--tx:#4a3426;--tx2:#8a6f5d;--chev:rgba(74,52,38,.35);--hl:rgba(255,255,255,.9);
+  --glass:rgba(255,255,255,.72);--ta:rgba(255,196,140,.5);--tb:rgba(196,170,255,.5);--bda:rgba(255,255,255,.85);--bdb:rgba(255,255,255,.85);--ga:rgba(120,80,50,.16);--gb:rgba(120,80,50,.16);
+  --ico:radial-gradient(circle at 30% 25%,#fff,rgba(255,255,255,.55));--icobd:rgba(255,255,255,.95);--pillbg:rgba(255,255,255,.75);--pillbd:rgba(255,255,255,.95);
+  --bar:rgba(255,255,255,.55);--barbd:rgba(255,255,255,.8);--b1:#ffb877;--b2:#b79cff;--bo:.75;--blur:blur(22px) saturate(160%);
   position:fixed;inset:0;z-index:9800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-  padding:24px calc(20px + env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) calc(20px + env(safe-area-inset-left,0px));
-  background:linear-gradient(160deg,#fff3e2 0%,#ffe9f0 55%,#f1e8ff 100%);color:var(--tx);overflow:hidden auto;transition:opacity .3s ease;
+  padding:24px calc(20px + env(safe-area-inset-right,0px)) calc(84px + env(safe-area-inset-bottom,0px)) calc(20px + env(safe-area-inset-left,0px));
+  background:linear-gradient(160deg,#fff3e2 0%,#ffe9f0 55%,#f1e8ff 100%);color:var(--tx);overflow:hidden auto;transition:opacity .3s ease,color .3s ease;
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
-/* 오로라: 천천히 흐르는 파스텔 빛 덩어리 */
 #modePick::before,#modePick::after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(55px);pointer-events:none}
-#modePick::before{width:75vmax;height:75vmax;left:-28vmax;top:-30vmax;background:radial-gradient(circle,#ffb877 0%,rgba(255,184,119,0) 68%);opacity:.75;animation:mpA 14s ease-in-out infinite alternate}
-#modePick::after{width:70vmax;height:70vmax;right:-28vmax;bottom:-28vmax;background:radial-gradient(circle,#b79cff 0%,rgba(183,156,255,0) 68%);opacity:.7;animation:mpB 17s ease-in-out infinite alternate}
-#modePick .mp-row::before{content:"";position:absolute;z-index:-1;width:60vmin;height:60vmin;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(120,220,200,.55),rgba(120,220,200,0) 68%);filter:blur(45px);pointer-events:none}
+#modePick::before{width:75vmax;height:75vmax;left:-28vmax;top:-30vmax;background:radial-gradient(circle,var(--b1) 0%,transparent 68%);opacity:var(--bo);animation:mpA 14s ease-in-out infinite alternate}
+#modePick::after{width:70vmax;height:70vmax;right:-28vmax;bottom:-28vmax;background:radial-gradient(circle,var(--b2) 0%,transparent 68%);opacity:calc(var(--bo) - .05);animation:mpB 17s ease-in-out infinite alternate}
+#modePick .mp-row::before{content:"";position:absolute;z-index:-1;width:60vmin;height:60vmin;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(120,220,200,.55),transparent 68%);filter:blur(45px);pointer-events:none}
 #modePick.out{opacity:0;pointer-events:none}
 #modePick .mp-title{font-size:1.95rem;font-weight:800;letter-spacing:-.025em;line-height:1.2;text-align:center;margin:0;color:var(--tx);animation:mpUp .6s cubic-bezier(.2,.8,.2,1) both}
 #modePick .mp-sub{font-size:1rem;color:var(--tx2);text-align:center;margin:0 0 22px;animation:mpUp .6s .06s cubic-bezier(.2,.8,.2,1) both}
 #modePick .mp-row{position:relative;display:flex;flex-direction:column;gap:16px;width:100%;max-width:440px}
-#modePick .mp-tile{--t:rgba(255,196,140,.5);position:relative;display:flex;align-items:center;gap:16px;width:100%;min-height:104px;padding:18px 46px 18px 18px;border-radius:32px;
-  border:1.5px solid rgba(255,255,255,.85);background:linear-gradient(145deg,rgba(255,255,255,.72),var(--t));
-  -webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);color:var(--tx);font-family:inherit;text-align:left;cursor:pointer;
-  box-shadow:0 10px 28px rgba(120,80,50,.16),inset 0 1.5px 0 rgba(255,255,255,.9),inset 0 -2px 0 rgba(255,255,255,.25);
-  transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s ease;animation:mpUp .65s .12s cubic-bezier(.2,.8,.2,1) both}
-#modePick .mp-menu{--t:rgba(196,170,255,.5);animation-delay:.2s}
+#modePick .mp-tile{--t:var(--ta);--bd:var(--bda);--g:var(--ga);position:relative;display:flex;align-items:center;gap:16px;width:100%;min-height:104px;padding:18px 46px 18px 18px;border-radius:32px;
+  border:1.5px solid var(--bd);background:linear-gradient(145deg,var(--glass),var(--t));-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);color:var(--tx);font-family:inherit;text-align:left;cursor:pointer;
+  box-shadow:0 10px 28px var(--g),inset 0 1.5px 0 var(--hl);transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s ease;animation:mpUp .65s .12s cubic-bezier(.2,.8,.2,1) both}
+#modePick .mp-menu{--t:var(--tb);--bd:var(--bdb);--g:var(--gb);animation-delay:.2s}
 #modePick .mp-tile::after{content:"";position:absolute;right:20px;top:50%;width:9px;height:9px;border-top:3px solid var(--chev);border-right:3px solid var(--chev);border-radius:2px;transform:translateY(-50%) rotate(45deg)}
-#modePick .mp-tile:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(120,80,50,.22),inset 0 1.5px 0 rgba(255,255,255,.9),inset 0 -2px 0 rgba(255,255,255,.25)}
-#modePick .mp-tile:active{transform:translateY(2px) scale(.98);box-shadow:0 4px 12px rgba(120,80,50,.16),inset 0 1.5px 0 rgba(255,255,255,.9);transition-duration:.1s}
+#modePick .mp-tile:hover{transform:translateY(-3px);box-shadow:0 16px 36px var(--g),inset 0 1.5px 0 var(--hl)}
+#modePick .mp-tile:active{transform:translateY(2px) scale(.98);box-shadow:0 4px 12px var(--g),inset 0 1.5px 0 var(--hl);transition-duration:.1s}
 #modePick .mp-tile:focus-visible{outline:3px solid #8f6bff;outline-offset:3px}
-#modePick .mp-ico{flex:none;width:68px;height:68px;display:grid;place-items:center;font-size:2.15rem;line-height:1;border-radius:50%;filter:none;
-  background:radial-gradient(circle at 30% 25%,#fff,rgba(255,255,255,.55));border:1.5px solid rgba(255,255,255,.95);box-shadow:0 6px 14px rgba(120,80,50,.15),inset 0 -3px 6px rgba(255,255,255,.5)}
+#modePick .mp-ico{flex:none;width:68px;height:68px;display:grid;place-items:center;font-size:2.15rem;line-height:1;border-radius:50%;filter:none;background:var(--ico);border:1.5px solid var(--icobd);box-shadow:0 6px 14px rgba(0,0,0,.12)}
 #modePick .mp-txt{display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:0}
 #modePick .mp-name{font-size:1.25rem;font-weight:800;letter-spacing:-.02em;color:var(--tx)}
 #modePick .mp-desc{font-size:.9rem;line-height:1.42;color:var(--tx2);text-align:left}
-#modePick .mp-last{position:absolute;top:12px;right:40px;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.95);color:var(--tx2)}
+#modePick .mp-last{position:absolute;top:12px;right:40px;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--pillbg);border:1px solid var(--pillbd);color:var(--tx2)}
+
+/* ── 배경 고르기 바 ── */
+#modePick .mp-bgs{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px;padding:9px 12px;border-radius:999px;background:var(--bar);border:1px solid var(--barbd);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:2;animation:mpBar .6s .3s cubic-bezier(.2,.8,.2,1) both}
+#modePick .mp-bg{width:32px;height:32px;padding:0;border-radius:50%;border:2.5px solid transparent;cursor:pointer;background-size:cover;background-position:center;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14);transition:transform .15s}
+#modePick .mp-bg[aria-pressed="true"]{border-color:var(--tx);transform:scale(1.14)}
+#modePick .mp-bg:focus-visible{outline:3px solid #8f6bff;outline-offset:2px}
+#modePick .mp-bgname{position:fixed;left:50%;bottom:calc(68px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);font-size:.8rem;font-weight:700;color:var(--tx2);opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+#modePick .mp-bgname.on{opacity:1}
+
+/* ── ② 첫페이지 (처음 화면의 짙은 남색 + 파랑/보라 네온 테두리) ── */
+#modePick[data-bg="first"]{--tx:#fff;--tx2:rgba(225,228,255,.68);--chev:rgba(255,255,255,.4);--hl:rgba(255,255,255,.12);--glass:rgba(255,255,255,.03);--ta:rgba(60,140,255,.2);--tb:rgba(170,90,255,.2);--bda:rgba(90,165,255,.65);--bdb:rgba(185,115,255,.65);--ga:rgba(50,130,255,.3);--gb:rgba(170,90,255,.34);--ico:rgba(255,255,255,.1);--icobd:rgba(255,255,255,.2);--pillbg:#c77dff;--pillbd:transparent;--bar:rgba(30,32,56,.6);--barbd:rgba(255,255,255,.14);--b1:#3b4cff;--b2:#8a3cff;--bo:.26;
+  background:radial-gradient(75% 45% at 50% -5%,rgba(96,96,200,.38),transparent 70%),radial-gradient(60% 40% at 50% 105%,rgba(110,70,200,.22),transparent 70%),#12131b}
+#modePick[data-bg="first"] .mp-last{color:#2a0f46}
+#modePick[data-bg="first"] .mp-row::before,#modePick[data-bg="paper"] .mp-row::before,#modePick[data-bg="water"] .mp-row::before,#modePick[data-bg="sunset"] .mp-row::before,#modePick[data-bg="night"] .mp-row::before,#modePick[data-bg="note"] .mp-row::before{display:none}
+/* ── ③ 종이 ── */
+#modePick[data-bg="paper"]{--glass:rgba(255,251,240,.94);--ta:rgba(244,222,176,.7);--tb:rgba(228,214,238,.7);--bda:rgba(120,90,50,.3);--bdb:rgba(120,90,50,.3);--ga:rgba(110,80,40,.2);--gb:rgba(110,80,40,.2);--hl:rgba(255,255,255,.7);--blur:none;--ico:#fffaf0;--icobd:rgba(120,90,50,.25);--pillbg:#fffaf0;--pillbd:rgba(120,90,50,.3);--bar:rgba(250,242,222,.85);--barbd:rgba(120,90,50,.25);
+  background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(120,85,40,.24) 100%),url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22260%22 height=%22260%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.9%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3CfeColorMatrix values=%220 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .2 0 0 0 .8 -.28%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22500%22 height=%22500%22%3E%3Cfilter id=%22f%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.035 .05%22 numOctaves=%223%22 seed=%2211%22 stitchTiles=%22stitch%22/%3E%3CfeColorMatrix values=%220 0 0 0 .55 0 0 0 0 .42 0 0 0 0 .25 0 0 0 .5 -.2%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23f)%22/%3E%3C/svg%3E"),radial-gradient(90% 70% at 50% 35%,#faf2de,#efe1c3)}
+#modePick[data-bg="paper"]::before,#modePick[data-bg="paper"]::after,#modePick[data-bg="water"]::before,#modePick[data-bg="water"]::after,#modePick[data-bg="note"]::before,#modePick[data-bg="note"]::after{display:none}
+#modePick[data-bg="paper"] .mp-tile::before{content:"";position:absolute;inset:6px;border:1.5px dashed rgba(120,90,50,.28);border-radius:26px;pointer-events:none}
+/* ── ④ 수채화 ── */
+#modePick[data-bg="water"]{--glass:rgba(255,255,255,.64);--ta:rgba(246,166,184,.36);--tb:rgba(156,203,242,.42);--bda:rgba(255,255,255,.9);--bdb:rgba(255,255,255,.9);--ga:rgba(120,90,110,.16);--gb:rgba(90,110,140,.16);--bar:rgba(255,255,255,.6);
+  background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22260%22 height=%22260%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.9%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3CfeColorMatrix values=%220 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .2 0 0 0 .8 -.28%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 600 1000%22 preserveAspectRatio=%22xMidYMid slice%22%3E%3Cdefs%3E%3Cfilter id=%22w%22 x=%22-30%25%22 y=%22-30%25%22 width=%22160%25%22 height=%22160%25%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.009 .012%22 numOctaves=%224%22 seed=%225%22 result=%22t%22/%3E%3CfeDisplacementMap in=%22SourceGraphic%22 in2=%22t%22 scale=%2255%22 xChannelSelector=%22R%22 yChannelSelector=%22G%22/%3E%3CfeGaussianBlur stdDeviation=%2213%22/%3E%3C/filter%3E%3Cfilter id=%22g%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.6%22 numOctaves=%222%22 seed=%222%22 result=%22n%22/%3E%3CfeColorMatrix in=%22n%22 values=%220 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -1.6 1.1%22/%3E%3C/filter%3E%3C/defs%3E%3Crect width=%22600%22 height=%221000%22 fill=%22%23fbf6ec%22/%3E%3Cg filter=%22url(%23w)%22 style=%22mix-blend-mode:multiply%22%3E%3Cellipse cx=%22110%22 cy=%22120%22 rx=%22240%22 ry=%22200%22 fill=%22%23f7a8bd%22 fill-opacity=%22.5%22 stroke=%22%23f08aa6%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22520%22 cy=%22260%22 rx=%22230%22 ry=%22250%22 fill=%22%23a6d2f5%22 fill-opacity=%22.5%22 stroke=%22%237fb8ea%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22150%22 cy=%22520%22 rx=%22230%22 ry=%22210%22 fill=%22%23fbe39a%22 fill-opacity=%22.5%22 stroke=%22%23f2cc63%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22500%22 cy=%22760%22 rx=%22240%22 ry=%22220%22 fill=%22%23b2e2c8%22 fill-opacity=%22.5%22 stroke=%22%2386cfaa%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22130%22 cy=%22900%22 rx=%22230%22 ry=%22170%22 fill=%22%23c9b8f2%22 fill-opacity=%22.5%22 stroke=%22%23a690e6%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3C/g%3E%3Crect width=%22600%22 height=%221000%22 filter=%22url(%23g)%22 opacity=%22.5%22/%3E%3C/svg%3E") center/cover,#fbf6ec}
+/* ── ⑤ 노을 ── */
+#modePick[data-bg="sunset"]{--tx:#4a2c40;--tx2:#8c6478;--chev:rgba(74,44,64,.35);--glass:rgba(255,255,255,.6);--ta:rgba(255,214,165,.55);--tb:rgba(190,170,255,.5);--ga:rgba(120,50,90,.2);--gb:rgba(80,50,140,.2);--b1:#fff3b0;--b2:#ff7fb0;--bo:.6;
+  background:linear-gradient(170deg,#ffe3b8 0%,#ffb4b8 45%,#a98bff 100%)}
+/* ── ⑥ 밤하늘 ── */
+#modePick[data-bg="night"]{--tx:#f3f1ff;--tx2:rgba(225,222,255,.68);--chev:rgba(255,255,255,.42);--hl:rgba(255,255,255,.14);--glass:rgba(255,255,255,.07);--ta:rgba(255,200,120,.16);--tb:rgba(150,130,255,.22);--bda:rgba(255,255,255,.22);--bdb:rgba(255,255,255,.22);--ga:rgba(0,0,0,.45);--gb:rgba(0,0,0,.45);--ico:rgba(255,255,255,.1);--icobd:rgba(255,255,255,.22);--pillbg:rgba(255,255,255,.16);--pillbd:rgba(255,255,255,.22);--bar:rgba(20,22,56,.6);--barbd:rgba(255,255,255,.16);--b1:#5b48ff;--b2:#00b4ff;--bo:.3;
+  background:radial-gradient(1.6px 1.6px at 30px 40px,#fff,transparent 60%) 0 0/190px 200px,radial-gradient(1.2px 1.2px at 120px 90px,rgba(255,255,255,.8),transparent 60%) 0 0/190px 200px,radial-gradient(1.5px 1.5px at 80px 160px,#ffe9b0,transparent 60%) 0 0/190px 200px,radial-gradient(1px 1px at 50px 70px,#fff,transparent 60%) 0 0/280px 240px,radial-gradient(1.3px 1.3px at 190px 30px,rgba(200,220,255,.9),transparent 60%) 0 0/280px 240px,radial-gradient(circle at 80% 16%,rgba(255,240,200,.4) 0,rgba(255,240,200,.1) 7%,transparent 20%),linear-gradient(180deg,#0a0e2c,#1b1650 70%,#2d1f6e)}
+/* ── ⑦ 격자노트 ── */
+#modePick[data-bg="note"]{--tx:#2f3b52;--tx2:#6a7893;--chev:rgba(47,59,82,.35);--glass:rgba(255,255,255,.92);--ta:rgba(255,236,170,.75);--tb:rgba(196,226,255,.75);--bda:rgba(60,90,140,.28);--bdb:rgba(60,90,140,.28);--ga:rgba(50,70,110,.16);--gb:rgba(50,70,110,.16);--blur:none;--bar:rgba(255,255,255,.8);--barbd:rgba(60,90,140,.22);
+  background:linear-gradient(rgba(110,160,210,.3) 1px,transparent 1px) 0 0/26px 26px,linear-gradient(90deg,rgba(110,160,210,.3) 1px,transparent 1px) 0 0/26px 26px,#fffdf4}
+@media (min-aspect-ratio:1/1){#modePick[data-bg="water"]{background:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22260%22 height=%22260%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.9%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3CfeColorMatrix values=%220 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .2 0 0 0 .8 -.28%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1000 600%22 preserveAspectRatio=%22xMidYMid slice%22%3E%3Cdefs%3E%3Cfilter id=%22w%22 x=%22-30%25%22 y=%22-30%25%22 width=%22160%25%22 height=%22160%25%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.009 .012%22 numOctaves=%224%22 seed=%225%22 result=%22t%22/%3E%3CfeDisplacementMap in=%22SourceGraphic%22 in2=%22t%22 scale=%2255%22 xChannelSelector=%22R%22 yChannelSelector=%22G%22/%3E%3CfeGaussianBlur stdDeviation=%2213%22/%3E%3C/filter%3E%3Cfilter id=%22g%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.6%22 numOctaves=%222%22 seed=%222%22 result=%22n%22/%3E%3CfeColorMatrix in=%22n%22 values=%220 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -1.6 1.1%22/%3E%3C/filter%3E%3C/defs%3E%3Crect width=%221000%22 height=%22600%22 fill=%22%23fbf6ec%22/%3E%3Cg filter=%22url(%23w)%22 style=%22mix-blend-mode:multiply%22%3E%3Cellipse cx=%22120%22 cy=%22110%22 rx=%22230%22 ry=%22180%22 fill=%22%23f7a8bd%22 fill-opacity=%22.5%22 stroke=%22%23f08aa6%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22520%22 cy=%2290%22 rx=%22240%22 ry=%22200%22 fill=%22%23fbe39a%22 fill-opacity=%22.5%22 stroke=%22%23f2cc63%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22900%22 cy=%22170%22 rx=%22230%22 ry=%22230%22 fill=%22%23a6d2f5%22 fill-opacity=%22.5%22 stroke=%22%237fb8ea%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22300%22 cy=%22500%22 rx=%22260%22 ry=%22180%22 fill=%22%23b2e2c8%22 fill-opacity=%22.5%22 stroke=%22%2386cfaa%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22760%22 cy=%22520%22 rx=%22260%22 ry=%22170%22 fill=%22%23c9b8f2%22 fill-opacity=%22.5%22 stroke=%22%23a690e6%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3C/g%3E%3Crect width=%221000%22 height=%22600%22 filter=%22url(%23g)%22 opacity=%22.5%22/%3E%3C/svg%3E") center/cover,#fbf6ec}}
 @keyframes mpUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes mpBar{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
 @keyframes mpA{to{transform:translate(14vmax,10vmax) scale(1.12)}}
 @keyframes mpB{to{transform:translate(-12vmax,-10vmax) scale(1.1)}}
 @media (min-width:521px){#modePick .mp-title{font-size:2.3rem}}
-@media (prefers-reduced-motion:reduce){#modePick,#modePick .mp-tile,#modePick .mp-title,#modePick .mp-sub,#modePick::before,#modePick::after{transition:none;animation:none}}
+@media (prefers-reduced-motion:reduce){#modePick,#modePick .mp-tile,#modePick .mp-title,#modePick .mp-sub,#modePick .mp-bgs,#modePick::before,#modePick::after{transition:none;animation:none}}
+</style>
+<style id="wh-theme-bg">
+/* ═══ 앱 전체 테마 배경 (🖼️ 배경 > 🌈 테마 배경 · 시작 화면과 공용) — body[data-wh-bg] 일 때만 적용 ═══ */
+:root{--wh-grain:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22260%22 height=%22260%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.9%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3CfeColorMatrix values=%220 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .2 0 0 0 .8 -.28%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E");--wh-fiber:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22500%22 height=%22500%22%3E%3Cfilter id=%22f%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.035 .05%22 numOctaves=%223%22 seed=%2211%22 stitchTiles=%22stitch%22/%3E%3CfeColorMatrix values=%220 0 0 0 .55 0 0 0 0 .42 0 0 0 0 .25 0 0 0 .5 -.2%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23f)%22/%3E%3C/svg%3E");--wh-wcp:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 600 1000%22 preserveAspectRatio=%22xMidYMid slice%22%3E%3Cdefs%3E%3Cfilter id=%22w%22 x=%22-30%25%22 y=%22-30%25%22 width=%22160%25%22 height=%22160%25%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.009 .012%22 numOctaves=%224%22 seed=%225%22 result=%22t%22/%3E%3CfeDisplacementMap in=%22SourceGraphic%22 in2=%22t%22 scale=%2255%22 xChannelSelector=%22R%22 yChannelSelector=%22G%22/%3E%3CfeGaussianBlur stdDeviation=%2213%22/%3E%3C/filter%3E%3Cfilter id=%22g%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.6%22 numOctaves=%222%22 seed=%222%22 result=%22n%22/%3E%3CfeColorMatrix in=%22n%22 values=%220 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -1.6 1.1%22/%3E%3C/filter%3E%3C/defs%3E%3Crect width=%22600%22 height=%221000%22 fill=%22%23fbf6ec%22/%3E%3Cg filter=%22url(%23w)%22 style=%22mix-blend-mode:multiply%22%3E%3Cellipse cx=%22110%22 cy=%22120%22 rx=%22240%22 ry=%22200%22 fill=%22%23f7a8bd%22 fill-opacity=%22.5%22 stroke=%22%23f08aa6%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22520%22 cy=%22260%22 rx=%22230%22 ry=%22250%22 fill=%22%23a6d2f5%22 fill-opacity=%22.5%22 stroke=%22%237fb8ea%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22150%22 cy=%22520%22 rx=%22230%22 ry=%22210%22 fill=%22%23fbe39a%22 fill-opacity=%22.5%22 stroke=%22%23f2cc63%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22500%22 cy=%22760%22 rx=%22240%22 ry=%22220%22 fill=%22%23b2e2c8%22 fill-opacity=%22.5%22 stroke=%22%2386cfaa%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22130%22 cy=%22900%22 rx=%22230%22 ry=%22170%22 fill=%22%23c9b8f2%22 fill-opacity=%22.5%22 stroke=%22%23a690e6%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3C/g%3E%3Crect width=%22600%22 height=%221000%22 filter=%22url(%23g)%22 opacity=%22.5%22/%3E%3C/svg%3E");--wh-wcl:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1000 600%22 preserveAspectRatio=%22xMidYMid slice%22%3E%3Cdefs%3E%3Cfilter id=%22w%22 x=%22-30%25%22 y=%22-30%25%22 width=%22160%25%22 height=%22160%25%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.009 .012%22 numOctaves=%224%22 seed=%225%22 result=%22t%22/%3E%3CfeDisplacementMap in=%22SourceGraphic%22 in2=%22t%22 scale=%2255%22 xChannelSelector=%22R%22 yChannelSelector=%22G%22/%3E%3CfeGaussianBlur stdDeviation=%2213%22/%3E%3C/filter%3E%3Cfilter id=%22g%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.6%22 numOctaves=%222%22 seed=%222%22 result=%22n%22/%3E%3CfeColorMatrix in=%22n%22 values=%220 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 -1.6 1.1%22/%3E%3C/filter%3E%3C/defs%3E%3Crect width=%221000%22 height=%22600%22 fill=%22%23fbf6ec%22/%3E%3Cg filter=%22url(%23w)%22 style=%22mix-blend-mode:multiply%22%3E%3Cellipse cx=%22120%22 cy=%22110%22 rx=%22230%22 ry=%22180%22 fill=%22%23f7a8bd%22 fill-opacity=%22.5%22 stroke=%22%23f08aa6%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22520%22 cy=%2290%22 rx=%22240%22 ry=%22200%22 fill=%22%23fbe39a%22 fill-opacity=%22.5%22 stroke=%22%23f2cc63%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22900%22 cy=%22170%22 rx=%22230%22 ry=%22230%22 fill=%22%23a6d2f5%22 fill-opacity=%22.5%22 stroke=%22%237fb8ea%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22300%22 cy=%22500%22 rx=%22260%22 ry=%22180%22 fill=%22%23b2e2c8%22 fill-opacity=%22.5%22 stroke=%22%2386cfaa%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3Cellipse cx=%22760%22 cy=%22520%22 rx=%22260%22 ry=%22170%22 fill=%22%23c9b8f2%22 fill-opacity=%22.5%22 stroke=%22%23a690e6%22 stroke-opacity=%22.22%22 stroke-width=%225%22/%3E%3C/g%3E%3Crect width=%221000%22 height=%22600%22 filter=%22url(%23g)%22 opacity=%22.5%22/%3E%3C/svg%3E")}
+body[data-wh-bg]{background-image:none}
+body[data-wh-bg]::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none}
+body[data-wh-bg="aurora"]{background-color:#fff3e2;--bg2:rgba(255,255,255,.7)}
+body[data-wh-bg="aurora"]::before{background:radial-gradient(65vmax 65vmax at 0% 0%,rgba(255,184,119,.85),transparent 70%),radial-gradient(62vmax 62vmax at 100% 100%,rgba(183,156,255,.8),transparent 70%),radial-gradient(40vmax 40vmax at 55% 45%,rgba(120,220,200,.32),transparent 70%),linear-gradient(160deg,#fff3e2 0%,#ffe9f0 55%,#f1e8ff 100%)}
+body[data-wh-bg="first"]{background-color:#12131b;--bg2:rgba(26,28,48,.62)}
+body[data-wh-bg="first"]::before{background:radial-gradient(75% 45% at 50% -5%,rgba(96,96,200,.38),transparent 70%),radial-gradient(60% 40% at 50% 105%,rgba(110,70,200,.22),transparent 70%),#12131b}
+body[data-wh-bg="paper"]{background-color:#efe1c3;--bg2:rgba(255,250,236,.8)}
+body[data-wh-bg="paper"]::before{background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(120,85,40,.24) 100%),var(--wh-grain),var(--wh-fiber),radial-gradient(90% 70% at 50% 35%,#faf2de,#efe1c3)}
+body[data-wh-bg="water"]{background-color:#fbf6ec;--bg2:rgba(255,255,255,.7)}
+body[data-wh-bg="water"]::before{background:var(--wh-grain),var(--wh-wcp) center/cover,#fbf6ec}
+@media (min-aspect-ratio:1/1){body[data-wh-bg="water"]::before{background:var(--wh-grain),var(--wh-wcl) center/cover,#fbf6ec}}
+body[data-wh-bg="sunset"]{background-color:#ffb4b8;--bg2:rgba(255,255,255,.62)}
+body[data-wh-bg="sunset"]::before{background:radial-gradient(60vmax 60vmax at 0% 0%,rgba(255,243,176,.6),transparent 70%),radial-gradient(60vmax 60vmax at 100% 100%,rgba(255,127,176,.55),transparent 70%),linear-gradient(170deg,#ffe3b8 0%,#ffb4b8 45%,#a98bff 100%)}
+body[data-wh-bg="night"]{background-color:#1b1650;--bg2:rgba(30,26,84,.55)}
+body[data-wh-bg="night"]::before{background:radial-gradient(1.6px 1.6px at 30px 40px,#fff,transparent 60%) 0 0/190px 200px,radial-gradient(1.2px 1.2px at 120px 90px,rgba(255,255,255,.8),transparent 60%) 0 0/190px 200px,radial-gradient(1.5px 1.5px at 80px 160px,#ffe9b0,transparent 60%) 0 0/190px 200px,radial-gradient(1px 1px at 50px 70px,#fff,transparent 60%) 0 0/280px 240px,radial-gradient(1.3px 1.3px at 190px 30px,rgba(200,220,255,.9),transparent 60%) 0 0/280px 240px,radial-gradient(circle at 80% 16%,rgba(255,240,200,.4) 0,rgba(255,240,200,.1) 7%,transparent 20%),linear-gradient(180deg,#0a0e2c,#1b1650 70%,#2d1f6e)}
+body[data-wh-bg="note"]{background-color:#fffdf4;--bg2:rgba(255,255,255,.86)}
+body[data-wh-bg="note"]::before{background:linear-gradient(rgba(110,160,210,.3) 1px,transparent 1px) 0 0/26px 26px,linear-gradient(90deg,rgba(110,160,210,.3) 1px,transparent 1px) 0 0/26px 26px,#fffdf4}
+body[data-wh-bg] .header{background:transparent}
+</style>
+<style id="wh-theme-icons">
+/* ═══ 메뉴모드 아이콘 세트 — 배경 테마(body[data-wh-bg])별로 타일·아이콘·글자 스타일이 함께 바뀜 ═══
+   각 타일의 고유 색(--neon)은 그대로 쓰되, 배경에 맞는 재질(유리/종이/물감/별빛/메모)로 표현한다. */
+body[data-wh-bg] .mh-tile{border-radius:var(--tl-r,18px);border:var(--tl-bw,1.5px) solid var(--tl-bd);background:var(--tl-bg);box-shadow:var(--tl-sh);color:var(--tl-tx);-webkit-backdrop-filter:var(--tl-bf,none);backdrop-filter:var(--tl-bf,none);gap:6px}
+body[data-wh-bg]:not(.mh-editing) .mh-tile{animation:var(--tl-anim,none)}
+body[data-wh-bg] .mh-tile::before{inset:var(--tl-in,3px);border:var(--tl-ibd,0 solid transparent);border-radius:calc(var(--tl-r,18px) - 4px);background:var(--tl-wash,none)}
+body[data-wh-bg] .mh-tile:hover{border-color:var(--tl-bd-h,var(--tl-bd))}
+body[data-wh-bg] .mh-tile:active{animation:none;transform:translateY(2px) scale(.97);box-shadow:var(--tl-sh-a,var(--tl-sh));border-color:var(--tl-bd-h,var(--tl-bd))}
+body[data-wh-bg] .mh-ico{width:calc(var(--tl-ico,42px) * var(--mh-s,1));height:calc(var(--tl-ico,42px) * var(--mh-s,1));border-radius:var(--tl-ico-r,50%);background:var(--tl-ico-bg,none);border:var(--tl-ico-bd,0 solid transparent);box-shadow:var(--tl-ico-sh,none);filter:var(--tl-ico-f,none)}
+body[data-wh-bg] .mh-lbl{color:var(--tl-tx);text-shadow:var(--tl-lbl-sh,none);letter-spacing:0;font-weight:var(--tl-fw,800)}
+@keyframes mhGlowSoft{
+  from{box-shadow:0 0 6px color-mix(in srgb,var(--neon) 26%,transparent),inset 0 0 10px color-mix(in srgb,var(--neon) 10%,transparent)}
+  to{box-shadow:0 0 15px color-mix(in srgb,var(--neon) 50%,transparent),inset 0 0 16px color-mix(in srgb,var(--neon) 22%,transparent)}}
+
+/* ① 오로라 — 유리 구슬 */
+body[data-wh-bg="aurora"] .mh-tile{--tl-r:20px;--tl-bg:linear-gradient(150deg,rgba(255,255,255,.82),color-mix(in srgb,var(--neon) 24%,rgba(255,255,255,.55)));--tl-bd:rgba(255,255,255,.95);
+  --tl-sh:0 8px 20px color-mix(in srgb,var(--neon) 26%,transparent),0 2px 4px rgba(120,80,50,.08),inset 0 1.5px 0 #fff;--tl-sh-a:0 3px 8px color-mix(in srgb,var(--neon) 32%,transparent),inset 0 1.5px 0 #fff;
+  --tl-bf:blur(14px) saturate(160%);--tl-tx:#4a3426;--tl-wash:linear-gradient(180deg,rgba(255,255,255,.55),transparent 45%);
+  --tl-ico-bg:radial-gradient(circle at 30% 25%,#fff,rgba(255,255,255,.55));--tl-ico-bd:1.5px solid rgba(255,255,255,.95);--tl-ico-sh:0 4px 10px rgba(120,80,50,.14)}
+/* ② 첫페이지 — 남색 위 네온 외곽선 */
+body[data-wh-bg="first"] .mh-tile{--tl-r:16px;--tl-bg:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));--tl-bd:color-mix(in srgb,var(--neon) 62%,transparent);--tl-bd-h:var(--neon);
+  --tl-sh:0 0 12px color-mix(in srgb,var(--neon) 30%,transparent),inset 0 0 14px color-mix(in srgb,var(--neon) 12%,transparent);--tl-sh-a:0 0 22px color-mix(in srgb,var(--neon) 62%,transparent),inset 0 0 20px color-mix(in srgb,var(--neon) 30%,transparent);
+  --tl-tx:color-mix(in srgb,var(--neon) 40%,#fff);--tl-lbl-sh:0 0 8px color-mix(in srgb,var(--neon) 55%,transparent);--tl-anim:mhGlowSoft 3.4s ease-in-out infinite alternate;
+  --tl-wash:radial-gradient(ellipse at 50% 0,color-mix(in srgb,var(--neon) 16%,transparent),transparent 70%);
+  --tl-ico-bg:rgba(255,255,255,.07);--tl-ico-bd:1px solid rgba(255,255,255,.18);--tl-ico-f:drop-shadow(0 0 6px color-mix(in srgb,var(--neon) 70%,transparent))}
+/* ③ 종이 — 테이프 붙인 종이 카드 */
+body[data-wh-bg="paper"] .mh-tile{--tl-r:14px;--tl-bg:linear-gradient(180deg,#fffaf0,color-mix(in srgb,var(--neon) 10%,#f6ebd3));--tl-bd:rgba(120,90,50,.34);
+  --tl-sh:0 3px 0 rgba(120,90,50,.2),0 9px 14px rgba(110,80,40,.18),inset 0 1px 0 #fff;--tl-sh-a:0 1px 0 rgba(120,90,50,.2),0 3px 6px rgba(110,80,40,.18);
+  --tl-tx:#5a4030;--tl-ibd:1.5px dashed rgba(120,90,50,.3);--tl-in:4px;--tl-fw:700;
+  --tl-ico:38px;--tl-ico-r:50%;--tl-ico-f:sepia(.38) saturate(.9) drop-shadow(0 1px 1px rgba(90,60,30,.28))}
+body[data-wh-bg="paper"] .mh-tile::after{content:"";position:absolute;top:-6px;left:50%;width:30px;height:11px;transform:translateX(-50%) rotate(-4deg);border-radius:2px;pointer-events:none;
+  background:color-mix(in srgb,var(--neon) 48%,#f3e6c4);opacity:.78;box-shadow:0 1px 2px rgba(0,0,0,.14)}
+body[data-wh-bg="paper"] .mh-tile:nth-child(even)::after{transform:translateX(-50%) rotate(3deg)}
+/* ④ 수채화 — 번지는 물감 */
+body[data-wh-bg="water"] .mh-tile{--tl-r:22px;--tl-bg:radial-gradient(120% 90% at 20% 8%,color-mix(in srgb,var(--neon) 42%,rgba(255,255,255,.5)),transparent 72%),rgba(255,255,255,.6);--tl-bd:rgba(255,255,255,.92);
+  --tl-sh:0 8px 18px color-mix(in srgb,var(--neon) 20%,transparent),0 1px 3px rgba(90,70,110,.08),inset 0 1px 0 rgba(255,255,255,.95);--tl-sh-a:0 3px 8px color-mix(in srgb,var(--neon) 28%,transparent),inset 0 1px 0 #fff;
+  --tl-bf:blur(10px) saturate(140%);--tl-tx:#4b4560;--tl-wash:none;
+  --tl-ico-bg:radial-gradient(circle at 35% 30%,rgba(255,255,255,.95),rgba(255,255,255,.4));--tl-ico-bd:1px solid rgba(255,255,255,.92);--tl-ico-sh:0 3px 8px color-mix(in srgb,var(--neon) 26%,transparent);--tl-ico-f:saturate(.9)}
+/* ⑤ 노을 — 둥근 조약돌 */
+body[data-wh-bg="sunset"] .mh-tile{--tl-r:26px;--tl-bg:linear-gradient(160deg,rgba(255,255,255,.72),color-mix(in srgb,var(--neon) 30%,rgba(255,236,226,.5)));--tl-bd:rgba(255,255,255,.88);
+  --tl-sh:0 9px 22px color-mix(in srgb,var(--neon) 26%,rgba(120,40,90,.1)),inset 0 1.5px 0 rgba(255,255,255,.92);--tl-sh-a:0 3px 8px color-mix(in srgb,var(--neon) 34%,transparent),inset 0 1.5px 0 #fff;
+  --tl-bf:blur(12px) saturate(150%);--tl-tx:#5a2f4a;--tl-wash:radial-gradient(ellipse at 50% 100%,color-mix(in srgb,var(--neon) 26%,transparent),transparent 70%);
+  --tl-ico:44px;--tl-ico-bg:linear-gradient(145deg,rgba(255,255,255,.92),color-mix(in srgb,var(--neon) 38%,rgba(255,255,255,.6)));--tl-ico-bd:1.5px solid rgba(255,255,255,.9);--tl-ico-sh:0 4px 10px rgba(120,40,90,.16)}
+/* ⑥ 밤하늘 — 별빛 유리 */
+body[data-wh-bg="night"] .mh-tile{--tl-r:18px;--tl-bg:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.03));--tl-bd:rgba(255,255,255,.2);--tl-bd-h:color-mix(in srgb,var(--neon) 70%,#fff);
+  --tl-sh:0 6px 16px rgba(0,0,0,.35),0 0 12px color-mix(in srgb,var(--neon) 22%,transparent),inset 0 1px 0 rgba(255,255,255,.18);--tl-sh-a:0 0 22px color-mix(in srgb,var(--neon) 58%,transparent),inset 0 1px 0 rgba(255,255,255,.2);
+  --tl-bf:blur(10px);--tl-tx:#eceaff;--tl-lbl-sh:0 0 6px color-mix(in srgb,var(--neon) 55%,transparent);--tl-wash:none;--tl-anim:mhGlowSoft 4s ease-in-out infinite alternate;
+  --tl-ico-bg:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--neon) 30%,transparent),rgba(255,255,255,.04) 72%);--tl-ico-bd:1px solid rgba(255,255,255,.22);--tl-ico-f:drop-shadow(0 0 5px color-mix(in srgb,var(--neon) 65%,transparent))}
+/* ⑦ 격자노트 — 탭 달린 메모 카드 */
+body[data-wh-bg="note"] .mh-tile{--tl-r:6px;--tl-bg:linear-gradient(180deg,#fff,color-mix(in srgb,var(--neon) 14%,#fffef8));--tl-bd:rgba(60,90,140,.4);--tl-in:3px;
+  --tl-sh:3px 3px 0 rgba(60,90,140,.24),0 7px 10px rgba(50,70,110,.1);--tl-sh-a:1px 1px 0 rgba(60,90,140,.24);--tl-tx:#2f3b52;--tl-fw:700;
+  --tl-ico:40px;--tl-ico-r:10px;--tl-ico-bg:color-mix(in srgb,var(--neon) 26%,#fff);--tl-ico-bd:1.5px solid color-mix(in srgb,var(--neon) 55%,#4a5a78)}
+body[data-wh-bg="note"] .mh-tile::after{content:"";position:absolute;left:8px;right:8px;top:0;height:4px;border-radius:0 0 4px 4px;background:color-mix(in srgb,var(--neon) 85%,#fff);pointer-events:none}
+@media (prefers-reduced-motion:reduce){body[data-wh-bg] .mh-tile{animation:none!important}}
 </style>
 <style id="wh-voice">
 #vMic{position:fixed;z-index:9990;width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);background:#2a2d45;color:#fff;font-size:17px;line-height:1;display:none;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.45);-webkit-tap-highlight-color:transparent}
@@ -3436,6 +3545,11 @@ function final(){
       <button onclick="closeWallpaperModal()" style="background:var(--bg4);border:none;color:var(--text2);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
     <div style="padding:18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:18px;">
+
+      <div>
+        <div class="wp-section-label">🌈 테마 배경 (시작 화면·앱 전체)</div>
+        <div id="wpThemeGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;"></div>
+      </div>
 
       <div>
         <div class="wp-section-label">✨ 프리셋</div>
@@ -6130,7 +6244,47 @@ function requestItemDelete() {
 // ════════════════════════════════
 // 테마 (라이트/다크) 전환
 // ════════════════════════════════
+// ── 🌈 테마 배경 (시작 화면과 공용) ──
+const WH_THEME_BG = {
+  aurora: { n:'오로라',   tone:'light', sw:'linear-gradient(135deg,#ffb877,#ffd9ec 50%,#b79cff)' },
+  first:  { n:'첫페이지', tone:'dark',  sw:'radial-gradient(circle at 50% 0,#5a5cb8,#12131b 72%)' },
+  paper:  { n:'종이',     tone:'light', sw:'radial-gradient(circle at 50% 40%,#faf2de,#e3d2ac)' },
+  water:  { n:'수채화',   tone:'light', sw:'radial-gradient(circle at 25% 25%,#f7a8bd,transparent 55%),radial-gradient(circle at 75% 30%,#a6d2f5,transparent 55%),radial-gradient(circle at 50% 80%,#b2e2c8,transparent 60%),#fbf6ec' },
+  sunset: { n:'노을',     tone:'light', sw:'linear-gradient(170deg,#ffe3b8,#ffb4b8 50%,#a98bff)' },
+  night:  { n:'밤하늘',   tone:'dark',  sw:'radial-gradient(circle at 70% 25%,#fff 0 1.5px,transparent 2.5px),linear-gradient(180deg,#0a0e2c,#2d1f6e)' },
+  note:   { n:'격자노트', tone:'light', sw:'linear-gradient(rgba(110,160,210,.5) 1px,transparent 1px) 0 0/8px 8px,linear-gradient(90deg,rgba(110,160,210,.5) 1px,transparent 1px) 0 0/8px 8px,#fffdf4' }
+};
+// 테마 배경은 밝기(tone)에 맞춰 앱 라이트/다크도 함께 맞춘다. 해제하면 사용자가 정해 둔 라이트/다크로 복원.
+function whApplyThemeBg(id) {
+  const b = document.body, btn = document.getElementById('themeModeBtn');
+  let light;
+  if (id && WH_THEME_BG[id]) {
+    b.setAttribute('data-wh-bg', id);
+    light = WH_THEME_BG[id].tone === 'light';
+  } else {
+    b.removeAttribute('data-wh-bg');
+    light = false; try { light = localStorage.getItem('workhub_theme') === 'light'; } catch (e) {}
+  }
+  b.classList.toggle('light-mode', light);
+  if (btn) btn.textContent = light ? '🌙 다크' : '☀️ 라이트';
+}
+function whToast(msg) {
+  let el = document.getElementById('whToast');
+  if (!el) {
+    el = document.createElement('div'); el.id = 'whToast';
+    el.style.cssText = 'position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:88vw;padding:11px 16px;border-radius:14px;background:rgba(20,20,30,.88);color:#fff;font-size:.85rem;line-height:1.4;text-align:center;z-index:99999;pointer-events:none;opacity:0;transition:opacity .25s;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg; el.style.opacity = '1';
+  clearTimeout(el._t); el._t = setTimeout(() => { el.style.opacity = '0'; }, 2600);
+}
+
 function toggleTheme() {
+  const tb = document.body.getAttribute('data-wh-bg');
+  if (tb && WH_THEME_BG[tb]) {
+    whToast('「' + WH_THEME_BG[tb].n + '」 배경은 ' + (WH_THEME_BG[tb].tone === 'light' ? '밝은' : '어두운') + ' 화면 전용이에요. 🖼️ 배경에서 다른 배경을 고르면 바뀝니다');
+    return;
+  }
   const isLight = document.body.classList.toggle('light-mode');
   localStorage.setItem('workhub_theme', isLight ? 'light' : 'dark');
   document.getElementById('themeModeBtn').textContent = isLight ? '🌙 다크' : '☀️ 라이트';
@@ -6177,6 +6331,13 @@ function applyWallpaper() {
     effective = { type: cfg.mode, value: cfg.value };
   }
   const body = document.body;
+  if (effective && effective.type === 'theme' && WH_THEME_BG[effective.value]) {
+    // 🌈 테마 배경: CSS(body[data-wh-bg])가 그린다. 직접 지정했던 인라인 배경은 비운다.
+    whApplyThemeBg(effective.value);
+    ['backgroundImage','backgroundColor','backgroundAttachment','backgroundSize','backgroundPosition','backgroundRepeat'].forEach(k => { body.style[k] = ''; });
+    return;
+  }
+  whApplyThemeBg(null);
   if (!effective || !effective.value) {
     body.style.backgroundImage = '';
     body.style.backgroundColor = '';
@@ -6214,6 +6375,14 @@ function closeWallpaperIfOutside(e) {
 
 function renderWallpaperModal() {
   const cfg = loadWpConfig();
+  const tgrid = document.getElementById('wpThemeGrid');
+  if (tgrid) tgrid.innerHTML = Object.keys(WH_THEME_BG).map(id => {
+    const th = WH_THEME_BG[id], dark = th.tone === 'dark';
+    const active = (!cfg.autoRotate && cfg.mode === 'theme' && cfg.value === id);
+    return `<div class="wp-swatch" style="background:${th.sw};border:2px solid ${active ? 'var(--accent)' : 'transparent'};box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);" onclick="selectWallpaper('theme', '${id}')">
+      <span style="font-size:0.62rem;font-weight:700;color:${dark ? '#fff' : '#4a3426'};text-shadow:${dark ? '0 1px 3px rgba(0,0,0,.5)' : '0 1px 2px rgba(255,255,255,.7)'};">${th.n}</span>
+    </div>`;
+  }).join('');
   const grid = document.getElementById('wpPresetGrid');
   grid.innerHTML = WP_PRESETS.map((g, i) => {
     const active = (!cfg.autoRotate && cfg.mode === 'preset' && cfg.value === g);
@@ -6233,7 +6402,7 @@ function renderWallpaperModal() {
     gal.innerHTML = '<div style="font-size:0.75rem;color:var(--text3);padding:6px 0;">즐겨찾기에 배경을 추가하면 자동 변경 시 이 목록에서 매일 순환됩니다. (비어있으면 기본 프리셋 8종이 순환됩니다)</div>';
   } else {
     gal.innerHTML = cfg.gallery.map((g, i) => {
-      const bg = g.type === 'image' ? `url("${g.value}") center/cover` : g.value;
+      const bg = g.type === 'image' ? `url("${g.value}") center/cover` : (g.type === 'theme' ? ((WH_THEME_BG[g.value] || {}).sw || '#888') : g.value);
       return `<div class="wp-gallery-thumb" style="background:${bg};">
         <button class="wp-gallery-del" onclick="removeGalleryItem(${i})">✕</button>
       </div>`;
@@ -8727,6 +8896,62 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
     if (e.target !== cur || listening) return;
     setTimeout(function () { if (!listening && document.activeElement !== cur) { btn.classList.remove('show'); cur = null; cancelAnimationFrame(raf); raf = 0; } }, 150);
   });
+})();
+</script>
+<script>
+/* 시작 화면 배경 고르기 — 앱 전체 배경화면 설정(workhub_wallpaper의 '테마 배경')과 공유 */
+(function () {
+  'use strict';
+  var box = document.getElementById('modePick'); if (!box) return;
+  var OLD = 'workhub_mp_bg';
+  var L = [
+    ['aurora','오로라','linear-gradient(135deg,#ffb877,#ffd9ec 50%,#b79cff)'],
+    ['first','첫페이지','radial-gradient(circle at 50% 0,#5a5cb8,#12131b 72%)'],
+    ['paper','종이','radial-gradient(circle at 50% 40%,#faf2de,#e3d2ac)'],
+    ['water','수채화','radial-gradient(circle at 25% 25%,#f7a8bd,transparent 55%),radial-gradient(circle at 75% 30%,#a6d2f5,transparent 55%),radial-gradient(circle at 50% 80%,#b2e2c8,transparent 60%),#fbf6ec'],
+    ['sunset','노을','linear-gradient(170deg,#ffe3b8,#ffb4b8 50%,#a98bff)'],
+    ['night','밤하늘','radial-gradient(circle at 70% 25%,#fff 0 1.5px,transparent 2.5px),linear-gradient(180deg,#0a0e2c,#2d1f6e)'],
+    ['note','격자노트','linear-gradient(rgba(110,160,210,.5) 1px,transparent 1px) 0 0/8px 8px,linear-gradient(90deg,rgba(110,160,210,.5) 1px,transparent 1px) 0 0/8px 8px,#fffdf4']
+  ];
+  function valid(id) { return L.some(function (x) { return x[0] === id; }); }
+  function wpTheme() {
+    try { var c = loadWpConfig(); if (c && !c.autoRotate && c.mode === 'theme' && valid(c.value)) return c.value; } catch (e) {}
+    return null;
+  }
+  var cur = 'aurora', fromWp = wpTheme(), old = null;
+  try { old = localStorage.getItem(OLD); } catch (e) {}
+  if (fromWp) cur = fromWp;
+  else if (old && valid(old)) {
+    cur = old;
+    /* 예전에 시작 화면에서만 골라 둔 배경 → 앱 전체로 (직접 정한 다른 배경화면이 없을 때만) */
+    try { var c0 = loadWpConfig(); if (c0.mode === 'none' && !c0.autoRotate) selectWallpaper('theme', old); } catch (e) {}
+  }
+
+  var bar = document.createElement('div'); bar.className = 'mp-bgs'; bar.setAttribute('role', 'group'); bar.setAttribute('aria-label', '배경 선택');
+  var nm = document.createElement('div'); nm.className = 'mp-bgname'; nm.setAttribute('aria-live', 'polite');
+  var timer = null;
+  function apply(id, say) {
+    cur = id; box.setAttribute('data-bg', id);
+    var k = bar.children; for (var i = 0; i < k.length; i++) k[i].setAttribute('aria-pressed', k[i].getAttribute('data-id') === id ? 'true' : 'false');
+    if (say) { nm.textContent = L.filter(function (x) { return x[0] === id; })[0][1]; nm.classList.add('on'); clearTimeout(timer); timer = setTimeout(function () { nm.classList.remove('on'); }, 1400); }
+  }
+  L.forEach(function (x) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'mp-bg'; b.setAttribute('data-id', x[0]);
+    b.setAttribute('aria-label', x[1] + ' 배경'); b.title = x[1]; b.style.background = x[2];
+    b.addEventListener('click', function (e) {
+      e.stopPropagation(); apply(x[0], true);
+      try { localStorage.setItem(OLD, x[0]); } catch (er) {}
+      try { selectWallpaper('theme', x[0]); } catch (er) {}   /* 앱 전체에 적용 */
+    });
+    bar.appendChild(b);
+  });
+  box.appendChild(nm); box.appendChild(bar); apply(cur, false);
+
+  /* 시작 화면을 다시 열 때, 앱 안에서 바꾼 배경도 따라가게 */
+  new MutationObserver(function () {
+    if (box.classList.contains('out')) return;
+    var w = wpTheme(); if (w && w !== cur) apply(w, false);
+  }).observe(box, { attributes: true, attributeFilter: ['class'] });
 })();
 </script>
 </body>
