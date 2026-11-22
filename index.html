@@ -25,7 +25,7 @@ body.pc-mode .pc-layout-wrap {
   position: relative;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 1024px), (pointer: coarse) and (max-width: 1400px) {
   body.pc-mode .pc-layout-wrap {
     flex-direction: column !important;
     align-items: stretch !important;
@@ -822,7 +822,7 @@ body.pc-mode .calendar-grid {
   padding-top: 4px;
   justify-content: center;
 }
-@media (max-width: 600px) {
+@media (max-width: 1024px), (pointer: coarse) and (max-width: 1400px) {
   .duty-container { display: none !important; }
   .day-cell { min-height: 56px; max-height: 56px; border-radius: 10px; cursor: pointer; padding: 5px 4px; }
   .date-number { font-size: 0.82rem; }
@@ -1688,7 +1688,7 @@ body.light-mode #tgModal, body.light-mode #monthlyOverviewModal, body.light-mode
 .add-btn:active { background: var(--grad-accent); filter: brightness(.95); transform: scale(.94); }
 
 /* ── 12. 모바일 보정 ── */
-@media (max-width: 600px) {
+@media (max-width: 1024px), (pointer: coarse) and (max-width: 1400px) {
   body.pc-mode { padding: 8px 10px 120px; }
   .pc-top-quickbar { padding: 12px 14px; border-radius: 22px; }
   .calendar-grid { gap: 3px; }
@@ -1735,7 +1735,7 @@ body.light-mode #tgModal, body.light-mode #monthlyOverviewModal, body.light-mode
 }
 
 /* ── 12-b. 모바일 세로: 달력과 "일정 · 연차 조회" 보드 사이 간격 ── */
-@media (max-width: 700px) {
+@media (max-width: 1024px), (pointer: coarse) and (max-width: 1400px) {
   body.pc-mode .pc-layout-wrap { gap: 24px; }
   body.pc-mode .pc-board-col { margin-top: 0; }
 }
@@ -1745,10 +1745,28 @@ body.pc-mode .pc-board-col {
   overflow: visible;
   max-height: none;
 }
-@media (max-width: 700px) {
+@media (max-width: 1024px), (pointer: coarse) and (max-width: 1400px) {
   /* 세로 배치에서는 flex-basis(384px)가 '높이'로 적용되어 내용이 넘쳐 겹치므로 auto로 */
   body.pc-mode .pc-board-col { flex: 0 0 auto !important; min-height: 0 !important; height: auto !important; overflow: visible !important; }
   body.pc-mode .pc-cal-col { flex: 0 0 auto !important; }
+}
+
+/* ── 12-e. 태블릿: 모바일 배치를 쓰되 가운데 정렬 + 크기만 키워 정돈 ── */
+@media (min-width: 601px) and (max-width: 1024px), (min-width: 601px) and (pointer: coarse) and (max-width: 1400px) {
+  body.pc-mode .pc-layout-wrap,
+  body.pc-mode #pcDashboard { max-width: 760px; margin-left: auto; margin-right: auto; }
+  body.pc-mode .pc-top-quickbar { max-width: 760px; margin-left: auto; margin-right: auto; }
+  body.pc-mode .pc-board-col { max-width: 100% !important; }
+  .calendar-grid { gap: 5px; }
+  .day-label { font-size: .8rem; padding: 6px 0 4px; }
+  body.pc-mode .day-cell { min-height: 78px; border-radius: 14px; padding: 8px 5px 8px; gap: 4px; }
+  .date-number { font-size: .95rem; }
+  .is-today .date-number { width: 26px; height: 26px; font-size: .9rem; }
+  .holiday-name, .special-day-name { font-size: .64rem; }
+  .event-dot { width: 7px; height: 7px; }
+  #monthDisplay { font-size: 1.6rem; min-width: 150px; }
+  .nav-btn { width: 44px; height: 44px; }
+  .vacation-tag { font-size: .72rem; }
 }
 
 /* ── 12-d. 대시보드 라벨(📊 대시보드) 숨김 — 접기 버튼은 유지 ── */
@@ -1774,7 +1792,7 @@ button,[role=button],a,select,summary{touch-action:manipulation}
 [id$="Modal"]{max-height:100dvh}
 .quick-wrap{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 4px);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px)}
 @media (pointer:coarse){button,.pc-quick-link,.quick-wrap a,select{min-height:44px}}
-@media (max-width:700px){input,select,textarea{font-size:16px!important}body.pc-mode{padding:8px 10px calc(88px + var(--sab))}table{display:block;overflow-x:auto}}
+@media (max-width:1024px), (pointer:coarse) and (max-width:1400px){input,select,textarea{font-size:16px!important}body.pc-mode{padding:8px 10px calc(88px + var(--sab))}table{display:block;overflow-x:auto}}
 @supports (container-type:inline-size){.pc-cal-col{container-type:inline-size}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 @media (prefers-contrast:more){:root{--border:#8a8a94}}
@@ -1999,6 +2017,32 @@ body.menu-mode.mh-layouting:not(.mv-cal):not(.mv-dash) #mhLayoutPanel {
 #modePick .mp-desc{font-size:.9rem;line-height:1.42;color:var(--tx2);text-align:left}
 #modePick .mp-last{position:absolute;top:12px;right:40px;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--pillbg);border:1px solid var(--pillbd);color:var(--tx2)}
 
+/* ── 첫 화면 상단: 시계 · 날짜 · 날씨 ── */
+#modePick .mp-top{flex-wrap:nowrap;position:absolute;left:0;right:0;top:calc(18px + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px 12px;padding:0 calc(16px + env(safe-area-inset-right,0px)) 0 calc(16px + env(safe-area-inset-left,0px));color:var(--tx);z-index:2;animation:mpUp .6s cubic-bezier(.2,.8,.2,1) backwards}
+#modePick .mp-clock{display:flex;align-items:center;gap:8px}
+#modePick .mp-ampm{font-size:.85rem;font-weight:700;color:var(--tx2)}
+#modePick .mp-time{position:relative;display:inline-flex;align-items:center;gap:4px;--fw:38px;--fh:58px;--ff:2.5rem}
+#modePick .mp-wxi{position:absolute;right:100%;top:50%;transform:translateY(-50%);margin-right:8px;font-size:2rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.18))}
+#modePick .mp-time .fc-group{display:inline-flex;gap:4px}
+#modePick .mp-time .fc-colon{font-size:1.7rem;font-weight:800;color:var(--tx2);padding:0 1px;line-height:1}
+#modePick .mp-time .fc-digit{width:var(--fw);height:var(--fh);perspective:260px;filter:drop-shadow(0 4px 8px var(--cs,rgba(0,0,0,.22)))}
+#modePick .mp-time .fc-digit .half,#modePick .mp-time .fc-digit .leaf{height:calc(var(--fh)/2);background:linear-gradient(180deg,var(--c1,#3a3550),var(--c2,#2a2640));box-shadow:inset 0 0 0 1px var(--cb,transparent)}
+#modePick .mp-time .fc-digit .half.top,#modePick .mp-time .fc-digit .leaf.front{border-radius:7px 7px 0 0}
+#modePick .mp-time .fc-digit .half.bottom,#modePick .mp-time .fc-digit .leaf.back{border-radius:0 0 7px 7px;background:linear-gradient(180deg,var(--c3,#2a2640),var(--c4,#221f36))}
+#modePick .mp-time .fc-digit .num{height:var(--fh);line-height:var(--fh);font-size:var(--ff);font-weight:800;color:var(--ct,#fff)}
+#modePick .mp-time .fc-digit .half.bottom .num,#modePick .mp-time .fc-digit .leaf.back .num{top:calc(var(--fh)/-2)}
+#modePick .mp-time .fc-digit::after{background:var(--cl,rgba(0,0,0,.55));height:2px;margin-top:-1px}
+/* 시계 바탕색 — 배경 테마별 세트 (--c1/c2 위쪽 장, --c3/c4 아래쪽 장, --ct 숫자, --cl 접힘선, --cb 테두리, --cs 그림자) */
+#modePick[data-bg="aurora"] .mp-time{--c1:#fff4ea;--c2:#ffdcc9;--c3:#ffd0c0;--c4:#ffc0cf;--ct:#6b3f4f;--cl:rgba(150,80,90,.35);--cb:rgba(255,255,255,.9);--cs:rgba(180,100,110,.28)}
+#modePick[data-bg="first"] .mp-time{--c1:#2b2f6b;--c2:#1c1f4a;--c3:#191c43;--c4:#12142f;--ct:#fff;--cl:rgba(0,0,0,.6);--cb:rgba(120,165,255,.6);--cs:rgba(90,130,255,.45)}
+#modePick[data-bg="paper"] .mp-time{--c1:#fdf6e3;--c2:#f1e3be;--c3:#eadbb3;--c4:#decb9c;--ct:#5a4326;--cl:rgba(110,80,40,.35);--cb:rgba(170,140,90,.55);--cs:rgba(120,90,40,.25)}
+#modePick[data-bg="water"] .mp-time{--c1:#fff;--c2:#e6f2fb;--c3:#e0eef8;--c4:#f6dbe6;--ct:#46708f;--cl:rgba(70,110,150,.28);--cb:rgba(255,255,255,.95);--cs:rgba(110,150,190,.3)}
+#modePick[data-bg="sunset"] .mp-time{--c1:#ff9d8f;--c2:#f27f9a;--c3:#e97aa6;--c4:#b987e6;--ct:#fff;--cl:rgba(110,40,90,.4);--cb:rgba(255,255,255,.5);--cs:rgba(170,70,120,.35)}
+#modePick[data-bg="night"] .mp-time{--c1:#262b78;--c2:#171a55;--c3:#14174a;--c4:#0b0d33;--ct:#ffe9a8;--cl:rgba(0,0,10,.6);--cb:rgba(255,233,168,.28);--cs:rgba(120,100,255,.4)}
+#modePick[data-bg="note"] .mp-time{--c1:#fff;--c2:#f4f7fc;--c3:#eef3fa;--c4:#e2eaf5;--ct:#2f3b52;--cl:rgba(60,90,140,.4);--cb:rgba(60,90,140,.5);--cs:rgba(60,90,140,.28)}
+#modePick .mp-date{font-size:.88rem;font-weight:600;color:var(--tx2);white-space:nowrap}
+#modePick .mp-wx{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:14px;background:var(--bar);border:1px solid var(--barbd);font-size:.95rem;font-weight:800;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+@media (min-width:521px){#modePick .mp-top{top:calc(22px + env(safe-area-inset-top,0px));gap:8px 18px}#modePick .mp-time{--fw:64px;--fh:96px;--ff:4.2rem;gap:10px}#modePick .mp-time .fc-colon{font-size:3rem}#modePick .mp-wxi{font-size:3.4rem}#modePick .mp-date{font-size:1rem}#modePick .mp-wx{font-size:1.1rem;padding:6px 14px}}
 /* ── 배경 고르기 바 ── */
 #modePick .mp-bgs{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px;padding:9px 12px;border-radius:16px;background:var(--bar);border:1px solid var(--barbd);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:2;animation:mpBar .6s .3s cubic-bezier(.2,.8,.2,1) both}
 #modePick .mp-bg{width:32px;height:32px;padding:0;border-radius:10px;border:2.5px solid transparent;cursor:pointer;background-size:cover;background-position:center;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14);transition:transform .15s}
@@ -2225,6 +2269,9 @@ body[data-wh-bg="note"] .mh-tile::after{content:"";position:absolute;left:8px;ri
 </head>
 <body class="pc-mode">
 <div id="modePick" role="dialog" aria-modal="true" aria-label="모드 선택">
+  <div class="mp-top" aria-label="현재 시간과 날씨">
+    <span class="mp-time" id="mpTime"><span class="mp-wxi" id="mpWxIcon" aria-label="현재 날씨"></span><span class="fc-group" id="mpH"></span><span class="fc-colon">:</span><span class="fc-group" id="mpM"></span><span class="fc-colon">:</span><span class="fc-group" id="mpS"></span></span>
+  </div>
   <h1 class="mp-title">어떤 모드로 들어갈까요?</h1>
   <p class="mp-sub">언제든 화면 안에서 다시 바꿀 수 있어요</p>
   <div class="mp-row">
@@ -9052,6 +9099,43 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
     if (box.classList.contains('out')) return;
     var w = wpTheme(); if (w && w !== cur) apply(w, false);
   }).observe(box, { attributes: true, attributeFilter: ['class'] });
+})();
+/* 첫 화면 상단 시계/날짜/날씨 — 기본모드 상단 줄(날씨 배지)과 같은 값을 보여줌 */
+(function () {
+  'use strict';
+  var box = document.getElementById('modePick'); if (!box) return;
+  var $ = function (i) { return document.getElementById(i); };
+  /* 종이 넘김(플립) 시계 — 기본모드와 같은 .fc-digit 구조/애니메이션 */
+  function mkDigit(g) {
+    var d = document.createElement('div'); d.className = 'fc-digit';
+    d.innerHTML = '<div class="half top"><span class="num">0</span></div><div class="half bottom"><span class="num">0</span></div><div class="leaf front"><span class="num">0</span></div><div class="leaf back"><span class="num">0</span></div>';
+    g.appendChild(d);
+  }
+  ['mpH', 'mpM', 'mpS'].forEach(function (id) { var g = $(id); mkDigit(g); mkDigit(g); });
+  function setDigit(d, v, first) {
+    var t = d.querySelector('.half.top .num'), b = d.querySelector('.half.bottom .num'),
+        f = d.querySelector('.leaf.front .num'), k = d.querySelector('.leaf.back .num');
+    if (first) { t.textContent = b.textContent = f.textContent = k.textContent = v; return; }
+    if (t.textContent === v) return;
+    f.textContent = t.textContent; k.textContent = v;
+    d.classList.remove('playing'); void d.offsetWidth; d.classList.add('playing');
+    setTimeout(function () { t.textContent = v; b.textContent = v; }, 300);
+  }
+  var firstRun = true;
+  function fcSet(id, v) { var g = $(id); setDigit(g.children[0], v[0], firstRun); setDigit(g.children[1], v[1], firstRun); }
+  function tick() {
+    var n = new Date(), h = n.getHours(), h12 = h % 12 || 12, p = function (v) { return String(v).padStart(2, '0'); };
+    fcSet('mpH', p(h12)); fcSet('mpM', p(n.getMinutes())); fcSet('mpS', p(n.getSeconds()));
+  }
+  function wx() {
+    var i = $('topWeatherIcon');
+    var v = i ? i.textContent.trim() : '';
+    $('mpWxIcon').textContent = (v === '🌡️' || v === '🌡') ? '' : v;   /* 온도계(불러오는 중/알 수 없음)는 표시 안 함 */
+  }
+  tick(); firstRun = false; wx(); setInterval(function () { if (!box.classList.contains('out') && box.style.display !== 'none') tick(); }, 1000);
+  ['topWeatherIcon'].forEach(function (id) {
+    var el = $(id); if (el) new MutationObserver(wx).observe(el, { childList: true, characterData: true, subtree: true });
+  });
 })();
 </script>
 </body>
