@@ -2509,7 +2509,6 @@ body[data-wh-bg="note"] .mh-tile::after{content:"";position:absolute;left:8px;ri
 
     <div class="header">
       <div class="nav-controls">
-        <button id="themeModeBtn" onclick="toggleTheme()">☀️ 라이트</button>
         <button class="nav-btn" onclick="moveMonth(-1)">‹</button>
         <span id="monthDisplay"></span>
         <button class="nav-btn" onclick="moveMonth(1)">›</button>
@@ -2646,7 +2645,6 @@ body[data-wh-bg="note"] .mh-tile::after{content:"";position:absolute;left:8px;ri
       <a data-tile="att" class="mh-tile" href="https://weberp.airportmc.co.kr:8443/" target="_blank" rel="noopener noreferrer"><span class="mh-ico">🕐</span><span class="mh-lbl">근태</span></a>
       <a data-tile="handy" class="mh-tile" href="https://gw.airportmc.co.kr/" target="_blank" rel="noopener noreferrer"><span class="mh-ico">📟</span><span class="mh-lbl">핸디</span></a>
       <button data-tile="bg" class="mh-tile" onclick="openWallpaperModal()"><span class="mh-ico">🖼️</span><span class="mh-lbl">배경</span></button>
-      <button data-tile="theme" class="mh-tile" onclick="toggleTheme()"><span class="mh-ico">🌗</span><span class="mh-lbl">라이트/다크</span></button>
       <button data-tile="layout" class="mh-tile" onclick="toggleMenuLayout(true)"><span class="mh-ico">🎛️</span><span class="mh-lbl">크기·배열</span></button>
       <button data-tile="edit" class="mh-tile" onclick="toggleMenuEdit(true)"><span class="mh-ico">↕️</span><span class="mh-lbl">순서 편집</span></button>
       <button data-tile="reset" class="mh-tile" onclick="resetMenuOrder()"><span class="mh-ico">↕️</span><span class="mh-lbl">순서 초기화</span></button>
@@ -6438,17 +6436,16 @@ const WH_THEME_BG = {
 };
 // 테마 배경은 밝기(tone)에 맞춰 앱 라이트/다크도 함께 맞춘다. 해제하면 사용자가 정해 둔 라이트/다크로 복원.
 function whApplyThemeBg(id) {
-  const b = document.body, btn = document.getElementById('themeModeBtn');
+  const b = document.body;
   let light;
   if (id && WH_THEME_BG[id]) {
     b.setAttribute('data-wh-bg', id);
     light = WH_THEME_BG[id].tone === 'light';
   } else {
     b.removeAttribute('data-wh-bg');
-    light = false; try { light = localStorage.getItem('workhub_theme') === 'light'; } catch (e) {}
+    light = false;   /* 라이트/다크 전환 버튼은 없앰 — 테마 배경이 없으면 다크 */
   }
   b.classList.toggle('light-mode', light);
-  if (btn) btn.textContent = light ? '🌙 다크' : '☀️ 라이트';
 }
 function whToast(msg) {
   let el = document.getElementById('whToast');
@@ -6459,17 +6456,6 @@ function whToast(msg) {
   }
   el.textContent = msg; el.style.opacity = '1';
   clearTimeout(el._t); el._t = setTimeout(() => { el.style.opacity = '0'; }, 2600);
-}
-
-function toggleTheme() {
-  const tb = document.body.getAttribute('data-wh-bg');
-  if (tb && WH_THEME_BG[tb]) {
-    whToast('「' + WH_THEME_BG[tb].n + '」 배경은 ' + (WH_THEME_BG[tb].tone === 'light' ? '밝은' : '어두운') + ' 화면 전용이에요. 🖼️ 배경에서 다른 배경을 고르면 바뀝니다');
-    return;
-  }
-  const isLight = document.body.classList.toggle('light-mode');
-  localStorage.setItem('workhub_theme', isLight ? 'light' : 'dark');
-  document.getElementById('themeModeBtn').textContent = isLight ? '🌙 다크' : '☀️ 라이트';
 }
 
 // ════════════════════════════════
@@ -6679,12 +6665,6 @@ window.addEventListener('boardAPIReady', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
   sidebarMonth = new Date(current.getFullYear(), current.getMonth(), 1);
-
-  // 테마 복원
-  if (localStorage.getItem('workhub_theme') === 'light') {
-    document.body.classList.add('light-mode');
-    document.getElementById('themeModeBtn').textContent = '🌙 다크';
-  }
 
   window.renderCalendar();
 
