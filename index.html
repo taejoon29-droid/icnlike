@@ -2022,7 +2022,9 @@ body.menu-mode.mh-layouting:not(.mv-cal):not(.mv-dash) #mhLayoutPanel {
 #modePick .mp-clock{display:flex;align-items:center;gap:8px}
 #modePick .mp-ampm{font-size:.85rem;font-weight:700;color:var(--tx2)}
 #modePick .mp-time{position:relative;display:inline-flex;align-items:center;gap:4px;--fw:38px;--fh:58px;--ff:2.5rem}
-#modePick .mp-wxi{position:absolute;right:100%;top:50%;transform:translateY(-50%);margin-right:8px;font-size:2rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.18))}
+#modePick .mp-wxi{position:absolute;right:100%;top:50%;transform:translateY(-50%);margin-right:8px;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1}
+#modePick .mp-wxic{font-size:2rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.18))}
+#modePick .mp-wxt{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:8px;font-size:1.3rem;font-weight:800;color:var(--tx);white-space:nowrap;letter-spacing:-.02em;line-height:1}
 #modePick .mp-time .fc-group{display:inline-flex;gap:4px}
 #modePick .mp-time .fc-colon{font-size:1.7rem;font-weight:800;color:var(--tx2);padding:0 1px;line-height:1}
 #modePick .mp-time .fc-digit{width:var(--fw);height:var(--fh);perspective:260px;filter:drop-shadow(0 4px 8px var(--cs,rgba(0,0,0,.22)))}
@@ -2042,7 +2044,8 @@ body.menu-mode.mh-layouting:not(.mv-cal):not(.mv-dash) #mhLayoutPanel {
 #modePick[data-bg="note"] .mp-time{--c1:#fff;--c2:#f4f7fc;--c3:#eef3fa;--c4:#e2eaf5;--ct:#2f3b52;--cl:rgba(60,90,140,.4);--cb:rgba(60,90,140,.5);--cs:rgba(60,90,140,.28)}
 #modePick .mp-date{font-size:.88rem;font-weight:600;color:var(--tx2);white-space:nowrap}
 #modePick .mp-wx{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:14px;background:var(--bar);border:1px solid var(--barbd);font-size:.95rem;font-weight:800;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
-@media (min-width:521px){#modePick .mp-top{top:calc(22px + env(safe-area-inset-top,0px));gap:8px 18px}#modePick .mp-time{--fw:64px;--fh:96px;--ff:4.2rem;gap:10px}#modePick .mp-time .fc-colon{font-size:3rem}#modePick .mp-wxi{font-size:3.4rem}#modePick .mp-date{font-size:1rem}#modePick .mp-wx{font-size:1.1rem;padding:6px 14px}}
+@media (max-width:400px){#modePick .mp-time{--fw:33px;--fh:50px;--ff:2.1rem;gap:3px}#modePick .mp-time .fc-group{gap:3px}#modePick .mp-wxic{font-size:1.7rem}#modePick .mp-wxt{font-size:1.05rem;margin-left:6px}#modePick .mp-wxi{margin-right:6px}}
+@media (min-width:521px){#modePick .mp-top{top:calc(22px + env(safe-area-inset-top,0px));gap:8px 18px}#modePick .mp-time{--fw:64px;--fh:96px;--ff:4.2rem;gap:10px}#modePick .mp-time .fc-colon{font-size:3rem}#modePick .mp-wxic{font-size:3.4rem}#modePick .mp-wxt{font-size:2.2rem;margin-left:12px}#modePick .mp-wxi{margin-right:12px}#modePick .mp-date{font-size:1rem}#modePick .mp-wx{font-size:1.1rem;padding:6px 14px}}
 /* ── 배경 고르기 바 ── */
 #modePick .mp-bgs{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px;padding:9px 12px;border-radius:16px;background:var(--bar);border:1px solid var(--barbd);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:2;animation:mpBar .6s .3s cubic-bezier(.2,.8,.2,1) both}
 #modePick .mp-bg{width:32px;height:32px;padding:0;border-radius:10px;border:2.5px solid transparent;cursor:pointer;background-size:cover;background-position:center;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14);transition:transform .15s}
@@ -2270,7 +2273,7 @@ body[data-wh-bg="note"] .mh-tile::after{content:"";position:absolute;left:8px;ri
 <body class="pc-mode">
 <div id="modePick" role="dialog" aria-modal="true" aria-label="모드 선택">
   <div class="mp-top" aria-label="현재 시간과 날씨">
-    <span class="mp-time" id="mpTime"><span class="mp-wxi" id="mpWxIcon" aria-label="현재 날씨"></span><span class="fc-group" id="mpH"></span><span class="fc-colon">:</span><span class="fc-group" id="mpM"></span><span class="fc-colon">:</span><span class="fc-group" id="mpS"></span></span>
+    <span class="mp-time" id="mpTime"><span class="mp-wxi" aria-label="현재 날씨"><span class="mp-wxic" id="mpWxIcon"></span></span><span class="mp-wxt" id="mpWxTemp" aria-label="현재 온도"></span><span class="fc-group" id="mpH"></span><span class="fc-colon">:</span><span class="fc-group" id="mpM"></span><span class="fc-colon">:</span><span class="fc-group" id="mpS"></span></span>
   </div>
   <h1 class="mp-title">어떤 모드로 들어갈까요?</h1>
   <p class="mp-sub">언제든 화면 안에서 다시 바꿀 수 있어요</p>
@@ -9128,12 +9131,13 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.ge
     fcSet('mpH', p(h12)); fcSet('mpM', p(n.getMinutes())); fcSet('mpS', p(n.getSeconds()));
   }
   function wx() {
-    var i = $('topWeatherIcon');
+    var i = $('topWeatherIcon'), tt = $('topWeatherTemp'), tv = tt ? tt.textContent.trim() : '';
+    $('mpWxTemp').textContent = /\d/.test(tv) ? tv : '';
     var v = i ? i.textContent.trim() : '';
     $('mpWxIcon').textContent = (v === '🌡️' || v === '🌡') ? '' : v;   /* 온도계(불러오는 중/알 수 없음)는 표시 안 함 */
   }
   tick(); firstRun = false; wx(); setInterval(function () { if (!box.classList.contains('out') && box.style.display !== 'none') tick(); }, 1000);
-  ['topWeatherIcon'].forEach(function (id) {
+  ['topWeatherIcon', 'topWeatherTemp'].forEach(function (id) {
     var el = $(id); if (el) new MutationObserver(wx).observe(el, { childList: true, characterData: true, subtree: true });
   });
 })();
