@@ -2288,6 +2288,8 @@ body[data-wh-bg="note"] .mh-tile::after{content:"";position:absolute;left:8px;ri
 #modePick .mp-time .fc-digit .half.bottom,#modePick .mp-time .fc-digit .leaf.back{border-radius:0 0 calc(var(--fw)*.11) calc(var(--fw)*.11)}
 #modePick .mp-wxi{grid-column:1;grid-row:2;justify-self:end;padding-right:12px}
 #modePick .mp-wxt{grid-column:2;grid-row:2;justify-self:start;padding-left:12px}
+/* PC: 한눈에/런처모드 버튼을 아래로 내려 날씨와 겹치지 않게 */
+@media (min-width:521px){#modePick .mp-row{position:relative;top:56px}}
 </style>
 </head>
 <body class="pc-mode">
