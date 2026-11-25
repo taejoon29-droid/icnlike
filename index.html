@@ -2289,7 +2289,28 @@ body[data-wh-bg="note"] .mh-tile::after{content:"";position:absolute;left:8px;ri
 #modePick .mp-wxi{grid-column:1;grid-row:2;justify-self:end;padding-right:12px}
 #modePick .mp-wxt{grid-column:2;grid-row:2;justify-self:start;padding-left:12px}
 /* PC: 한눈에/런처모드 버튼을 아래로 내려 날씨와 겹치지 않게 */
-@media (min-width:521px){#modePick .mp-row{position:relative;top:56px}}
+/* PC: 시계·날씨·버튼을 한 묶음으로 가운데 배치 (시계는 적당한 크기로) */
+@media (min-width:521px){
+  #modePick{gap:0}
+  #modePick .mp-top{position:static;width:100%;max-width:760px;bottom:auto;top:auto;padding:0;margin:0 0 clamp(22px,4.5vh,44px);row-gap:clamp(8px,1.6vh,14px)}
+  #modePick .mp-time{--fw:clamp(44px,min(6.4vw,11vh),92px);--fh:calc(var(--fw)*1.5);--ff:calc(var(--fw)*1.05);gap:clamp(6px,.8vw,12px)}
+  #modePick .mp-time .fc-group{gap:clamp(3px,.4vw,6px)}
+  #modePick .mp-wxic{font-size:clamp(1.8rem,3.2vh,2.4rem)}
+  #modePick .mp-wxt{font-size:clamp(1.4rem,2.8vh,2rem)}
+  #modePick .mp-wxi{padding-right:6px}#modePick .mp-wxt{padding-left:6px}
+  #modePick .mp-row{position:relative;top:0}
+}
+</style>
+<style id="menu-topbar-center">
+/* PC 런처 홈: 상단 시계·검색·초기화면 바를 가운데로 모으고, 버튼 묶음 폭에 맞춰 길이 최적화 */
+@media (min-width:601px){
+  body.pc-mode.menu-mode:not(.mv-cal):not(.mv-dash) .pc-top-quickbar{
+    align-self:center; width:fit-content; min-width:min(100%,500px); max-width:min(100%,640px);
+    margin-left:auto; margin-right:auto; box-sizing:border-box; align-items:center;
+  }
+  body.pc-mode.menu-mode:not(.mv-cal):not(.mv-dash) .pc-quickbar-row1,
+  body.pc-mode.menu-mode:not(.mv-cal):not(.mv-dash) .pc-quickbar-row2{ justify-content:center; width:100%; }
+}
 </style>
 </head>
 <body class="pc-mode">
